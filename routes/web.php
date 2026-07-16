@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ArchiveSchemaController;
+use App\Http\Controllers\Admin\ArchiveStorageController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -23,6 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/admin/archive-schema', ArchiveSchemaController::class)
         ->middleware('owner')
         ->name('admin.archive-schema');
+
+    Route::get('/admin/archive-storage', ArchiveStorageController::class)
+        ->middleware('owner')
+        ->name('admin.archive-storage');
 });
 
 if (file_exists(__DIR__.'/settings.php')) {

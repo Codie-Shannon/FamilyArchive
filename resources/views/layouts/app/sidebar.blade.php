@@ -26,6 +26,11 @@
                         <flux:sidebar.item icon="circle-stack" :href="route('admin.archive-schema')" :current="request()->routeIs('admin.archive-schema')">
                             {{ __('Archive Schema') }}
                         </flux:sidebar.item>
+
+
+                        <flux:sidebar.item icon="folder" :href="route('admin.archive-storage')" :current="request()->routeIs('admin.archive-storage')">
+                            {{ __('Archive Storage') }}
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endif
             </flux:sidebar.nav>

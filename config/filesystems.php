@@ -47,6 +47,42 @@ return [
             'report' => false,
         ],
 
+        'archive_originals' => [
+            'driver' => 'local',
+            'root' => storage_path('app/archive/originals'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'archive_derivatives' => [
+            'driver' => 'local',
+            'root' => storage_path('app/archive/derivatives'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'archive_quarantine' => [
+            'driver' => 'local',
+            'root' => storage_path('app/archive/quarantine'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'archive_manifests' => [
+            'driver' => 'local',
+            'root' => storage_path('app/archive/manifests'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
