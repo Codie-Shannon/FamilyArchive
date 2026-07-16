@@ -2,6 +2,7 @@
 
 namespace App\Domain\Media\Models;
 
+use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use Database\Factories\MediaFileVersionFactory;
@@ -95,6 +96,12 @@ class MediaFileVersion extends Model
     public function derivatives(): HasMany
     {
         return $this->hasMany(self::class, 'parent_version_id');
+    }
+
+    /** @return HasMany<DuplicateCandidate, $this> */
+    public function matchedByDuplicateCandidates(): HasMany
+    {
+        return $this->hasMany(DuplicateCandidate::class, 'matched_media_file_version_id');
     }
 
     protected static function newFactory(): MediaFileVersionFactory

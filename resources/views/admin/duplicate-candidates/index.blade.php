@@ -1,0 +1,10 @@
+<x-layouts::app :title="__('Exact Duplicate Candidates')">
+<div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 md:p-8">
+<header><p class="text-sm text-emerald-300">Owner-only / read-only</p><h1 class="text-3xl font-semibold text-white">Exact Duplicate Candidate Queue</h1><p class="mt-2 text-zinc-400">SHA-256 equality creates a candidate for manual review. It never confirms deletion, replacement, merge or approval.</p></header>
+<section class="rounded-xl border border-amber-700 bg-amber-950/30 p-5 text-amber-100"><strong>Possible exact duplicate — manual review required.</strong> Detection reads database integrity facts only. Retained source bytes and archive objects remain untouched.</section>
+<section class="overflow-x-auto rounded-xl border border-zinc-700 bg-zinc-900"><table class="w-full min-w-[1000px] text-left text-sm"><thead class="bg-zinc-800 text-zinc-400"><tr><th class="p-4">Candidate</th><th>Source upload</th><th>Target type</th><th>Target</th><th>SHA-256</th><th>Detected</th><th>State</th></tr></thead><tbody>
+@forelse($candidates as $candidate)<tr class="border-t border-zinc-700"><td class="p-4"><a class="text-emerald-300" href="{{ route('admin.duplicate-candidates.show', $candidate) }}">DC-{{ str_pad((string)$candidate->id, 6, '0', STR_PAD_LEFT) }}</a></td><td><a class="text-emerald-300" href="{{ route('admin.photo-intake.show', $candidate->incomingUpload) }}">{{ $candidate->incomingUpload->upload_id }}</a></td><td>{{ $candidate->targetType() }}</td><td>{{ $candidate->matchedIncomingUpload?->upload_id ?? ('MediaFileVersion #'.$candidate->matched_media_file_version_id) }}</td><td><code>{{ substr($candidate->matched_sha256, 0, 12) }}…{{ substr($candidate->matched_sha256, -8) }}</code></td><td>{{ $candidate->detected_at?->format('Y-m-d H:i:s') }}</td><td class="text-amber-200">pending_review</td></tr>
+@empty<tr><td colspan="7" class="p-8 text-zinc-400">No pending exact-match candidates.</td></tr>@endforelse
+</tbody></table></section>
+<p class="text-sm text-zinc-500">No POST, PUT, PATCH or DELETE resolution route. No preview, download, replace, promotion or delete control.</p>
+</div></x-layouts::app>

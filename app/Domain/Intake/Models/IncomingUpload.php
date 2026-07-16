@@ -2,6 +2,7 @@
 
 namespace App\Domain\Intake\Models;
 
+use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Enums\IncomingProcessingStatus;
 use App\Domain\Intake\Enums\IncomingReviewStatus;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -112,6 +114,18 @@ class IncomingUpload extends Model
     public function mediaItem(): BelongsTo
     {
         return $this->belongsTo(MediaItem::class);
+    }
+
+    /** @return HasMany<DuplicateCandidate, $this> */
+    public function duplicateCandidates(): HasMany
+    {
+        return $this->hasMany(DuplicateCandidate::class);
+    }
+
+    /** @return HasMany<DuplicateCandidate, $this> */
+    public function matchedByDuplicateCandidates(): HasMany
+    {
+        return $this->hasMany(DuplicateCandidate::class, 'matched_incoming_upload_id');
     }
 
     protected static function newFactory(): IncomingUploadFactory
