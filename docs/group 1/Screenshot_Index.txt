@@ -1,0 +1,22 @@
+﻿FAMILY ARCHIVE GROUP 1 - SCREENSHOT INDEX
+
+01_Login.png
+Owner login screen.
+
+02_Owner_Dashboard.png
+Authenticated Owner dashboard with sanitized account display.
+
+03_Admin_Dashboard.png
+Archive administration dashboard with sanitized account display.
+
+04_Registration_Blocked.png
+Public registration endpoint returning HTTP 404.
+
+05_Group01_Tests_And_Build.png
+Clean proof of passing tests and production build.
+
+06_Group01_Project_Structure.png
+Project architecture, documentation, admin views and tests.
+
+07_Group01_Git_Commit.png
+Sanitized proof of the Group 1 commit and clean tracked source tree.
