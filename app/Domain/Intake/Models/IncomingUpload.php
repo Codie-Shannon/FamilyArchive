@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property IncomingReviewStatus $review_status
  * @property DuplicateStatus $duplicate_status
  * @property bool $source_file_retained
+ * @property Carbon|null $retained_at
  * @property Carbon|null $source_file_removed_at
  * @property Carbon|null $submitted_at
  * @property Carbon|null $reviewed_at
@@ -82,6 +83,7 @@ class IncomingUpload extends Model
             'review_status' => IncomingReviewStatus::class,
             'duplicate_status' => DuplicateStatus::class,
             'source_file_retained' => 'boolean',
+            'retained_at' => 'immutable_datetime',
             'source_file_removed_at' => 'immutable_datetime',
             'submitted_at' => 'immutable_datetime',
             'reviewed_at' => 'immutable_datetime',

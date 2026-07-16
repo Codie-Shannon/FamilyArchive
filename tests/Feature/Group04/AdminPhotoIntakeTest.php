@@ -22,15 +22,16 @@ it('enforces owner access', function () {
     $this->actingAs($viewer)->get('/admin/photo-intake')->assertForbidden();
     $this->actingAs($owner)->get('/admin/photo-intake')->assertOk()->assertSee('No-retention boundary');
 });
-it('creates exactly one no-retention photo record without disk writes', function () {
+it('creates exactly one validated photo record through the controlled retention boundary', function () {
     foreach (['archive_originals', 'archive_derivatives', 'archive_quarantine', 'archive_manifests'] as $d) {
         Storage::fake($d);
     } $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
     $this->actingAs($owner)->post('/admin/photo-intake', ['photo' => fictionalPng()])->assertRedirect();
     expect(IncomingUpload::count())->toBe(1);
     $u = IncomingUpload::first();
-    expect($u->upload_id)->toStartWith('UP_')->and($u->sha256)->toBeNull()->and($u->media_item_id)->toBeNull()->and($u->source_file_retained)->toBeFalse()->and($u->incoming_path)->toStartWith('incoming/');
-    foreach (['archive_originals', 'archive_derivatives', 'archive_quarantine', 'archive_manifests'] as $d) {
+    expect($u->upload_id)->toStartWith('UP_')->and($u->sha256)->toMatch('/^[a-f0-9]{64}$/')->and($u->media_item_id)->toBeNull()->and($u->source_file_retained)->toBeTrue()->and($u->incoming_path)->toStartWith('incoming/');
+    expect(Storage::disk('archive_quarantine')->allFiles())->toHaveCount(1);
+    foreach (['archive_originals', 'archive_derivatives', 'archive_manifests'] as $d) {
         expect(Storage::disk($d)->allFiles())->toBe([]);
     }
 });
@@ -45,5 +46,5 @@ it('renders read only queue and detail', function () {
     $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
     $u = IncomingUpload::factory()->create(['uploader_id' => $owner->id]);
     $this->actingAs($owner)->get('/admin/incoming-uploads')->assertOk()->assertSee($u->upload_id)->assertDontSee('Delete');
-    $this->actingAs($owner)->get('/admin/incoming-uploads/'.$u->id)->assertOk()->assertSee('source_file_retained=false')->assertSee('SHA-256:')->assertDontSee('Download');
+    $this->actingAs($owner)->get('/admin/incoming-uploads/'.$u->id)->assertOk()->assertSee('retained=')->assertSee('SHA-256:')->assertDontSee('Download');
 });

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Domain\Intake\Contracts\NoOverwriteQuarantineWriter;
+use App\Domain\Intake\Services\LocalNoOverwriteQuarantineWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(NoOverwriteQuarantineWriter::class, LocalNoOverwriteQuarantineWriter::class);
     }
 
     /**
