@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ArchivePromotionController;
 use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
@@ -23,6 +24,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/duplicate-candidates', [DuplicateCandidateController::class, 'index'])->name('duplicate-candidates.index');
         Route::get('/duplicate-candidates/{candidate}', [DuplicateCandidateController::class, 'show'])->name('duplicate-candidates.show');
         Route::post('/duplicate-candidates/{candidate}/decision', [DuplicateCandidateController::class, 'resolve'])->name('duplicate-candidates.resolve');
+        Route::get('/archive-promotions', [ArchivePromotionController::class, 'index'])->name('archive-promotions.index');
+        Route::get('/archive-promotions/{incomingUpload}', [ArchivePromotionController::class, 'show'])->name('archive-promotions.show');
+        Route::post('/archive-promotions/{incomingUpload}', [ArchivePromotionController::class, 'store'])->name('archive-promotions.store');
     });
 });
 if (file_exists(__DIR__.'/settings.php')) {

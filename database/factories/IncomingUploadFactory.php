@@ -6,6 +6,7 @@ use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Enums\IncomingProcessingStatus;
 use App\Domain\Intake\Enums\IncomingReviewStatus;
 use App\Domain\Intake\Models\IncomingUpload;
+use App\Domain\Media\Enums\MediaType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -33,6 +34,7 @@ class IncomingUploadFactory extends Factory
             ]),
             'reviewed_by' => null,
             'media_item_id' => null,
+            'media_type' => MediaType::Photo,
             'original_filename' => 'fictional-upload-'.$token.'.jpg',
             'incoming_path' => 'demo/intake/fictional-upload-'.$token.'.jpg',
             'mime_type' => 'image/jpeg',
@@ -47,6 +49,7 @@ class IncomingUploadFactory extends Factory
             'review_status' => IncomingReviewStatus::PendingReview,
             'duplicate_status' => DuplicateStatus::NotChecked,
             'source_file_retained' => true,
+            'retained_at' => now(),
             'source_file_removed_at' => null,
             'submitted_at' => now(),
             'reviewed_at' => null,

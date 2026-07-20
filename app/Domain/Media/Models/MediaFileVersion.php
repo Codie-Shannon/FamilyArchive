@@ -2,6 +2,7 @@
 
 namespace App\Domain\Media\Models;
 
+use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -102,6 +104,13 @@ class MediaFileVersion extends Model
     public function matchedByDuplicateCandidates(): HasMany
     {
         return $this->hasMany(DuplicateCandidate::class, 'matched_media_file_version_id');
+    }
+
+
+    /** @return HasOne<ArchivePromotion, $this> */
+    public function archivePromotion(): HasOne
+    {
+        return $this->hasOne(ArchivePromotion::class, 'original_media_file_version_id');
     }
 
     protected static function newFactory(): MediaFileVersionFactory

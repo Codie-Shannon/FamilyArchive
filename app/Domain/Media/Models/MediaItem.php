@@ -2,6 +2,7 @@
 
 namespace App\Domain\Media\Models;
 
+use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\MediaReviewStatus;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -104,6 +106,13 @@ class MediaItem extends Model
     public function incomingUploads(): HasMany
     {
         return $this->hasMany(IncomingUpload::class);
+    }
+
+
+    /** @return HasOne<ArchivePromotion, $this> */
+    public function archivePromotion(): HasOne
+    {
+        return $this->hasOne(ArchivePromotion::class);
     }
 
     protected static function newFactory(): MediaItemFactory

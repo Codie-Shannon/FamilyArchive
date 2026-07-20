@@ -6,6 +6,8 @@ use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Enums\IncomingProcessingStatus;
 use App\Domain\Intake\Enums\IncomingReviewStatus;
+use App\Domain\Archive\Models\ArchivePromotion;
+use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaItem;
 use App\Models\User;
 use Database\Factories\IncomingUploadFactory;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -22,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int $uploader_id
  * @property int|null $reviewed_by
  * @property int|null $media_item_id
+ * @property MediaType $media_type
  * @property string $original_filename
  * @property string|null $incoming_path
  * @property string $mime_type
@@ -48,6 +52,7 @@ use Illuminate\Support\Carbon;
     'uploader_id',
     'reviewed_by',
     'media_item_id',
+    'media_type',
     'original_filename',
     'incoming_path',
     'mime_type',
@@ -62,6 +67,7 @@ use Illuminate\Support\Carbon;
     'review_status',
     'duplicate_status',
     'source_file_retained',
+    'retained_at',
     'source_file_removed_at',
     'submitted_at',
     'reviewed_at',
@@ -81,6 +87,7 @@ class IncomingUpload extends Model
             'width' => 'integer',
             'height' => 'integer',
             'duration_ms' => 'integer',
+            'media_type' => MediaType::class,
             'processing_status' => IncomingProcessingStatus::class,
             'review_status' => IncomingReviewStatus::class,
             'duplicate_status' => DuplicateStatus::class,
@@ -126,6 +133,13 @@ class IncomingUpload extends Model
     public function matchedByDuplicateCandidates(): HasMany
     {
         return $this->hasMany(DuplicateCandidate::class, 'matched_incoming_upload_id');
+    }
+
+
+    /** @return HasOne<ArchivePromotion, $this> */
+    public function archivePromotion(): HasOne
+    {
+        return $this->hasOne(ArchivePromotion::class);
     }
 
     protected static function newFactory(): IncomingUploadFactory
