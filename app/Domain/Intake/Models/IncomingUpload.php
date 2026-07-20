@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $width
  * @property int|null $height
  * @property int|null $duration_ms
- * @property string $sha256
+ * @property string|null $sha256
  * @property string|null $perceptual_hash
  * @property IncomingProcessingStatus $processing_status
  * @property IncomingReviewStatus $review_status

@@ -38,7 +38,7 @@ final class PhotoIntakeValidator
             $this->fail('photo', $e->getMessage());
         }
         $image = @getimagesize($path);
-        if ($image === false || ! isset($image[0],$image[1],$image['mime']) || $image['mime'] !== $mime) {
+        if ($image === false || $image['mime'] !== $mime) {
             $this->fail('photo', 'A readable image header matching the detected MIME type is required.');
         }
         $w = (int) $image[0];
