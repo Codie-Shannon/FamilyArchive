@@ -15,6 +15,7 @@
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>
+    <flux:navlist.item icon="photo" :href="route('admin.viewing-derivatives.index')" :current="request()->routeIs('admin.viewing-derivatives.*')" wire:navigate>{{ __('Viewing Derivatives') }}</flux:navlist.item>
    @endif
   </flux:navlist.group>
  </flux:navlist>

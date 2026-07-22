@@ -1,0 +1,13 @@
+<x-layouts::app :title="__('Viewing Derivatives')"><div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 md:p-8">
+<header><p class="text-sm text-emerald-300">Owner-only / private viewing copies</p><h1 class="text-3xl font-semibold text-white">Safe WebP derivatives</h1><p class="mt-2 text-zinc-400">Generate one web display and one thumbnail from a verified approved photo original.</p></header>
+<section class="rounded-xl border border-amber-700 bg-amber-950/30 p-5 text-amber-100"><strong>Original-preservation boundary:</strong> the original is never modified, moved, replaced, re-encoded or exposed. Group 09 writes only private no-overwrite derivatives.</section>
+<section class="overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900"><div class="border-b border-zinc-700 px-5 py-4"><h2 class="text-xl font-semibold text-white">Approved photo originals</h2><p class="text-sm text-zinc-400">{{ $eligible->count() }} eligible item(s)</p></div><div class="overflow-x-auto"><table class="w-full min-w-[900px] text-left text-sm"><thead class="bg-zinc-800 text-zinc-400"><tr><th class="p-4">Archive ID</th><th>Original</th><th>Web display</th><th>Thumbnail</th><th>Action</th></tr></thead><tbody>
+@forelse($eligible as $item)
+@php($original = $item->fileVersions->first(fn($version) => $version->version_type->value === 'original' && $version->is_preferred))
+@php($web = $item->fileVersions->first(fn($version) => $version->version_type->value === 'web_display' && $version->is_preferred))
+@php($thumb = $item->fileVersions->first(fn($version) => $version->version_type->value === 'thumbnail' && $version->is_preferred))
+<tr class="border-t border-zinc-700"><td class="p-4"><a class="text-emerald-300" href="{{ route('admin.viewing-derivatives.show', $item) }}">{{ $item->archive_id }}</a></td><td>{{ $original?->width }} × {{ $original?->height }} / ready</td><td>{{ $web ? $web->width.' × '.$web->height.' / ready' : 'not generated' }}</td><td>{{ $thumb ? $thumb->width.' × '.$thumb->height.' / ready' : 'not generated' }}</td><td><a class="text-emerald-300" href="{{ route('admin.viewing-derivatives.show', $item) }}">Review recipe</a></td></tr>
+@empty<tr><td colspan="5" class="p-8 text-zinc-400">No approved photo original is eligible.</td></tr>@endforelse
+</tbody></table></div></section>
+<section class="rounded-xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Actions that do not exist</h2><p class="mt-3 text-zinc-400">No original download, public URL, edited-full generation, batch processing, overwrite, replacement, deletion or metadata-copy control exists.</p></section>
+</div></x-layouts::app>

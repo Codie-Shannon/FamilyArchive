@@ -18,6 +18,14 @@ return [
         MediaFileVersionType::EditedFull->value => 'edited-full', MediaFileVersionType::WebDisplay->value => 'web-display', MediaFileVersionType::Thumbnail->value => 'thumbnails',
         MediaFileVersionType::VideoStream->value => 'video-stream', MediaFileVersionType::VideoPreview->value => 'video-preview', MediaFileVersionType::DocumentPreview->value => 'document-preview',
     ],
+    'photo_derivatives' => [
+        'max_source_bytes' => 104857600,
+        'max_source_pixels' => 80000000,
+        'targets' => [
+            MediaFileVersionType::WebDisplay->value => ['max_long_side' => 2000, 'quality' => 82],
+            MediaFileVersionType::Thumbnail->value => ['max_long_side' => 480, 'quality' => 72],
+        ],
+    ],
     'photo_intake' => [
         'max_bytes' => 104857600,
         'max_width' => 40000,

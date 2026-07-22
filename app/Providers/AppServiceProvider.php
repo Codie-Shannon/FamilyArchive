@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Domain\Archive\Contracts\NoOverwriteOriginalWriter;
 use App\Domain\Archive\Services\LocalNoOverwriteOriginalWriter;
+use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
+use App\Domain\Derivatives\Services\LocalNoOverwriteDerivativeWriter;
 use App\Domain\Intake\Contracts\NoOverwriteQuarantineWriter;
 use App\Domain\Intake\Services\LocalNoOverwriteQuarantineWriter;
 use Carbon\CarbonImmutable;
@@ -21,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(NoOverwriteQuarantineWriter::class, LocalNoOverwriteQuarantineWriter::class);
         $this->app->bind(NoOverwriteOriginalWriter::class, LocalNoOverwriteOriginalWriter::class);
+        $this->app->bind(NoOverwriteDerivativeWriter::class, LocalNoOverwriteDerivativeWriter::class);
     }
 
     /**

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
+use App\Http\Controllers\Admin\ViewingDerivativeController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -27,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/archive-promotions', [ArchivePromotionController::class, 'index'])->name('archive-promotions.index');
         Route::get('/archive-promotions/{incomingUpload}', [ArchivePromotionController::class, 'show'])->name('archive-promotions.show');
         Route::post('/archive-promotions/{incomingUpload}', [ArchivePromotionController::class, 'store'])->name('archive-promotions.store');
+        Route::get('/viewing-derivatives', [ViewingDerivativeController::class, 'index'])->name('viewing-derivatives.index');
+        Route::get('/viewing-derivatives/preview/{version}', [ViewingDerivativeController::class, 'preview'])->name('viewing-derivatives.preview');
+        Route::get('/viewing-derivatives/{mediaItem}', [ViewingDerivativeController::class, 'show'])->name('viewing-derivatives.show');
+        Route::post('/viewing-derivatives/{mediaItem}', [ViewingDerivativeController::class, 'store'])->name('viewing-derivatives.store');
     });
 });
 if (file_exists(__DIR__.'/settings.php')) {
