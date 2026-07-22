@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
+use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
         Route::get('/archive/photos/{mediaItem}/edit', [PhotoMetadataController::class, 'edit'])->name('archive.photos.metadata.edit');
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');
+        Route::get('/archive/photos/{mediaItem}/history', [PhotoMetadataHistoryController::class, 'index'])->name('archive.photos.metadata.history');
+        Route::get('/archive/photos/{mediaItem}/history/{revision}', [PhotoMetadataHistoryController::class, 'show'])->name('archive.photos.metadata.history.show');
         Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
     });
     Route::view('/admin', 'admin.dashboard')->middleware('owner')->name('admin.dashboard');
