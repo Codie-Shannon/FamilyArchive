@@ -9,6 +9,7 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Enums\SensitivityStatus;
+use App\Domain\Metadata\Models\PhotoMetadataRevision;
 use App\Models\User;
 use Database\Factories\MediaItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -36,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $approved_by
  * @property Carbon|null $approved_at
  * @property Carbon|null $created_at
+ * @property int $metadata_revision
  * @property Carbon|null $updated_at
  */
 #[Fillable([
@@ -53,6 +55,7 @@ use Illuminate\Support\Carbon;
     'created_by',
     'approved_by',
     'approved_at',
+    'metadata_revision',
 ])]
 class MediaItem extends Model
 {
@@ -73,6 +76,7 @@ class MediaItem extends Model
             'review_status' => MediaReviewStatus::class,
             'sensitivity_status' => SensitivityStatus::class,
             'approved_at' => 'immutable_datetime',
+            'metadata_revision' => 'integer',
         ];
     }
 
@@ -101,13 +105,20 @@ class MediaItem extends Model
     }
 
     /**
+     * @return HasMany<PhotoMetadataRevision, $this>
+     */
+    public function metadataRevisions(): HasMany
+    {
+        return $this->hasMany(PhotoMetadataRevision::class);
+    }
+
+    /**
      * @return HasMany<IncomingUpload, $this>
      */
     public function incomingUploads(): HasMany
     {
         return $this->hasMany(IncomingUpload::class);
     }
-
 
     /** @return HasOne<ArchivePromotion, $this> */
     public function archivePromotion(): HasOne
