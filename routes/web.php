@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
+use App\Http\Controllers\Archive\ArchiveBrowseController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -14,6 +15,7 @@ Route::match(['get', 'post'], '/register', function (): never {
 })->name('register');
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/archive', [ArchiveBrowseController::class, 'index'])->middleware('owner')->name('archive.index');
     Route::view('/admin', 'admin.dashboard')->middleware('owner')->name('admin.dashboard');
     Route::get('/admin/archive-schema', ArchiveSchemaController::class)->middleware('owner')->name('admin.archive-schema');
     Route::get('/admin/archive-storage', ArchiveStorageController::class)->middleware('owner')->name('admin.archive-storage');
