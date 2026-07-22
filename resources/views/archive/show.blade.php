@@ -1,0 +1,17 @@
+<x-layouts::app :title="$photo->title">
+<div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-8">
+    <header><a href="{{ route('archive.index') }}" class="inline-flex items-center gap-2 text-sm font-medium text-emerald-300 hover:text-emerald-200">← Back to private archive</a><p class="mt-5 text-xs font-semibold uppercase tracking-wider text-emerald-300">{{ $photo->archiveId }}</p><h1 class="mt-1 text-3xl font-semibold text-white">{{ $photo->title }}</h1></header>
+    <section class="overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950">
+        @if($photo->webDisplayVersionId)
+            <img src="{{ route('archive.derivatives.preview', $photo->webDisplayVersionId) }}" alt="Private web display for {{ $photo->archiveId }}" class="max-h-[70vh] w-full object-contain">
+        @else
+            <div class="flex min-h-[420px] flex-col items-center justify-center gap-4 p-10 text-center"><span class="text-6xl text-zinc-600">◇</span><h2 class="text-2xl font-semibold text-white">Web display unavailable</h2><p class="max-w-lg text-zinc-400">This approved record has a {{ str_replace('_', ' ', $photo->webDisplayStatus) }} state. The archive will not substitute the original or thumbnail and browsing causes no generation side effect.</p></div>
+        @endif
+    </section>
+    <section class="grid gap-5 lg:grid-cols-2">
+        <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Approved descriptive metadata</h2><dl class="mt-5 space-y-4 text-sm"><div><dt class="text-zinc-500">Description</dt><dd class="mt-1 text-zinc-200">{{ $photo->metadata['description'] ?: 'No approved description recorded.' }}</dd></div><div><dt class="text-zinc-500">Story</dt><dd class="mt-1 text-zinc-200">{{ $photo->metadata['story'] ?: 'No approved story recorded.' }}</dd></div><div class="grid grid-cols-2 gap-4"><div><dt class="text-zinc-500">Date</dt><dd class="mt-1 text-zinc-200">{{ $photo->metadata['date'] }}</dd></div><div><dt class="text-zinc-500">Confidence</dt><dd class="mt-1 text-zinc-200">{{ $photo->metadata['date_confidence'] }}</dd></div></div></dl></article>
+        <article class="rounded-xl border border-emerald-800 bg-emerald-950/20 p-6"><h2 class="text-xl font-semibold text-white">Preservation summary</h2><dl class="mt-5 grid grid-cols-2 gap-4 text-sm"><dt class="text-zinc-400">Archive record</dt><dd class="text-emerald-200">approved</dd><dt class="text-zinc-400">Preferred original</dt><dd class="text-emerald-200">{{ $photo->originalStatus }}</dd><dt class="text-zinc-400">Web display</dt><dd>{{ str_replace('_', ' ', $photo->webDisplayStatus) }}</dd><dt class="text-zinc-400">Thumbnail</dt><dd>{{ str_replace('_', ' ', $photo->thumbnailStatus) }}</dd><dt class="text-zinc-400">Lineage</dt><dd>derived from verified preferred original</dd><dt class="text-zinc-400">Recipe</dt><dd>{{ $photo->recipeLabel }}</dd></dl></article>
+    </section>
+    <section class="rounded-xl border border-amber-700 bg-amber-950/25 p-5 text-sm text-amber-100"><strong>Original privacy preserved:</strong> this page contains no original filename, storage path, hash, intake identifier, download route or mutation control.</section>
+</div>
+</x-layouts::app>
