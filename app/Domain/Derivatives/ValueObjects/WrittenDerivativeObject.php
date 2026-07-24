@@ -8,6 +8,5 @@ final readonly class WrittenDerivativeObject
         public string $relativePath,
         public int $bytes,
         public string $sha256,
-    ) {
-    }
+    ) {}
 }

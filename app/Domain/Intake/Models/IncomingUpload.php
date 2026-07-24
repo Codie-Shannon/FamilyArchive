@@ -2,11 +2,11 @@
 
 namespace App\Domain\Intake\Models;
 
+use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Enums\IncomingProcessingStatus;
 use App\Domain\Intake\Enums\IncomingReviewStatus;
-use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaItem;
 use App\Models\User;
@@ -134,7 +134,6 @@ class IncomingUpload extends Model
     {
         return $this->hasMany(DuplicateCandidate::class, 'matched_incoming_upload_id');
     }
-
 
     /** @return HasOne<ArchivePromotion, $this> */
     public function archivePromotion(): HasOne

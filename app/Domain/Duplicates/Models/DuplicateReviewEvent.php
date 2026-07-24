@@ -14,8 +14,8 @@ final class DuplicateReviewEvent extends Model
 {
     protected static function booted(): void
     {
-        static::updating(fn (): never => throw new LogicException('Duplicate review events are immutable.'));
-        static::deleting(fn (): never => throw new LogicException('Duplicate review events are immutable.'));
+        self::updating(fn (): never => throw new LogicException('Duplicate review events are immutable.'));
+        self::deleting(fn (): never => throw new LogicException('Duplicate review events are immutable.'));
     }
 
     protected function casts(): array
@@ -29,7 +29,14 @@ final class DuplicateReviewEvent extends Model
     }
 
     /** @return BelongsTo<DuplicateCandidate, $this> */
-    public function candidate(): BelongsTo { return $this->belongsTo(DuplicateCandidate::class, 'duplicate_candidate_id'); }
+    public function candidate(): BelongsTo
+    {
+        return $this->belongsTo(DuplicateCandidate::class, 'duplicate_candidate_id');
+    }
+
     /** @return BelongsTo<User, $this> */
-    public function actor(): BelongsTo { return $this->belongsTo(User::class, 'actor_id'); }
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'actor_id');
+    }
 }

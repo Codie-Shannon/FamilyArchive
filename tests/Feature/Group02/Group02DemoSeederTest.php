@@ -7,7 +7,7 @@ use Database\Seeders\Group02DemoSeeder;
 
 it('refuses to seed outside the local environment', function (): void {
     expect(fn () => $this->seed(Group02DemoSeeder::class))
-        ->toThrow(\RuntimeException::class, 'only in the local environment');
+        ->toThrow(RuntimeException::class, 'only in the local environment');
 });
 
 it('seeds a stable fictional relationship set idempotently in local', function (): void {
@@ -45,7 +45,7 @@ it('refuses to mix demo records into a database containing non-demo media', func
 
     try {
         expect(fn () => $this->seed(Group02DemoSeeder::class))
-            ->toThrow(\RuntimeException::class, 'non-demo media records exist');
+            ->toThrow(RuntimeException::class, 'non-demo media records exist');
     } finally {
         app()->instance('env', $originalEnvironment);
     }

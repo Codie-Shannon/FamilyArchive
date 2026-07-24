@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 final class DetectExactDuplicateCandidatesCommand extends Command
 {
     protected $signature = 'archive:detect-exact-duplicates {upload : IncomingUpload database ID or upload_id}';
+
     protected $description = 'Create pending manual-review candidates from stored exact SHA-256 facts without reading media bytes.';
 
     public function handle(DetectExactDuplicateCandidates $detector): int

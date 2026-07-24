@@ -12,6 +12,5 @@ final readonly class PhotoDerivativeGenerationResult
         public MediaFileVersion $thumbnail,
         public bool $createdWebDisplay,
         public bool $createdThumbnail,
-    ) {
-    }
+    ) {}
 }

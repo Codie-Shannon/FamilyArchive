@@ -2,6 +2,7 @@
 
 namespace App\Domain\Derivatives\Actions;
 
+use App\Domain\Archive\Enums\ArchiveStorageDisk;
 use App\Domain\Archive\Services\ArchiveStoragePath;
 use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
@@ -29,8 +30,7 @@ final class GeneratePhotoViewingDerivatives
         private PhotoDerivativeRecipe $recipe,
         private GdPhotoDerivativeEncoder $encoder,
         private NoOverwriteDerivativeWriter $writer,
-    ) {
-    }
+    ) {}
 
     public function handle(MediaItem $mediaItem, User $actor): PhotoDerivativeGenerationResult
     {
@@ -73,7 +73,7 @@ final class GeneratePhotoViewingDerivatives
 
         /** @var array<string, EncodedDerivative> $encoded */
         $encoded = [];
-        /** @var array<string, array{disk: \App\Domain\Archive\Enums\ArchiveStorageDisk, path: string}> $targets */
+        /** @var array<string, array{disk: ArchiveStorageDisk, path: string}> $targets */
         $targets = [];
 
         foreach ($this->recipe->types() as $type) {
@@ -203,8 +203,7 @@ final class GeneratePhotoViewingDerivatives
         try {
             $this->assertEligibleItem($mediaItem);
             $original = $mediaItem->fileVersions
-                ->first(fn (MediaFileVersion $version): bool =>
-                    $version->version_type === MediaFileVersionType::Original
+                ->first(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Original
                     && $version->generation_status === GenerationStatus::Ready
                     && $version->is_preferred
                 );

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Enums\IncomingProcessingStatus;
 use App\Domain\Intake\Enums\IncomingReviewStatus;

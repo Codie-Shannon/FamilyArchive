@@ -38,8 +38,7 @@ final class ViewingDerivativeController extends Controller
     public function show(MediaItem $mediaItem, GeneratePhotoViewingDerivatives $generator): View
     {
         $mediaItem->load(['fileVersions.parentVersion']);
-        $original = $mediaItem->fileVersions->first(fn (MediaFileVersion $version): bool =>
-            $version->version_type === MediaFileVersionType::Original
+        $original = $mediaItem->fileVersions->first(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Original
             && $version->generation_status === GenerationStatus::Ready
             && $version->is_preferred
         );

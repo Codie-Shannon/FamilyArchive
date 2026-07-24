@@ -11,6 +11,7 @@ function group07AccessCandidate(): DuplicateCandidate
     $hash = hash('sha256', 'group-07-access');
     $source = IncomingUpload::factory()->create(['sha256' => $hash]);
     $target = IncomingUpload::factory()->create(['sha256' => $hash]);
+
     return DuplicateCandidate::query()->create([
         'incoming_upload_id' => $source->id,
         'matched_incoming_upload_id' => $target->id,

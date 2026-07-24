@@ -13,6 +13,5 @@ final readonly class EncodedDerivative
         public int $sourceOrientation,
         public bool $orientationApplied,
         public string $encoder,
-    ) {
-    }
+    ) {}
 }

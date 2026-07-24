@@ -95,7 +95,10 @@ it('rolls back candidate source and event on injected failure', function () {
 
 it('does not mutate private storage', function () {
     $disks = ['archive_originals', 'archive_derivatives', 'archive_quarantine', 'archive_manifests'];
-    foreach ($disks as $disk) { Storage::fake($disk); Storage::disk($disk)->put('proof/unchanged.txt', 'unchanged'); }
+    foreach ($disks as $disk) {
+        Storage::fake($disk);
+        Storage::disk($disk)->put('proof/unchanged.txt', 'unchanged');
+    }
     $before = collect($disks)->mapWithKeys(fn ($disk) => [$disk => hash('sha256', Storage::disk($disk)->get('proof/unchanged.txt'))])->all();
     $candidate = group07Candidate('storage');
     app(ResolveDuplicateCandidate::class)->handle($candidate, DuplicateReviewDecision::ConfirmedDuplicate, null, User::factory()->create(['role' => 'owner']));

@@ -22,5 +22,5 @@ it('adds the photo media type and restrictive immutable promotion audit schema',
             'promoted_at',
         ]))->toBeTrue();
 
-    expect((new ArchivePromotion())->getTable())->toBe('archive_promotions');
+    expect((new ArchivePromotion)->getTable())->toBe('archive_promotions');
 });

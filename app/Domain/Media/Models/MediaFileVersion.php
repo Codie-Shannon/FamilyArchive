@@ -106,7 +106,6 @@ class MediaFileVersion extends Model
         return $this->hasMany(DuplicateCandidate::class, 'matched_media_file_version_id');
     }
 
-
     /** @return HasOne<ArchivePromotion, $this> */
     public function archivePromotion(): HasOne
     {

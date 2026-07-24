@@ -3,7 +3,6 @@
 use App\Domain\Metadata\Actions\UpdatePhotoMetadata;
 use App\Domain\Metadata\Models\PhotoMetadataRevision;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use LogicException;
 
 uses(RefreshDatabase::class);
 it('shows owner-only immutable history and safe before after values', function () {

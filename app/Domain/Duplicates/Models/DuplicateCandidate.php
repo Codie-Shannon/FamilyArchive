@@ -39,15 +39,34 @@ class DuplicateCandidate extends Model
     }
 
     /** @return BelongsTo<IncomingUpload, $this> */
-    public function incomingUpload(): BelongsTo { return $this->belongsTo(IncomingUpload::class); }
+    public function incomingUpload(): BelongsTo
+    {
+        return $this->belongsTo(IncomingUpload::class);
+    }
+
     /** @return BelongsTo<IncomingUpload, $this> */
-    public function matchedIncomingUpload(): BelongsTo { return $this->belongsTo(IncomingUpload::class, 'matched_incoming_upload_id'); }
+    public function matchedIncomingUpload(): BelongsTo
+    {
+        return $this->belongsTo(IncomingUpload::class, 'matched_incoming_upload_id');
+    }
+
     /** @return BelongsTo<MediaFileVersion, $this> */
-    public function matchedMediaFileVersion(): BelongsTo { return $this->belongsTo(MediaFileVersion::class, 'matched_media_file_version_id'); }
+    public function matchedMediaFileVersion(): BelongsTo
+    {
+        return $this->belongsTo(MediaFileVersion::class, 'matched_media_file_version_id');
+    }
+
     /** @return BelongsTo<User, $this> */
-    public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewed_by'); }
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
     /** @return HasMany<DuplicateReviewEvent, $this> */
-    public function reviewEvents(): HasMany { return $this->hasMany(DuplicateReviewEvent::class)->orderBy('id'); }
+    public function reviewEvents(): HasMany
+    {
+        return $this->hasMany(DuplicateReviewEvent::class)->orderBy('id');
+    }
 
     public function targetType(): string
     {

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Domain\Duplicates\Actions\ResolveDuplicateCandidate;
 use App\Domain\Duplicates\Enums\DuplicateReviewDecision;
+use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Duplicates\Services\DetectExactDuplicateCandidates;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Models\User;
@@ -27,7 +28,7 @@ final class Group07DemoSeeder extends Seeder
             $source = IncomingUpload::factory()->create(['upload_id' => sprintf('UP-G07-SOURCE-%03d', $i + 1), 'sha256' => $hash]);
             IncomingUpload::factory()->create(['upload_id' => sprintf('UP-G07-TARGET-%03d', $i + 1), 'sha256' => $hash]);
             $result = $detector->detect($source);
-            $candidate = \App\Domain\Duplicates\Models\DuplicateCandidate::query()->findOrFail($result->candidateIds[0]);
+            $candidate = DuplicateCandidate::query()->findOrFail($result->candidateIds[0]);
             $resolver->handle($candidate, DuplicateReviewDecision::from($decision), $reason, $owner, ['route' => 'demo', 'method' => 'SEED']);
         }
         $hash = hash('sha256', 'group-07-demo-pending');

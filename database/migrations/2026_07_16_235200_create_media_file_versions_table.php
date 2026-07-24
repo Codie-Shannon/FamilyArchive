@@ -33,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        throw new \LogicException('The media_file_versions migration is forward-only.');
+        throw new LogicException('The media_file_versions migration is forward-only.');
     }
 };

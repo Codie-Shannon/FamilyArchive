@@ -17,6 +17,7 @@ function inventory(string $disk): array
 {
     $files = Storage::disk($disk)->allFiles();
     sort($files);
+
     return $files;
 }
 
@@ -92,7 +93,10 @@ it('rolls candidate and status changes back on database failure', function () {
 
 it('does not mutate any private archive disk inventory', function () {
     $disks = ['archive_originals', 'archive_derivatives', 'archive_quarantine', 'archive_manifests'];
-    foreach ($disks as $disk) { Storage::fake($disk); Storage::disk($disk)->put('proof/unchanged.txt', 'unchanged'); }
+    foreach ($disks as $disk) {
+        Storage::fake($disk);
+        Storage::disk($disk)->put('proof/unchanged.txt', 'unchanged');
+    }
     $before = collect($disks)->mapWithKeys(fn ($disk) => [$disk => inventory($disk)])->all();
     $hash = hash('sha256', 'group-06-storage-neutral');
     $source = IncomingUpload::factory()->create(['sha256' => $hash]);

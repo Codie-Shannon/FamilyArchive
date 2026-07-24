@@ -53,7 +53,9 @@ final class ResolveDuplicateCandidate
 
             $upload->forceFill(['duplicate_status' => DuplicateStatus::from($decision->value)])->save();
 
-            if ($beforeCommit !== null) { $beforeCommit(); }
+            if ($beforeCommit !== null) {
+                $beforeCommit();
+            }
 
             return $locked->fresh(['reviewEvents.actor']);
         }, 3);

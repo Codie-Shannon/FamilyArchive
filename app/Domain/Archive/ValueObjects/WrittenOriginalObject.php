@@ -12,6 +12,5 @@ final readonly class WrittenOriginalObject
         public string $sourceSha256,
         public string $writtenSha256,
         public string $storedSha256,
-    ) {
-    }
+    ) {}
 }

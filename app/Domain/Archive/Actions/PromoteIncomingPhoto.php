@@ -40,8 +40,7 @@ final class PromoteIncomingPhoto
         private ArchiveIdGenerator $archiveIds,
         private ArchiveStoragePath $paths,
         private NoOverwriteOriginalWriter $writer,
-    ) {
-    }
+    ) {}
 
     public function handle(IncomingUpload $upload, User $actor): ArchivePromotion
     {
