@@ -43,6 +43,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Derivatives | Rebuildable viewing versions and generation recipes |
 | Browsing | Approved private gallery and detail read models |
 | Metadata | Controlled descriptive edits and immutable revision history |
+| Provenance | Structured historical dates, stable physical sources and scan batches |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add structured provenance, events, locations, people,
@@ -109,7 +110,7 @@ boundary.
 
 ## Current Build State
 
-Groups 01-11 are completed and closed. They establish:
+Groups 01-12 are completed and closed. They establish:
 
 1. application foundation;
 2. core archive schema;
@@ -121,10 +122,11 @@ Groups 01-11 are completed and closed. They establish:
 8. archive acceptance and original promotion;
 9. private viewing derivatives;
 10. private archive browsing; and
-11. controlled metadata and revision history.
+11. controlled metadata and revision history; and
+12. structured dates and source provenance.
 
-Group 12 - Structured Dates and Source Provenance - is the next official
-capability. It must add explicit sources, confidence, notes and review state
-without allowing inferred dates to rewrite accepted archive facts.
+Group 13 - Events, Locations and Provenance Browsing - is the next official
+capability. It must preserve Group 12 review and privacy boundaries while
+adding events, normalized locations and safe entity browsing.
 
-See [Roadmap](../ROADMAP.md) for Groups 12-46.
+See [Roadmap](../ROADMAP.md) for Groups 13-46.

@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
-Family Archive has 46 official build groups. Groups 01-11 are completed and
-closed. Group 12 is next.
+Family Archive has 46 official build groups. Groups 01-12 are completed and
+closed. Group 13 is next.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -21,12 +21,12 @@ PDFs remain external artifacts and must not be committed.
 | 09 | Private Viewing Derivatives |
 | 10 | Private Archive Browsing |
 | 11 | Controlled Metadata and Revision History |
+| 12 | Structured Dates and Source Provenance |
 
 ## Knowledge Layer
 
 | Group | Capability |
 |---:|---|
-| 12 | Structured Dates and Source Provenance |
 | 13 | Events, Locations and Provenance Browsing |
 | 14 | People Records and Family Branches |
 | 15 | Family Relationships and Person Tagging |
@@ -87,19 +87,18 @@ PDFs remain external artifacts and must not be committed.
 | 45 | Family Pilot, Accessibility and Portfolio Case Study |
 | 46 | Family Archive v1.0 Acceptance and Custodianship |
 
-## Group 12 Boundary
+## Group 13 Boundary
 
-Group 12 starts from the verified Group 11 closure. It introduces structured
-date modelling and source-provenance foundations.
+Group 13 starts from the verified Group 12 closure. It introduces events,
+normalized locations and permission-aware provenance browsing.
 
-The group must:
+Group 12 established these permanent boundaries for later work:
 
-- preserve all completed behavior and tests;
-- record where a date or source came from;
-- represent confidence, notes and review state explicitly;
-- prevent inference from automatically rewriting accepted archive facts;
-- use only synthetic New Zealand family-history examples; and
-- prove UI, access control, persistence, validation and privacy boundaries.
+- incomplete dates never manufacture precision;
+- source and scan-batch identities remain stable;
+- inferred or embedded facts require human review;
+- provenance changes append immutable revision evidence; and
+- date and provenance curation never mutates preserved files.
 
-Detailed implementation decisions remain scoped to Group 12 and must respect
-the preservation contracts established by Groups 01-11.
+Group 13 must preserve those contracts while adding events, normalized
+locations, safe entity browsing and privacy-aware location precision.

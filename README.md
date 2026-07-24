@@ -11,8 +11,8 @@ system and is not part of another product or student-work archive.
 ## Current Status
 
 - Official roadmap: 46 groups
-- Completed and closed: Groups 01-11
-- Next official group: Group 12 - Structured Dates and Source Provenance
+- Completed and closed: Groups 01-12
+- Next official group: Group 13 - Events, Locations and Provenance Browsing
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -27,8 +27,11 @@ The completed system can:
 - record auditable duplicate-review decisions;
 - promote an accepted source to a verified, immutable original;
 - generate private WebP display and thumbnail derivatives with lineage;
-- browse approved photos through private archive views; and
-- edit descriptive metadata with optimistic locking and immutable revisions.
+- browse approved photos through private archive views;
+- edit descriptive metadata with optimistic locking and immutable revisions;
+- represent uncertain historical dates without manufacturing precision;
+- manage stable source collections and scan batches; and
+- attach multiple reviewed provenance records with immutable revision evidence.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.
