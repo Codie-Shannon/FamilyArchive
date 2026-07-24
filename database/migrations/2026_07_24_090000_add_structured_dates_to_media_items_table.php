@@ -1,8 +1,8 @@
 <?php
 
-use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\DateReviewState;
+use App\Domain\Media\Enums\StructuredDateConfidence;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +19,12 @@ return new class extends Migration
             $table->unsignedSmallInteger('date_year')
                 ->nullable()
                 ->after('date_precision');
+            $table->string('structured_date_confidence', 32)
+                ->default(StructuredDateConfidence::Unknown->value)
+                ->after('estimated_decade');
             $table->string('date_review_state', 32)
                 ->default(DateReviewState::Accepted->value)
-                ->after('date_confidence');
+                ->after('structured_date_confidence');
             $table->text('date_source_note')
                 ->nullable()
                 ->after('date_review_state');
@@ -35,7 +38,7 @@ return new class extends Migration
             ->whereNotNull('canonical_date')
             ->update([
                 'date_precision' => DatePrecision::Exact->value,
-                'date_confidence' => DateConfidence::Confirmed->value,
+                'structured_date_confidence' => StructuredDateConfidence::Confirmed->value,
             ]);
 
         DB::table('media_items')
@@ -43,7 +46,7 @@ return new class extends Migration
             ->whereNotNull('estimated_decade')
             ->update([
                 'date_precision' => DatePrecision::DecadeOnly->value,
-                'date_confidence' => DateConfidence::Low->value,
+                'structured_date_confidence' => StructuredDateConfidence::Low->value,
             ]);
     }
 
@@ -54,6 +57,7 @@ return new class extends Migration
             $table->dropColumn([
                 'date_precision',
                 'date_year',
+                'structured_date_confidence',
                 'date_review_state',
                 'date_source_note',
                 'date_reason',

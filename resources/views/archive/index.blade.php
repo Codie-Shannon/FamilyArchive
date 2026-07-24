@@ -2,7 +2,7 @@
 <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-4 md:p-8">
     <header class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div><p class="text-sm font-medium text-emerald-300">Owner-only private archive</p><h1 class="text-3xl font-semibold text-white">Approved family photos</h1><p class="mt-2 max-w-2xl text-zinc-400">Browse preservation-safe thumbnail derivatives. Originals remain private, verified and inaccessible.</p></div>
-        <div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100"><strong>{{ $photos->total() }}</strong> approved archive records</div>
+        <div class="flex items-center gap-3"><a href="{{ route('archive.sources.index') }}" class="rounded-xl border border-zinc-700 px-4 py-3 text-sm text-emerald-300">Source provenance</a><div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100"><strong>{{ $photos->total() }}</strong> approved archive records</div></div>
     </header>
     <section class="rounded-xl border border-amber-700 bg-amber-950/25 p-5 text-sm text-amber-100"><strong>Read-only preservation boundary:</strong> browsing never generates files, changes metadata, exposes storage locations or falls back to original pixels.</section>
     <section class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

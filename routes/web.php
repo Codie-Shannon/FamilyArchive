@@ -9,7 +9,10 @@ use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
 use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
+use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
+use App\Http\Controllers\Archive\ScanBatchController;
+use App\Http\Controllers\Archive\SourceCollectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -25,6 +28,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');
         Route::get('/archive/photos/{mediaItem}/history', [PhotoMetadataHistoryController::class, 'index'])->name('archive.photos.metadata.history');
         Route::get('/archive/photos/{mediaItem}/history/{revision}', [PhotoMetadataHistoryController::class, 'show'])->name('archive.photos.metadata.history.show');
+        Route::post('/archive/photos/{mediaItem}/provenance', [PhotoProvenanceController::class, 'store'])->name('archive.photos.provenance.store');
+        Route::delete('/archive/photos/{mediaItem}/provenance/{provenance}', [PhotoProvenanceController::class, 'destroy'])->name('archive.photos.provenance.destroy');
+        Route::get('/archive/sources', [SourceCollectionController::class, 'index'])->name('archive.sources.index');
+        Route::get('/archive/sources/create', [SourceCollectionController::class, 'create'])->name('archive.sources.create');
+        Route::post('/archive/sources', [SourceCollectionController::class, 'store'])->name('archive.sources.store');
+        Route::get('/archive/sources/{sourceCollection}', [SourceCollectionController::class, 'show'])->name('archive.sources.show');
+        Route::post('/archive/sources/{sourceCollection}/scan-batches', [ScanBatchController::class, 'store'])->name('archive.sources.scan-batches.store');
         Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
     });
     Route::view('/admin', 'admin.dashboard')->middleware('owner')->name('admin.dashboard');

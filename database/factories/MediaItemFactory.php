@@ -9,6 +9,7 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Enums\SensitivityStatus;
+use App\Domain\Media\Enums\StructuredDateConfidence;
 use App\Domain\Media\Models\MediaItem;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -38,7 +39,8 @@ class MediaItemFactory extends Factory
             'date_precision' => DatePrecision::DecadeOnly,
             'date_year' => null,
             'estimated_decade' => 1980,
-            'date_confidence' => DateConfidence::Low,
+            'date_confidence' => DateConfidence::DecadeOnly,
+            'structured_date_confidence' => StructuredDateConfidence::Low,
             'date_review_state' => DateReviewState::Accepted,
             'date_source_note' => 'Fictional annotation on a synthetic album sleeve.',
             'date_reason' => 'The fictional sleeve identifies the decade but not a year.',

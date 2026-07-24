@@ -11,13 +11,17 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Enums\SensitivityStatus;
+use App\Domain\Media\Enums\StructuredDateConfidence;
 use App\Domain\Metadata\Models\PhotoMetadataRevision;
+use App\Domain\Provenance\Models\MediaProvenance;
+use App\Domain\Provenance\Models\SourceCollection;
 use App\Models\User;
 use Database\Factories\MediaItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -34,6 +38,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $date_year
  * @property int|null $estimated_decade
  * @property DateConfidence $date_confidence
+ * @property StructuredDateConfidence $structured_date_confidence
  * @property DateReviewState $date_review_state
  * @property string|null $date_source_note
  * @property string|null $date_reason
@@ -58,6 +63,7 @@ use Illuminate\Support\Carbon;
     'date_year',
     'estimated_decade',
     'date_confidence',
+    'structured_date_confidence',
     'date_review_state',
     'date_source_note',
     'date_reason',
@@ -86,6 +92,7 @@ class MediaItem extends Model
             'date_year' => 'integer',
             'estimated_decade' => 'integer',
             'date_confidence' => DateConfidence::class,
+            'structured_date_confidence' => StructuredDateConfidence::class,
             'date_review_state' => DateReviewState::class,
             'visibility' => MediaVisibility::class,
             'review_status' => MediaReviewStatus::class,
@@ -125,6 +132,22 @@ class MediaItem extends Model
     public function metadataRevisions(): HasMany
     {
         return $this->hasMany(PhotoMetadataRevision::class);
+    }
+
+    /** @return HasMany<MediaProvenance, $this> */
+    public function provenanceLinks(): HasMany
+    {
+        return $this->hasMany(MediaProvenance::class);
+    }
+
+    /** @return BelongsToMany<SourceCollection, $this> */
+    public function sourceCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            SourceCollection::class,
+            'media_provenance_links'
+        )->withPivot(['id', 'scan_batch_id', 'note', 'attached_by'])
+            ->withTimestamps();
     }
 
     /**

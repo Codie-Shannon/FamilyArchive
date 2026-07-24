@@ -47,15 +47,9 @@
                         </select>
                     </label>
                     <label class="block text-zinc-300">Confidence
-                        <select name="date_confidence" class="mt-2 w-full rounded-lg bg-zinc-950 p-3">
-                            @foreach ([
-                                \App\Domain\Media\Enums\DateConfidence::Confirmed,
-                                \App\Domain\Media\Enums\DateConfidence::High,
-                                \App\Domain\Media\Enums\DateConfidence::Medium,
-                                \App\Domain\Media\Enums\DateConfidence::Low,
-                                \App\Domain\Media\Enums\DateConfidence::Unknown,
-                            ] as $case)
-                                <option value="{{ $case->value }}" @selected(old('date_confidence', $mediaItem->date_confidence->value) === $case->value)>{{ str($case->value)->title() }}</option>
+                        <select name="structured_date_confidence" class="mt-2 w-full rounded-lg bg-zinc-950 p-3">
+                            @foreach (\App\Domain\Media\Enums\StructuredDateConfidence::cases() as $case)
+                                <option value="{{ $case->value }}" @selected(old('structured_date_confidence', $mediaItem->structured_date_confidence->value) === $case->value)>{{ str($case->value)->title() }}</option>
                             @endforeach
                         </select>
                     </label>

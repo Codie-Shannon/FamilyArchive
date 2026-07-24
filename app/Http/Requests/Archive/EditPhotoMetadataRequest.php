@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Archive;
 
-use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\DateReviewState;
+use App\Domain\Media\Enums\StructuredDateConfidence;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -76,15 +76,9 @@ final class EditPhotoMetadataRequest extends FormRequest
                 'multiple_of:10',
                 Rule::prohibitedIf(fn (): bool => $this->input('date_precision') !== DatePrecision::DecadeOnly->value),
             ],
-            'date_confidence' => [
+            'structured_date_confidence' => [
                 'required',
-                Rule::enum(DateConfidence::class)->only([
-                    DateConfidence::Confirmed,
-                    DateConfidence::High,
-                    DateConfidence::Medium,
-                    DateConfidence::Low,
-                    DateConfidence::Unknown,
-                ]),
+                Rule::enum(StructuredDateConfidence::class),
             ],
             'date_review_state' => [
                 'required',
@@ -119,7 +113,7 @@ final class EditPhotoMetadataRequest extends FormRequest
      *     canonical_date: ?string,
      *     date_year: ?int,
      *     estimated_decade: ?int,
-     *     date_confidence: string,
+     *     structured_date_confidence: string,
      *     date_review_state: string,
      *     date_source_note: ?string,
      *     date_reason: ?string,
@@ -139,7 +133,7 @@ final class EditPhotoMetadataRequest extends FormRequest
             'canonical_date' => $this->normalize($this->input('canonical_date')),
             'date_year' => $this->filled('date_year') ? (int) $this->input('date_year') : null,
             'estimated_decade' => $this->filled('estimated_decade') ? (int) $this->input('estimated_decade') : null,
-            'date_confidence' => (string) $this->input('date_confidence'),
+            'structured_date_confidence' => (string) $this->input('structured_date_confidence'),
             'date_review_state' => (string) $this->input('date_review_state'),
             'date_source_note' => $this->normalize($this->input('date_source_note')),
             'date_reason' => $this->normalize($this->input('date_reason')),

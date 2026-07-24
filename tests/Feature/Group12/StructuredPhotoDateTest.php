@@ -1,9 +1,9 @@
 <?php
 
-use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\DateReviewState;
 use App\Domain\Media\Enums\MediaReviewStatus;
+use App\Domain\Media\Enums\StructuredDateConfidence;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Metadata\Models\PhotoMetadataRevision;
 use App\Models\User;
@@ -42,7 +42,7 @@ function g12DatePayload(MediaItem $photo, array $overrides = []): array
         'canonical_date' => '1974-02-16',
         'date_year' => null,
         'estimated_decade' => null,
-        'date_confidence' => DateConfidence::Confirmed->value,
+        'structured_date_confidence' => StructuredDateConfidence::Confirmed->value,
         'date_review_state' => DateReviewState::Accepted->value,
         'date_source_note' => 'Date written on a fictional album page.',
         'date_reason' => 'The synthetic annotation gives a complete date.',
@@ -89,13 +89,13 @@ it('records exact dates and their evidence in one immutable revision', function 
         ->and($photo->canonical_date?->format('Y-m-d'))->toBe('1974-02-16')
         ->and($photo->date_year)->toBeNull()
         ->and($photo->estimated_decade)->toBeNull()
-        ->and($photo->date_confidence)->toBe(DateConfidence::Confirmed)
+        ->and($photo->structured_date_confidence)->toBe(StructuredDateConfidence::Confirmed)
         ->and($photo->date_review_state)->toBe(DateReviewState::Accepted)
         ->and($photo->metadata_revision)->toBe(1)
         ->and($revision->changed_fields)->toContain(
             'date_precision',
             'canonical_date',
-            'date_confidence',
+            'structured_date_confidence',
             'date_source_note',
             'date_reason',
         )
@@ -123,23 +123,23 @@ it('supports year decade approximate and unknown representations', function (arr
         'date_precision' => 'year_only',
         'canonical_date' => null,
         'date_year' => 1968,
-        'date_confidence' => 'high',
+        'structured_date_confidence' => 'high',
     ], DatePrecision::YearOnly, null, 1968, null],
     'decade only' => [[
         'date_precision' => 'decade_only',
         'canonical_date' => null,
         'estimated_decade' => 1950,
-        'date_confidence' => 'low',
+        'structured_date_confidence' => 'low',
     ], DatePrecision::DecadeOnly, null, null, 1950],
     'approximate' => [[
         'date_precision' => 'approximate',
         'canonical_date' => '1982-06-01',
-        'date_confidence' => 'medium',
+        'structured_date_confidence' => 'medium',
     ], DatePrecision::Approximate, '1982-06-01', null, null],
     'unknown' => [[
         'date_precision' => 'unknown',
         'canonical_date' => null,
-        'date_confidence' => 'unknown',
+        'structured_date_confidence' => 'unknown',
         'date_source_note' => null,
         'date_reason' => null,
     ], DatePrecision::Unknown, null, null, null],
