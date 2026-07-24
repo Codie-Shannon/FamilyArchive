@@ -18,6 +18,14 @@ final class UpdatePhotoMetadata
      *     title: ?string,
      *     description: ?string,
      *     story: ?string,
+     *     date_precision: string,
+     *     canonical_date: ?string,
+     *     date_year: ?int,
+     *     estimated_decade: ?int,
+     *     date_confidence: string,
+     *     date_review_state: string,
+     *     date_source_note: ?string,
+     *     date_reason: ?string,
      *     change_reason: string,
      *     expected_metadata_revision: int
      * }  $input
@@ -50,9 +58,27 @@ final class UpdatePhotoMetadata
             $before = [];
             $after = [];
 
-            foreach (['title', 'description', 'story'] as $field) {
+            foreach ([
+                'title',
+                'description',
+                'story',
+                'date_precision',
+                'canonical_date',
+                'date_year',
+                'estimated_decade',
+                'date_confidence',
+                'date_review_state',
+                'date_source_note',
+                'date_reason',
+            ] as $field) {
                 $current = $locked->getAttribute($field);
                 $next = $input[$field];
+
+                if ($field === 'canonical_date') {
+                    $current = $locked->canonical_date?->format('Y-m-d');
+                } elseif ($current instanceof \BackedEnum) {
+                    $current = $current->value;
+                }
 
                 if ($current !== $next) {
                     $before[$field] = $current;

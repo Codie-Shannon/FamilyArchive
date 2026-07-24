@@ -3,6 +3,7 @@
 namespace App\Domain\Browsing\Queries;
 
 use App\Domain\Browsing\ReadModels\ApprovedPhotoDetail;
+use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaReviewStatus;
@@ -42,8 +43,18 @@ final class ApprovedPhotoDetailQuery
             metadata: [
                 'description' => $item->description,
                 'story' => $item->story,
-                'date' => $item->canonical_date?->format('j F Y') ?? ($item->estimated_decade ? $item->estimated_decade.'s' : 'Date not recorded'),
+                'date' => match ($item->date_precision) {
+                    DatePrecision::Exact => $item->canonical_date?->format('j F Y') ?? 'Invalid exact date',
+                    DatePrecision::Approximate => $item->canonical_date?->format('Around j F Y') ?? 'Invalid approximate date',
+                    DatePrecision::YearOnly => $item->date_year ? (string) $item->date_year : 'Invalid year-only date',
+                    DatePrecision::DecadeOnly => $item->estimated_decade ? $item->estimated_decade.'s' : 'Invalid decade-only date',
+                    DatePrecision::Unknown => 'Date not recorded',
+                },
+                'date_precision' => str_replace('_', ' ', $item->date_precision->value),
                 'date_confidence' => str_replace('_', ' ', $item->date_confidence->value),
+                'date_review_state' => $item->date_review_state->value,
+                'date_source_note' => $item->date_source_note,
+                'date_reason' => $item->date_reason,
                 'media_type' => $item->media_type->value,
             ],
             originalStatus: $original instanceof MediaFileVersion ? 'verified preferred original' : 'unavailable',

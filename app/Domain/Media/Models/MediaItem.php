@@ -5,6 +5,8 @@ namespace App\Domain\Media\Models;
 use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\DateConfidence;
+use App\Domain\Media\Enums\DatePrecision;
+use App\Domain\Media\Enums\DateReviewState;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Enums\MediaVisibility;
@@ -28,8 +30,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property string|null $story
  * @property Carbon|null $canonical_date
+ * @property DatePrecision $date_precision
+ * @property int|null $date_year
  * @property int|null $estimated_decade
  * @property DateConfidence $date_confidence
+ * @property DateReviewState $date_review_state
+ * @property string|null $date_source_note
+ * @property string|null $date_reason
  * @property MediaVisibility $visibility
  * @property MediaReviewStatus $review_status
  * @property SensitivityStatus $sensitivity_status
@@ -47,8 +54,13 @@ use Illuminate\Support\Carbon;
     'description',
     'story',
     'canonical_date',
+    'date_precision',
+    'date_year',
     'estimated_decade',
     'date_confidence',
+    'date_review_state',
+    'date_source_note',
+    'date_reason',
     'visibility',
     'review_status',
     'sensitivity_status',
@@ -70,8 +82,11 @@ class MediaItem extends Model
         return [
             'media_type' => MediaType::class,
             'canonical_date' => 'immutable_date',
+            'date_precision' => DatePrecision::class,
+            'date_year' => 'integer',
             'estimated_decade' => 'integer',
             'date_confidence' => DateConfidence::class,
+            'date_review_state' => DateReviewState::class,
             'visibility' => MediaVisibility::class,
             'review_status' => MediaReviewStatus::class,
             'sensitivity_status' => SensitivityStatus::class,

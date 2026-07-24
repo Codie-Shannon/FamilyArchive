@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Domain\Media\Enums\DateConfidence;
+use App\Domain\Media\Enums\DatePrecision;
+use App\Domain\Media\Enums\DateReviewState;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Enums\MediaVisibility;
@@ -33,8 +35,13 @@ class MediaItemFactory extends Factory
             'description' => 'Sanitized metadata created only for schema validation.',
             'story' => 'A fictional archive story with no real people, places or media.',
             'canonical_date' => null,
+            'date_precision' => DatePrecision::DecadeOnly,
+            'date_year' => null,
             'estimated_decade' => 1980,
-            'date_confidence' => DateConfidence::DecadeOnly,
+            'date_confidence' => DateConfidence::Low,
+            'date_review_state' => DateReviewState::Accepted,
+            'date_source_note' => 'Fictional annotation on a synthetic album sleeve.',
+            'date_reason' => 'The fictional sleeve identifies the decade but not a year.',
             'visibility' => MediaVisibility::PrivateArchive,
             'review_status' => MediaReviewStatus::PendingReview,
             'sensitivity_status' => SensitivityStatus::NotFlagged,

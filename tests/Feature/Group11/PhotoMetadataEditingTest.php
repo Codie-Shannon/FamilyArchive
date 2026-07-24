@@ -15,6 +15,25 @@ function g11Item(User $owner, string $id = 'G11-001'): MediaItem
 {
     return MediaItem::factory()->create(['archive_id' => $id, 'review_status' => MediaReviewStatus::Approved, 'approved_at' => now(), 'approved_by' => $owner->id, 'created_by' => $owner->id]);
 }
+function g11MetadataPayload(MediaItem $item, array $overrides = []): array
+{
+    return [
+        'expected_metadata_revision' => (int) $item->metadata_revision,
+        'title' => $item->title,
+        'description' => $item->description,
+        'story' => $item->story,
+        'date_precision' => $item->date_precision->value,
+        'canonical_date' => $item->canonical_date?->format('Y-m-d'),
+        'date_year' => $item->date_year,
+        'estimated_decade' => $item->estimated_decade,
+        'date_confidence' => $item->date_confidence->value,
+        'date_review_state' => $item->date_review_state->value,
+        'date_source_note' => $item->date_source_note,
+        'date_reason' => $item->date_reason,
+        'change_reason' => 'Correct fictional descriptive details.',
+        ...$overrides,
+    ];
+}
 it('allows only the owner to open the edit form', function () {
     $owner = g11Owner();
     $item = g11Item($owner);
@@ -33,13 +52,11 @@ it('updates safe metadata and records one revision', function () {
         'approved_by' => $item->approved_by,
         'approved_at' => $item->approved_at?->toISOString(),
     ];
-    $this->actingAs($owner)->patch(route('archive.photos.metadata.update', $item), [
-        'expected_metadata_revision' => 0,
+    $this->actingAs($owner)->patch(route('archive.photos.metadata.update', $item), g11MetadataPayload($item, [
         'title' => 'Updated fictional title',
         'description' => "Line one\r\nLine two",
         'story' => 'Updated fictional story',
-        'change_reason' => 'Correct fictional descriptive details.',
-    ])->assertRedirect(route('archive.photos.show', $item));
+    ]))->assertRedirect(route('archive.photos.show', $item));
     $item->refresh();
     expect($item->metadata_revision)->toBe(1)
         ->and($item->description)->toBe("Line one\nLine two")
@@ -55,7 +72,7 @@ it('updates safe metadata and records one revision', function () {
 it('rejects stale and no-op submissions', function () {
     $owner = g11Owner();
     $item = g11Item($owner, 'G11-STALE');
-    $payload = ['expected_metadata_revision' => 0, 'title' => $item->title, 'description' => $item->description, 'story' => $item->story, 'change_reason' => 'Confirm unchanged fictional values.'];
+    $payload = g11MetadataPayload($item, ['change_reason' => 'Confirm unchanged fictional values.']);
     $this->actingAs($owner)->patch(route('archive.photos.metadata.update', $item), $payload)->assertSessionHasErrors('metadata');
     $item->update(['metadata_revision' => 1]);
     $payload['title'] = 'Stale overwrite';
