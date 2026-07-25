@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
+use App\Http\Controllers\Archive\KnowledgeHubController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
 use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
 use App\Http\Controllers\Archive\PhotoProvenanceController;
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
+        Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
         Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
         Route::get('/archive/photos/{mediaItem}/edit', [PhotoMetadataController::class, 'edit'])->name('archive.photos.metadata.edit');
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');

@@ -3,6 +3,7 @@
 
 <title>
     {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
+    · v{{ \App\Support\Release::version() }}
 </title>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
