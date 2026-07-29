@@ -42,10 +42,11 @@ final class Group09DemoSeeder extends Seeder
         }
 
         $background = imagecolorallocate($image, 24, 82, 120);
-        if ($background === false || ! imagefill($image, 0, 0, $background)) {
+        if ($background === false) {
             imagedestroy($image);
             throw new \RuntimeException('Unable to initialize fictional Group 09 fixture canvas.');
         }
+        imagefill($image, 0, 0, $background);
 
         ob_start();
         $encoded = imagepng($image);

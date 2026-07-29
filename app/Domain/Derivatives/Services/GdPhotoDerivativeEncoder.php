@@ -74,11 +74,12 @@ final class GdPhotoDerivativeEncoder
                 imagealphablending($canvas, false);
                 imagesavealpha($canvas, true);
                 $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-                if ($transparent === false || ! imagefill($canvas, 0, 0, $transparent)) {
+                if ($transparent === false) {
                     throw new DerivativeGenerationException('The derivative render surface could not be initialized.');
                 }
+                imagefill($canvas, 0, 0, $transparent);
 
-                if (! imagecopyresampled(
+                imagecopyresampled(
                     $canvas,
                     $image,
                     0,
@@ -89,9 +90,7 @@ final class GdPhotoDerivativeEncoder
                     $targetHeight,
                     $sourceWidth,
                     $sourceHeight,
-                )) {
-                    throw new DerivativeGenerationException('The derivative resize operation failed.');
-                }
+                );
 
                 ob_start();
                 $encoded = imagewebp($canvas, null, $quality);
