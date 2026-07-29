@@ -7,6 +7,10 @@ use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
+use App\Http\Controllers\Archive\ArchiveEventController;
+use App\Http\Controllers\Archive\ArchiveLocationController;
+use App\Http\Controllers\Archive\EventMediaController;
+use App\Http\Controllers\Archive\EventProvenanceController;
 use App\Http\Controllers\Archive\KnowledgeHubController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
 use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
@@ -28,6 +32,20 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         if (Release::archiveKnowledgePrototypeEnabled()) {
             Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
         }
+        Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');
+        Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');
+        Route::post('/archive/events', [ArchiveEventController::class, 'store'])->name('archive.events.store');
+        Route::get('/archive/events/{archiveEvent}', [ArchiveEventController::class, 'show'])->name('archive.events.show');
+        Route::get('/archive/events/{archiveEvent}/edit', [ArchiveEventController::class, 'edit'])->name('archive.events.edit');
+        Route::patch('/archive/events/{archiveEvent}', [ArchiveEventController::class, 'update'])->name('archive.events.update');
+        Route::post('/archive/events/{archiveEvent}/provenance', [EventProvenanceController::class, 'store'])->name('archive.events.provenance.store');
+        Route::post('/archive/events/{archiveEvent}/media', [EventMediaController::class, 'store'])->name('archive.events.media.store');
+        Route::get('/archive/locations', [ArchiveLocationController::class, 'index'])->name('archive.locations.index');
+        Route::get('/archive/locations/create', [ArchiveLocationController::class, 'create'])->name('archive.locations.create');
+        Route::post('/archive/locations', [ArchiveLocationController::class, 'store'])->name('archive.locations.store');
+        Route::get('/archive/locations/{archiveLocation}', [ArchiveLocationController::class, 'show'])->name('archive.locations.show');
+        Route::get('/archive/locations/{archiveLocation}/edit', [ArchiveLocationController::class, 'edit'])->name('archive.locations.edit');
+        Route::patch('/archive/locations/{archiveLocation}', [ArchiveLocationController::class, 'update'])->name('archive.locations.update');
         Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
         Route::get('/archive/photos/{mediaItem}/edit', [PhotoMetadataController::class, 'edit'])->name('archive.photos.metadata.edit');
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');

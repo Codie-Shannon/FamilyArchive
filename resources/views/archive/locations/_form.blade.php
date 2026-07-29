@@ -1,0 +1,21 @@
+@php($editing = isset($location))
+@php($currentPrecision = old('precision', $editing ? $location->precision->value : 'locality'))
+@php($currentReviewState = old('review_state', $editing ? $location->review_state->value : 'accepted'))
+@php($currentConfidence = old('confidence', $editing ? $location->confidence->value : 'unknown'))
+
+<div class="grid gap-5 md:grid-cols-2">
+    <label class="space-y-2 md:col-span-2"><span class="text-sm font-medium">Reviewed label</span><input name="label" required maxlength="160" value="{{ old('label', $editing ? $location->label : '') }}" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950"></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Country code</span><input name="country_code" maxlength="2" value="{{ old('country_code', $editing ? $location->country_code : 'NZ') }}" class="w-full rounded-lg border border-zinc-300 bg-white p-3 uppercase dark:border-zinc-700 dark:bg-zinc-950"></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Region</span><input name="region" maxlength="160" value="{{ old('region', $editing ? $location->region : '') }}" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950"></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Locality</span><input name="locality" maxlength="160" value="{{ old('locality', $editing ? $location->locality : '') }}" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950"></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Browse precision</span><select name="precision" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950">@foreach(\App\Domain\Knowledge\Enums\LocationPrecision::cases() as $case)<option value="{{ $case->value }}" @selected($currentPrecision === $case->value)>{{ str($case->value)->headline() }}</option>@endforeach</select></label>
+    <label class="flex items-center gap-3 rounded-lg border border-amber-300 p-4 dark:border-amber-800"><input type="hidden" name="is_sensitive" value="0"><input type="checkbox" name="is_sensitive" value="1" @checked((bool) old('is_sensitive', $editing ? $location->is_sensitive : false))><span><strong>Sensitive location</strong><small class="block text-zinc-500">Requires private precision and is redacted in browsing.</small></span></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Review state</span><select name="review_state" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950">@foreach(\App\Domain\Knowledge\Enums\KnowledgeReviewState::cases() as $case)<option value="{{ $case->value }}" @selected($currentReviewState === $case->value)>{{ str($case->value)->headline() }}</option>@endforeach</select></label>
+    <label class="space-y-2"><span class="text-sm font-medium">Confidence</span><select name="confidence" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950">@foreach(\App\Domain\Media\Enums\StructuredDateConfidence::cases() as $case)<option value="{{ $case->value }}" @selected($currentConfidence === $case->value)>{{ str($case->value)->headline() }}</option>@endforeach</select></label>
+    <label class="space-y-2 md:col-span-2"><span class="text-sm font-medium">Source note</span><textarea name="source_note" rows="3" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950">{{ old('source_note', $editing ? $location->source_note : '') }}</textarea></label>
+    <label class="space-y-2 md:col-span-2"><span class="text-sm font-medium">Review reason</span><textarea name="review_reason" required rows="3" class="w-full rounded-lg border border-zinc-300 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-950">{{ old('review_reason', $editing ? $location->review_reason : '') }}</textarea></label>
+</div>
+
+@if($errors->any())
+    <div class="mt-5 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>
+@endif

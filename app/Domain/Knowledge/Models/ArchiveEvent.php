@@ -119,13 +119,14 @@ final class ArchiveEvent extends Model
             ->withTimestamps();
     }
 
-    /** @return BelongsToMany<MediaItem, $this> */
+    /** @return BelongsToMany<MediaItem, $this, ReviewedEventMedia, 'pivot'> */
     public function mediaItems(): BelongsToMany
     {
         return $this->belongsToMany(
             MediaItem::class,
             'archive_event_media'
-        )->withPivot(['confidence', 'source_note', 'reviewed_by', 'reviewed_at'])
+        )->using(ReviewedEventMedia::class)
+            ->withPivot(['confidence', 'source_note', 'reviewed_by', 'reviewed_at'])
             ->withTimestamps();
     }
 

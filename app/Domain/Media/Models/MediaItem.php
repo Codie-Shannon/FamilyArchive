@@ -4,6 +4,8 @@ namespace App\Domain\Media\Models;
 
 use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Intake\Models\IncomingUpload;
+use App\Domain\Knowledge\Models\ArchiveEvent;
+use App\Domain\Knowledge\Models\ReviewedEventMedia;
 use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\DateReviewState;
@@ -51,6 +53,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property int $metadata_revision
  * @property Carbon|null $updated_at
+ * @property-read ReviewedEventMedia $pivot
  */
 #[Fillable([
     'archive_id',
@@ -147,6 +150,17 @@ class MediaItem extends Model
             SourceCollection::class,
             'media_provenance_links'
         )->withPivot(['id', 'scan_batch_id', 'note', 'attached_by'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<ArchiveEvent, $this, ReviewedEventMedia, 'pivot'> */
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ArchiveEvent::class,
+            'archive_event_media'
+        )->using(ReviewedEventMedia::class)
+            ->withPivot(['confidence', 'source_note', 'reviewed_by', 'reviewed_at'])
             ->withTimestamps();
     }
 

@@ -15,7 +15,9 @@
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>
-    <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.*')" wire:navigate>{{ __('Private Archive') }}</flux:navlist.item>
+    <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*')" wire:navigate>{{ __('Private Archive') }}</flux:navlist.item>
+    <flux:navlist.item icon="calendar-days" :href="route('archive.events.index')" :current="request()->routeIs('archive.events.*')" wire:navigate>{{ __('Events') }}</flux:navlist.item>
+    <flux:navlist.item icon="map-pin" :href="route('archive.locations.index')" :current="request()->routeIs('archive.locations.*')" wire:navigate>{{ __('Locations') }}</flux:navlist.item>
     @if(\App\Support\Release::archiveKnowledgePrototypeEnabled())
      <flux:navlist.item icon="magnifying-glass" :href="route('archive.knowledge')" :current="request()->routeIs('archive.knowledge')" wire:navigate>{{ __('Archive Knowledge Prototype') }}</flux:navlist.item>
     @endif
