@@ -1,8 +1,8 @@
 <x-layouts::app title="Archive Knowledge">
     <main class="mx-auto max-w-7xl space-y-8 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
-            <div><p class="text-sm font-semibold text-emerald-300">Groups 13-20</p><h1 class="text-3xl font-semibold text-white">Archive Knowledge</h1><p class="mt-2 text-zinc-400">Events, places, people, relationships and curated discovery.</p></div>
-            <div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100">v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}</div>
+            <div><p class="text-sm font-semibold text-amber-300">Inactive integration prototype</p><h1 class="text-3xl font-semibold text-white">Archive Knowledge Prototype</h1><p class="mt-2 text-zinc-400">Planning reference for future events, places, people, relationships and discovery work.</p></div>
+            <div class="rounded-xl border border-amber-800 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">Not a completed release surface</div>
         </header>
         <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @foreach($counts as $label => $count)
@@ -20,6 +20,6 @@
                 @endforelse
             </div>
         </section>
-        <aside class="rounded-xl border border-amber-800 bg-amber-950/20 p-5 text-sm text-amber-100">Living people, sensitive locations and inaccessible archive records are filtered before display. Search never exposes original paths, hashes or EXIF GPS.</aside>
+        <aside class="rounded-xl border border-amber-800 bg-amber-950/20 p-5 text-sm text-amber-100">This disabled prototype applies only its original coarse sensitive-location filter. It does not implement the permissions, review workflows or privacy policies required to close Groups 13–20.</aside>
     </main>
 </x-layouts::app>

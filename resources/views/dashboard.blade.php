@@ -14,10 +14,11 @@
             </p>
         </div>
 
-        <section class="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900 sm:grid-cols-3">
+        <section class="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900 sm:grid-cols-2 lg:grid-cols-4">
             <div><p class="text-xs uppercase tracking-wide text-zinc-500">Release</p><p class="mt-1 font-semibold text-zinc-950 dark:text-white">v{{ \App\Support\Release::version() }}</p></div>
             <div><p class="text-xs uppercase tracking-wide text-zinc-500">Name</p><p class="mt-1 font-semibold text-zinc-950 dark:text-white">{{ \App\Support\Release::name() }}</p></div>
-            <div><p class="text-xs uppercase tracking-wide text-zinc-500">Roadmap groups</p><p class="mt-1 font-semibold text-zinc-950 dark:text-white">{{ \App\Support\Release::groups() }}</p></div>
+            <div><p class="text-xs uppercase tracking-wide text-zinc-500">Completed groups</p><p class="mt-1 font-semibold text-zinc-950 dark:text-white">{{ \App\Support\Release::groups() }}</p></div>
+            <div><p class="text-xs uppercase tracking-wide text-zinc-500">Next</p><p class="mt-1 font-semibold text-zinc-950 dark:text-white">{{ \App\Support\Release::status() }}</p></div>
         </section>
 
         @if (auth()->user()?->role === 'owner')

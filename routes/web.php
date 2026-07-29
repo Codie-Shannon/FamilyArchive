@@ -14,6 +14,7 @@ use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
+use App\Support\Release;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -24,7 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
-        Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
+        if (Release::archiveKnowledgePrototypeEnabled()) {
+            Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
+        }
         Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
         Route::get('/archive/photos/{mediaItem}/edit', [PhotoMetadataController::class, 'edit'])->name('archive.photos.metadata.edit');
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');

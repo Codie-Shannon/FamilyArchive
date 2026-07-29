@@ -18,4 +18,14 @@ final class Release
     {
         return (string) config('release.groups');
     }
+
+    public static function status(): string
+    {
+        return (string) config('release.status');
+    }
+
+    public static function archiveKnowledgePrototypeEnabled(): bool
+    {
+        return (bool) config('release.archive_knowledge_prototype_enabled', false);
+    }
 }
