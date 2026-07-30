@@ -14,6 +14,7 @@ final class CloudImportController extends Controller
         return view('admin.cloud-imports', [
             'readiness' => $planner->readiness(),
             'sessions' => DB::table('cloud_import_sessions')->latest()->limit(20)->get(),
+            'items' => DB::table('cloud_import_items')->latest()->limit(20)->get(),
             'profiles' => DB::table('media_playback_profiles')->latest()->limit(20)->get(),
         ]);
     }

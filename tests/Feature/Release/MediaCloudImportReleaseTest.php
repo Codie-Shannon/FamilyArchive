@@ -36,8 +36,12 @@ it('shows the owner cloud import workspace', function () {
         ->get(route('admin.cloud-imports'))
         ->assertOk()
         ->assertSee('Media and cloud import')
+        ->assertSee('Credentials required')
+        ->assertSee('Native connector remains unvalidated')
         ->assertSee('Document OCR')
-        ->assertSee('Excluded');
+        ->assertSee('Excluded')
+        ->assertDontSee('GOOGLE_PHOTOS_CLIENT_SECRET')
+        ->assertDontSee('external_id');
 });
 
 it('keeps v1.2 release metadata aligned', function () {
