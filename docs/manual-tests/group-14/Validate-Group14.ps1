@@ -17,7 +17,10 @@ function Invoke-Checked {
     }
 }
 
-Invoke-Checked 'Application validation' { composer test }
+Invoke-Checked 'Clear configuration cache' { php artisan config:clear }
+Invoke-Checked 'Formatting verification' { php vendor/bin/pint --parallel --test }
+Invoke-Checked 'Static analysis' { php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress }
+Invoke-Checked 'Automated tests' { php artisan test --compact }
 Invoke-Checked 'Production asset build' { npm run build }
 Invoke-Checked 'Composer security audit' { composer audit --no-interaction }
 Invoke-Checked 'NPM security audit' { npm audit --audit-level=high }
