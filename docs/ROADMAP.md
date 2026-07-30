@@ -13,7 +13,8 @@ pilot, production and custodian acceptance gates remain human work. Screenshot
 Group 06 is closed with approved v1.1.0 Advanced Media Intelligence evidence.
 Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
 evidence. Screenshot Group 08 is implemented as the v1.3.0 Public Discovery &
-Archive Maps boundary, with its four-file evidence pack pending.
+Archive Maps boundary, with its four-file evidence pack approved. Screenshot
+Group 09 is the next generated post-v1 boundary.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -299,7 +300,7 @@ The release:
 Screenshot Group 08 is the generated Post-v1 C boundary for v1.3.0 Public
 Discovery & Archive Maps.
 
-Implementation status: complete — four-file screenshot evidence pending.
+Implementation status: closed — four-file screenshot evidence approved.
 
 The release:
 

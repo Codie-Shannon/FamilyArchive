@@ -178,7 +178,8 @@ post-v1 boundary with its three-file evidence pack approved. Screenshot Group
 07 is closed as the v1.2.0 Media & Cloud Import post-v1 boundary with its
 three-file evidence pack approved. Screenshot Group 08 is implemented as the
 v1.3.0 Public Discovery & Archive Maps post-v1 boundary, with its four-file
-evidence pack pending. The implemented foundation establishes:
+evidence pack approved. Screenshot Group 09 is the next generated post-v1
+boundary. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;

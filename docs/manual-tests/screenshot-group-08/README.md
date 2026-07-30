@@ -1,6 +1,6 @@
 # Screenshot Group 08 Manual Test Plan
 
-Status: implemented — application evidence pending inspection and approval.
+Status: closed — screenshot evidence approved.
 
 Use only fictional showcase stories, public place labels and publication
 receipts. Do not expose private family records, exact locations, storage
@@ -32,6 +32,6 @@ After the three application screenshots have been inspected, run:
 Capture the completed PowerShell window as `04_v130_Validation.png`.
 
 The script validates the repository and all three desktop application
-captures. It does not capture or approve evidence. The four-file pack remains
-open until every image has passed visual, privacy, dimension and PNG metadata
-inspection and received explicit human approval.
+captures. It does not capture or approve evidence. The completed validation
+was captured manually, and all four evidence files passed visual, privacy,
+dimension and PNG metadata inspection before explicit human approval.

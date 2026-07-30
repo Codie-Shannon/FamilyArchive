@@ -3,7 +3,7 @@
 Screenshot Group 08 is the generated Post-v1 C boundary for `1.3.0` Public
 Discovery & Archive Maps.
 
-Status: implemented — four-file evidence pack pending.
+Status: closed — all four evidence files inspected and approved.
 
 The evidence pack demonstrates the deliberately restricted public showcase,
 privacy-reviewed reduced-precision archive map, Owner-only publication review

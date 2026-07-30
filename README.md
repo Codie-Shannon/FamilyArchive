@@ -18,9 +18,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG05 - Build Groups 45-46
 - Completed and closed: SG06 - Post-v1 A
 - Completed and closed: SG07 - Post-v1 B
-- Current screenshot group: SG08 - Post-v1 C
-- Current release: v1.3.0 - Public Discovery & Archive Maps
-- Current evidence state: SG08 implementation complete; four-file evidence pack pending
+- Completed and closed: SG08 - Post-v1 C
+- Next screenshot group: SG09 - Post-v1 D
+- Next release: v1.4.0 - Real-Time Family Community
+- Current evidence state: SG08 four-file evidence pack approved and closed
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
