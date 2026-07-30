@@ -163,7 +163,7 @@ it('creates the required indexes and restrictive foreign keys', function (): voi
     $incomingForeignKeys = collect(Schema::getForeignKeys('incoming_uploads'));
     $versionForeignKeys = collect(Schema::getForeignKeys('media_file_versions'));
 
-    expect($mediaForeignKeys)->toHaveCount(2)
+    expect($mediaForeignKeys)->toHaveCount(3)
         ->and($incomingForeignKeys)->toHaveCount(3)
         ->and($versionForeignKeys)->toHaveCount(2);
 

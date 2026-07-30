@@ -47,6 +47,7 @@ class MediaItemFactory extends Factory
             'visibility' => MediaVisibility::PrivateArchive,
             'review_status' => MediaReviewStatus::PendingReview,
             'sensitivity_status' => SensitivityStatus::NotFlagged,
+            'family_branch_id' => null,
             'created_by' => User::factory()->state([
                 'name' => 'Fictional Archive Owner',
                 'email' => 'archive-owner-'.Str::lower(Str::random(12)).'@example.test',

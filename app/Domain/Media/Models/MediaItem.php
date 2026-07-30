@@ -73,6 +73,7 @@ use Illuminate\Support\Carbon;
     'visibility',
     'review_status',
     'sensitivity_status',
+    'family_branch_id',
     'created_by',
     'approved_by',
     'approved_at',

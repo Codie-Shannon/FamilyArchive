@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsApproved;
 use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\PreventDemoWrites;
 use Illuminate\Foundation\Application;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'demo.readonly' => PreventDemoWrites::class,
+            'account.approved' => EnsureAccountIsApproved::class,
             'owner' => EnsureUserIsOwner::class,
         ]);
     })

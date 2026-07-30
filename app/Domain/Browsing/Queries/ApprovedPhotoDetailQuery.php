@@ -2,6 +2,7 @@
 
 namespace App\Domain\Browsing\Queries;
 
+use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Browsing\ReadModels\ApprovedPhotoDetail;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\GenerationStatus;
@@ -12,10 +13,13 @@ use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Provenance\Models\ScanBatch;
 use App\Domain\Provenance\Models\SourceCollection;
+use App\Models\User;
 
 final class ApprovedPhotoDetailQuery
 {
-    public function handle(MediaItem $mediaItem): ?ApprovedPhotoDetail
+    public function __construct(private ArchiveAccess $access) {}
+
+    public function handle(User $user, MediaItem $mediaItem): ?ApprovedPhotoDetail
     {
         $item = MediaItem::query()
             ->with([
@@ -29,7 +33,7 @@ final class ApprovedPhotoDetailQuery
             ->whereNotNull('approved_at')
             ->first();
 
-        if (! $item instanceof MediaItem) {
+        if (! $item instanceof MediaItem || ! $this->access->canView($user, $item)) {
             return null;
         }
 

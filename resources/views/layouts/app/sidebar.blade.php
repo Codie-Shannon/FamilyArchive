@@ -10,6 +10,10 @@
    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
    <flux:navlist.item icon="chat-bubble-left-right" :href="route('community.index')" :current="request()->routeIs('community.*')" wire:navigate>{{ __('Family Community') }}</flux:navlist.item>
    <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Secure Messages') }}</flux:navlist.item>
+   <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*', 'archive.originals.*')" wire:navigate>{{ __('Family Archive') }}</flux:navlist.item>
+   @if(auth()->user()?->canContribute())
+    <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute Media') }}</flux:navlist.item>
+   @endif
    @if(auth()->user()?->role === 'owner')
     <flux:navlist.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Archive Administration') }}</flux:navlist.item>
     <flux:navlist.item icon="circle-stack" :href="route('admin.archive-schema')" :current="request()->routeIs('admin.archive-schema')" wire:navigate>{{ __('Archive Schema') }}</flux:navlist.item>
@@ -23,10 +27,10 @@
     <flux:navlist.item icon="user-group" :href="route('admin.community-operations')" :current="request()->routeIs('admin.community-operations')" wire:navigate>{{ __('Community Operations') }}</flux:navlist.item>
     <flux:navlist.item icon="lock-closed" :href="route('admin.secure-communication')" :current="request()->routeIs('admin.secure-communication')" wire:navigate>{{ __('Secure Communication') }}</flux:navlist.item>
     <flux:navlist.item icon="presentation-chart-bar" :href="route('admin.portfolio-showcase')" :current="request()->routeIs('admin.portfolio-showcase')" wire:navigate>{{ __('Portfolio Showcase') }}</flux:navlist.item>
+    <flux:navlist.item icon="key" :href="route('admin.access.index')" :current="request()->routeIs('admin.access.*')" wire:navigate>{{ __('Accounts & Access') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>
-    <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*')" wire:navigate>{{ __('Private Archive') }}</flux:navlist.item>
     <flux:navlist.item icon="calendar-days" :href="route('archive.events.index')" :current="request()->routeIs('archive.events.*')" wire:navigate>{{ __('Events') }}</flux:navlist.item>
     <flux:navlist.item icon="map-pin" :href="route('archive.locations.index')" :current="request()->routeIs('archive.locations.*')" wire:navigate>{{ __('Locations') }}</flux:navlist.item>
     <flux:navlist.item icon="users" :href="route('archive.people.index')" :current="request()->routeIs('archive.people.*')" wire:navigate>{{ __('People') }}</flux:navlist.item>

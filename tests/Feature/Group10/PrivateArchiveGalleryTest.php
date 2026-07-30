@@ -32,9 +32,9 @@ function group10Derivative(MediaItem $item, MediaFileVersion $parent, MediaFileV
     return MediaFileVersion::factory()->create(['media_item_id' => $item->id, 'parent_version_id' => $parent->id, 'version_type' => $type, 'storage_disk' => 'archive_derivatives', 'storage_path' => $path, 'mime_type' => 'image/webp', 'extension' => 'webp', 'file_size_bytes' => strlen($bytes), 'sha256' => hash('sha256', $bytes), 'generation_status' => GenerationStatus::Ready, 'is_preferred' => true]);
 }
 
-it('denies guests and non owners', function () {
+it('denies guests and allows approved archive administrators', function () {
     $this->get('/archive')->assertRedirect('/login');
-    $this->actingAs(User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]))->get('/archive')->assertForbidden();
+    $this->actingAs(User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]))->get('/archive')->assertOk();
 });
 
 it('shows only approved photos with safe thumbnail read models', function () {

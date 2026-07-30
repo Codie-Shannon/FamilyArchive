@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AccountAccessController;
 use App\Http\Controllers\Admin\ArchivePromotionController;
 use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Archive\EventProvenanceController;
 use App\Http\Controllers\Archive\FamilyBranchController;
 use App\Http\Controllers\Archive\FamilyBranchProvenanceController;
 use App\Http\Controllers\Archive\KnowledgeHubController;
+use App\Http\Controllers\Archive\OriginalMediaController;
 use App\Http\Controllers\Archive\PersonProvenanceController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
 use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
@@ -30,7 +32,9 @@ use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
+use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\CommunityWorkspaceController;
+use App\Http\Controllers\ContributorSubmissionController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
 use App\Http\Controllers\SecureMessagingController;
@@ -44,13 +48,26 @@ Route::post('/contact/anonymous', [PublicConversationController::class, 'anonymo
 Route::match(['get', 'post'], '/register', function (): never {
     abort(404);
 })->name('register');
-Route::middleware(['auth', 'verified', 'demo.readonly'])->group(function (): void {
-    Route::post('/conversations/messages', [PublicConversationController::class, 'message'])->middleware('throttle:20,1')->name('public-chat.message');
+Route::middleware('guest')->group(function (): void {
+    Route::get('/join/{invitationId}/{token}', [InvitationController::class, 'show'])->name('invitation.show');
+    Route::post('/join/{invitationId}/{token}', [InvitationController::class, 'accept'])->name('invitation.accept');
+});
+Route::post('/conversations/messages', [PublicConversationController::class, 'message'])
+    ->middleware(['auth', 'verified', 'demo.readonly', 'throttle:20,1'])
+    ->name('public-chat.message');
+Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->group(function (): void {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
     Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
+    Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
+    Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
+    Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
+    Route::get('/archive/originals/{mediaFileVersion}', OriginalMediaController::class)->name('archive.originals.show');
+    Route::get('/contribute', [ContributorSubmissionController::class, 'index'])->name('contributor.index');
+    Route::post('/contribute/sessions', [ContributorSubmissionController::class, 'start'])->name('contributor.sessions.start');
+    Route::get('/contribute/sessions/{session}', [ContributorSubmissionController::class, 'show'])->name('contributor.sessions.show');
+    Route::post('/contribute/sessions/{session}/photos', [ContributorSubmissionController::class, 'upload'])->name('contributor.sessions.upload');
     Route::middleware('owner')->group(function (): void {
-        Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
         Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
         Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');
         Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');
@@ -80,7 +97,6 @@ Route::middleware(['auth', 'verified', 'demo.readonly'])->group(function (): voi
         Route::get('/archive/family-branches/{familyBranch}/edit', [FamilyBranchController::class, 'edit'])->name('archive.branches.edit');
         Route::patch('/archive/family-branches/{familyBranch}', [FamilyBranchController::class, 'update'])->name('archive.branches.update');
         Route::post('/archive/family-branches/{familyBranch}/provenance', [FamilyBranchProvenanceController::class, 'store'])->name('archive.branches.provenance.store');
-        Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
         Route::get('/archive/photos/{mediaItem}/edit', [PhotoMetadataController::class, 'edit'])->name('archive.photos.metadata.edit');
         Route::patch('/archive/photos/{mediaItem}/metadata', [PhotoMetadataController::class, 'update'])->name('archive.photos.metadata.update');
         Route::get('/archive/photos/{mediaItem}/history', [PhotoMetadataHistoryController::class, 'index'])->name('archive.photos.metadata.history');
@@ -92,7 +108,6 @@ Route::middleware(['auth', 'verified', 'demo.readonly'])->group(function (): voi
         Route::post('/archive/sources', [SourceCollectionController::class, 'store'])->name('archive.sources.store');
         Route::get('/archive/sources/{sourceCollection}', [SourceCollectionController::class, 'show'])->name('archive.sources.show');
         Route::post('/archive/sources/{sourceCollection}/scan-batches', [ScanBatchController::class, 'store'])->name('archive.sources.scan-batches.store');
-        Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
     });
     Route::view('/admin', 'admin.dashboard')->middleware('owner')->name('admin.dashboard');
     Route::get('/admin/archive-schema', ArchiveSchemaController::class)->middleware('owner')->name('admin.archive-schema');
@@ -106,6 +121,12 @@ Route::middleware(['auth', 'verified', 'demo.readonly'])->group(function (): voi
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');
         Route::get('/portfolio-showcase', PortfolioShowcaseController::class)->name('portfolio-showcase');
+        Route::get('/access', [AccountAccessController::class, 'index'])->name('access.index');
+        Route::post('/access/invitations', [AccountAccessController::class, 'invite'])->name('access.invite');
+        Route::patch('/access/users/{user}', [AccountAccessController::class, 'update'])->name('access.users.update');
+        Route::post('/access/original-grants', [AccountAccessController::class, 'grant'])->name('access.grants.store');
+        Route::patch('/access/original-grants/{grant}/revoke', [AccountAccessController::class, 'revoke'])->name('access.grants.revoke');
+        Route::patch('/contributor-submissions/{submission}', [ContributorSubmissionController::class, 'review'])->name('contributor-submissions.review');
         Route::get('/release-acceptance', ReleaseAcceptanceController::class)->name('release-acceptance');
         Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');

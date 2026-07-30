@@ -2,6 +2,7 @@
 
 namespace App\Domain\Browsing\Queries;
 
+use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Browsing\ReadModels\ApprovedPhotoGalleryItem;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -9,21 +10,25 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 final class ApprovedPhotoGalleryQuery
 {
+    public function __construct(private ArchiveAccess $access) {}
+
     /** @return LengthAwarePaginator<int, ApprovedPhotoGalleryItem> */
-    public function handle(int $perPage = 8): LengthAwarePaginator
+    public function handle(User $user, int $perPage = 8): LengthAwarePaginator
     {
-        $paginator = MediaItem::query()
+        $query = MediaItem::query()
             ->select(['id', 'archive_id', 'title', 'approved_at'])
             ->with(['fileVersions' => fn ($query) => $query
                 ->select(['id', 'media_item_id', 'parent_version_id', 'version_type', 'storage_disk', 'mime_type', 'generation_status', 'is_preferred'])
                 ->whereIn('version_type', [MediaFileVersionType::Original, MediaFileVersionType::Thumbnail])])
             ->where('media_type', MediaType::Photo)
             ->where('review_status', MediaReviewStatus::Approved)
-            ->whereNotNull('approved_at')
+            ->whereNotNull('approved_at');
+        $paginator = $this->access->scopeVisible($query, $user)
             ->orderByDesc('approved_at')
             ->orderBy('archive_id')
             ->paginate(max(1, min($perPage, 24)));

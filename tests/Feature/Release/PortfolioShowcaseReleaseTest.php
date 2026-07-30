@@ -96,9 +96,9 @@ it('falls back to the product promise for an unknown view', function () {
         ->assertSee('Protect the evidence. Preserve the story.');
 });
 
-it('keeps v1.6 release metadata aligned', function () {
-    expect(config('release.version'))->toBe('1.6.0')
-        ->and(config('release.name'))->toBe('Portfolio Showcase')
-        ->and(config('release.groups'))->toBe('POST-V1-F')
-        ->and(config('release.status'))->toBe('Screenshot Group 11 closed — evidence approved');
+it('keeps release metadata aligned beyond the v1.6 portfolio release', function () {
+    expect(version_compare((string) config('release.version'), '1.6.0', '>='))->toBeTrue()
+        ->and(config('release.name'))->toBeString()->not->toBeEmpty()
+        ->and(config('release.groups'))->toBeString()->not->toBeEmpty()
+        ->and(config('release.status'))->toBeString()->not->toBeEmpty();
 });

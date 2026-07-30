@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Archive;
 
+use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -10,12 +11,13 @@ use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaFileVersion;
 use App\Http\Controllers\Controller;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 final class PrivateDerivativeController extends Controller
 {
-    public function __invoke(MediaFileVersion $mediaFileVersion): Response
+    public function __invoke(Request $request, MediaFileVersion $mediaFileVersion, ArchiveAccess $access): Response
     {
         $mediaFileVersion->load(['mediaItem', 'parentVersion']);
         $parent = $mediaFileVersion->parentVersion;
@@ -34,6 +36,7 @@ final class PrivateDerivativeController extends Controller
             || $item === null
             || $item->media_type !== MediaType::Photo
             || $item->review_status !== MediaReviewStatus::Approved
+            || ! $access->canView($request->user(), $item)
         ) {
             abort(404);
         }
