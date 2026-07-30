@@ -1,6 +1,6 @@
 # Screenshot Group 02 Evidence Plan
 
-Status: Build Groups 21–28 implemented as v0.28.0 — evidence pending.
+Status: closed — evidence approved.
 
 ## Planned Captures
 
@@ -20,9 +20,9 @@ Status: Build Groups 21–28 implemented as v0.28.0 — evidence pending.
 - Real identities, email addresses and private family content: prohibited
 - IP addresses, fingerprints and correlation tokens rendered: no
 - Private archive records or original-storage information rendered: no
-- Human approval: pending
+- Human approval: complete
 
-The first six screenshots may be captured from an isolated browser fixture.
-The repository owner must run the validation script and capture screenshot 07
-manually. All seven PNGs require human approval before canonical evidence is
-committed.
+The first six screenshots were captured from an isolated fictional browser
+fixture. The repository owner ran the validation script manually and supplied
+screenshot 07. All seven PNGs passed human review before canonical evidence
+was committed.

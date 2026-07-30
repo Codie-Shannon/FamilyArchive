@@ -128,5 +128,5 @@ it('keeps release metadata aligned', function () {
     expect(config('release.version'))->toBe('0.28.0')
         ->and(config('release.name'))->toBe('Family Access & Conversation')
         ->and(config('release.groups'))->toBe('21-28')
-        ->and(config('release.status'))->toBe('Screenshot Group 02 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 02 closed — Screenshot Group 03 next');
 });

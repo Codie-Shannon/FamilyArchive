@@ -1,6 +1,6 @@
 # Screenshot Group 02 Manual Test Plan
 
-Status: Build Groups 21–28 implemented as v0.28.0 — evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional accounts, conversations and contact messages. Do not enter
 real email addresses, family content or identifying network information.
@@ -28,6 +28,6 @@ After inspecting the six application screenshots, run
 `Validate-ScreenshotGroup02.ps1` yourself from PowerShell. Capture the final
 terminal result as `07_v028_Validation.png`.
 
-The script validates the repository but does not capture or approve
-screenshots. Screenshot Group 02 remains open until all seven files are
-present, inspected and approved.
+The script validated the repository but did not capture or approve screenshots.
+Screenshot Group 02 closed after all seven files were present, inspected and
+approved.

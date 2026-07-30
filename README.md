@@ -12,9 +12,9 @@ system and is not part of another product or student-work archive.
 
 - Official screenshot groups: 11
 - Completed and closed: SG01 - Build Groups 13-20
-- Active screenshot group: SG02 - Build Groups 21-28
+- Completed and closed: SG02 - Build Groups 21-28
 - Current release: v0.28.0 - Family Access & Conversation
-- SG02 status: implementation complete, evidence pending
+- Next screenshot group: SG03 - Build Groups 29-36
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 

@@ -1,6 +1,6 @@
 # Family Access and Conversation
 
-Status: Screenshot Group 02 implemented — evidence pending.
+Status: Screenshot Group 02 closed — evidence approved.
 
 Screenshot Group 02 covers Build Groups 21–28 as the v0.28.0 Family Access &
 Conversation release.
