@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
+use App\Http\Controllers\Admin\RestorationWorkspaceController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
 use App\Http\Controllers\Archive\ArchiveEventController;
@@ -84,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/admin/archive-storage', ArchiveStorageController::class)->middleware('owner')->name('admin.archive-storage');
     Route::middleware('owner')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('/photo-intake', [PhotoIntakeController::class, 'index'])->name('photo-intake.index');
+        Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');
         Route::get('/incoming-uploads', [PhotoIntakeController::class, 'queue'])->name('photo-intake.queue');
         Route::get('/incoming-uploads/{incomingUpload}', [PhotoIntakeController::class, 'show'])->name('photo-intake.show');

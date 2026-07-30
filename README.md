@@ -13,8 +13,9 @@ system and is not part of another product or student-work archive.
 - Official screenshot groups: 11
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
-- Current release: v0.28.0 - Family Access & Conversation
-- Next screenshot group: SG03 - Build Groups 29-36
+- Active screenshot group: SG03 - Build Groups 29-36
+- Current release: v0.36.0 - Collaboration & Restoration
+- SG03 status: implementation complete, evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -52,7 +53,14 @@ The completed system can:
 - publish moderated public family conversations without exposing the private
   archive; and
 - accept anonymous messages into moderation without creating an account or
-  granting archive access.
+  granting archive access;
+- record identity suggestions and archive notifications;
+- create versioned restoration recipes from an approved operation set;
+- queue restoration work only from preferred immutable originals;
+- retain restoration output as review candidates rather than replacing source
+  records; and
+- validate local and external archive-provider configuration without exposing
+  credentials or claiming an unverified live connection.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

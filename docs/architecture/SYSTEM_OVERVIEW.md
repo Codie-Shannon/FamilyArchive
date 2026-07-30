@@ -49,6 +49,9 @@ derivative, review, access and recovery boundaries are implemented.
 | Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
 | Access | Account approval, branch membership, sensitive-media facts and original-access grants |
 | Communication | Moderated public threads, approved member posts and anonymous contact intake |
+| Collaboration | Identity suggestions and archive notifications |
+| Processing | Versioned restoration recipes, queued jobs and review candidates |
+| Providers | Provider-neutral private storage configuration and safe readiness status |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -86,6 +89,12 @@ Implemented records include:
 - `ConversationMessage`
 - `AnonymousMessage`
 - `MetadataSuggestion`
+- `IdentitySuggestion`
+- `ArchiveNotification`
+- `ProcessingRecipe`
+- `ProcessingJob`
+- `RestorationCandidate`
+- `StorageProviderStatus`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -140,8 +149,10 @@ runtime security boundary for this release.
 Screenshot Group 01 covers Build Groups 13–20 and is closed as the v0.20.0
 Archive Knowledge release with its six-file evidence pack approved. Screenshot
 Group 02 covers Build Groups 21–28 and is closed as v0.28.0 Family Access &
-Conversation with its seven-file evidence pack approved. Screenshot Group 03,
-covering Build Groups 29–36, is next. The implemented foundation establishes:
+Conversation with its seven-file evidence pack approved. Screenshot Group 03
+covers Build Groups 29–36 and is implemented as v0.36.0 Collaboration &
+Restoration with its seven-file evidence pack pending. The implemented
+foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -161,7 +172,9 @@ The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
 Family Access & Conversation adds account approval facts, contributor intake
 records and moderated communication while preserving the private archive
-boundary. Incomplete relationship, person-media, identity-merge and resolution
-workflows remain unavailable.
+boundary. Collaboration & Restoration adds versioned recipes, immutable-source
+job queues, review candidates and fail-closed provider configuration.
+Incomplete relationship, person-media, identity-merge and resolution workflows
+remain unavailable.
 
 See [Roadmap](../ROADMAP.md) for the complete 46-group sequence.

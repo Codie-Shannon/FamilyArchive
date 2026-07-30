@@ -4,7 +4,8 @@ Family Archive has 46 official build groups arranged into 11 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
-evidence. Screenshot Group 03 covers Build Groups 29–36 and is next.
+evidence. Screenshot Group 03 covers Build Groups 29–36 and is implemented as
+v0.36.0 Collaboration & Restoration with evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -177,3 +178,23 @@ The release:
   archive access; and
 - keeps email addresses, network fingerprints, correlation tokens and private
   family content out of public output.
+
+## Screenshot Group 03 Boundary
+
+Screenshot Group 03 combines Build Groups 29–36 in the generated v0.36.0
+Collaboration & Restoration release.
+
+Implementation status: complete — seven-file evidence pack pending.
+
+The release:
+
+- stores identity suggestions and archive notifications without automatic fact
+  acceptance;
+- versions restoration recipes and rejects unknown processing operations;
+- queues jobs only from preferred immutable originals;
+- records candidate output separately for human review;
+- keeps the restoration workspace inside the verified Owner boundary;
+- reports local storage as private and configured;
+- fails closed when external Wasabi configuration is incomplete; and
+- never renders credentials, bucket names or endpoints or claims an unverified
+  live Wasabi connection.
