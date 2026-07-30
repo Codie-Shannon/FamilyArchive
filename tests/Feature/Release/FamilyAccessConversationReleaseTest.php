@@ -56,6 +56,33 @@ it('rejects posts to locked conversations', function () {
         ->toThrow(ValidationException::class);
 });
 
+it('returns visible denial state for a pending account', function () {
+    $owner = User::factory()->create(['role' => 'owner', 'account_state' => 'approved']);
+    $pending = User::factory()->create([
+        'role' => 'viewer',
+        'account_state' => 'pending',
+        'email_verified_at' => now(),
+    ]);
+    $thread = DB::table('conversation_threads')->insertGetId([
+        'thread_id' => fake()->uuid(),
+        'subject' => 'Fictional access question',
+        'scope' => 'public',
+        'created_by' => $owner->id,
+        'is_locked' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($pending)
+        ->from(route('public-chat.index'))
+        ->post(route('public-chat.message'), [
+            'thread_id' => $thread,
+            'body' => 'This post should be denied.',
+        ])
+        ->assertRedirect(route('public-chat.index'))
+        ->assertSessionHasErrors('author');
+});
+
 it('accepts anonymous messages into moderation without creating users', function () {
     $before = User::count();
     $id = app(FamilyCommunication::class)->acceptAnonymous(

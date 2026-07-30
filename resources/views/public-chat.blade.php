@@ -13,6 +13,13 @@
             </div>
             <div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100">
                 v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
+                <span class="mt-1 block text-emerald-200">
+                    @auth
+                        Signed in: {{ auth()->user()->name }} · {{ auth()->user()->account_state }}
+                    @else
+                        Public access · no archive access
+                    @endauth
+                </span>
             </div>
         </header>
 
@@ -23,6 +30,22 @@
         @if(session('status'))
             <p class="rounded-lg border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-200">{{ session('status') }}</p>
         @endif
+
+        @if($errors->any())
+            <div class="rounded-lg border border-rose-800 bg-rose-950/30 p-4 text-rose-100">
+                <p class="font-semibold">Request denied</p>
+                @foreach($errors->all() as $error)
+                    <p class="mt-1">{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
+        <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <article class="rounded-lg border border-zinc-800 bg-zinc-900 p-4"><p class="text-xs uppercase text-zinc-500">Private archive</p><p class="mt-1 text-sm text-zinc-200">Verified Owner only</p></article>
+            <article class="rounded-lg border border-zinc-800 bg-zinc-900 p-4"><p class="text-xs uppercase text-zinc-500">Member posting</p><p class="mt-1 text-sm text-zinc-200">Approved account required</p></article>
+            <article class="rounded-lg border border-zinc-800 bg-zinc-900 p-4"><p class="text-xs uppercase text-zinc-500">Locked threads</p><p class="mt-1 text-sm text-zinc-200">New posts rejected</p></article>
+            <article class="rounded-lg border border-zinc-800 bg-zinc-900 p-4"><p class="text-xs uppercase text-zinc-500">Anonymous contact</p><p class="mt-1 text-sm text-zinc-200">Rate-limited moderation</p></article>
+        </section>
 
         <section class="grid gap-4">
             @forelse($threads as $thread)
