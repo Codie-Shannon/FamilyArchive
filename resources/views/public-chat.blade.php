@@ -52,6 +52,9 @@
                 <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
                     <p class="text-xs uppercase tracking-wide text-emerald-300">Moderated public thread</p>
                     <h2 class="mt-1 text-xl font-semibold text-white">{{ $thread->subject }}</h2>
+                    @if($thread->is_locked)
+                        <p class="mt-2 text-sm font-medium text-amber-300">Thread locked · new posts are disabled</p>
+                    @endif
 
                     <div class="mt-4 space-y-3">
                         @forelse($messages->get($thread->id, collect()) as $message)
@@ -65,12 +68,14 @@
                     </div>
 
                     @auth
+                        @if(! $thread->is_locked)
                         <form method="POST" action="{{ route('public-chat.message') }}" class="mt-4 flex flex-col gap-2 sm:flex-row">
                             @csrf
                             <input type="hidden" name="thread_id" value="{{ $thread->id }}">
                             <input name="body" maxlength="4000" required class="min-w-0 flex-1 rounded-lg bg-zinc-950 p-3 text-white" placeholder="Add a respectful message">
                             <button class="rounded-lg bg-emerald-500 px-4 py-3 font-semibold text-black">Post</button>
                         </form>
+                        @endif
                     @endauth
                 </article>
             @empty
