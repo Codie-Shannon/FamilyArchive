@@ -3,7 +3,7 @@
 Screenshot Group 11 is the generated Post-v1 F boundary for `1.6.0` Portfolio
 Showcase.
 
-Status: implemented — screenshot evidence pending.
+Status: closed — all seven evidence files inspected and approved.
 
 The evidence pack presents a compact employer and client narrative around the
 product promise, core archive journey, integrity and recovery, privacy,

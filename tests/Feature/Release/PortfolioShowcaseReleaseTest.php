@@ -100,5 +100,5 @@ it('keeps v1.6 release metadata aligned', function () {
     expect(config('release.version'))->toBe('1.6.0')
         ->and(config('release.name'))->toBe('Portfolio Showcase')
         ->and(config('release.groups'))->toBe('POST-V1-F')
-        ->and(config('release.status'))->toBe('Screenshot Group 11 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 11 closed — evidence approved');
 });

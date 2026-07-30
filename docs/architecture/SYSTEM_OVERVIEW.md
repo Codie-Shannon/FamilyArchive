@@ -198,8 +198,8 @@ evidence pack approved. Screenshot Group 09 is implemented as v1.4.0 Real-Time
 Family Community, with its four-file evidence pack approved. Screenshot Group
 10 is implemented as v1.5.0 Secure & Federated Communication, with its
 four-file evidence pack approved. Screenshot Group 11 is implemented as v1.6.0
-Portfolio Showcase, with its seven-file evidence pack pending. The implemented
-foundation establishes:
+Portfolio Showcase, with its seven-file evidence pack approved. All 11
+screenshot groups are closed. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;

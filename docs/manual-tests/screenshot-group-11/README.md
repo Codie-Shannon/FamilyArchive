@@ -1,6 +1,6 @@
 # Screenshot Group 11 Manual Test Plan
 
-Status: implemented — screenshot evidence pending.
+Status: closed — screenshot evidence approved.
 
 Use only the fictional Aotearoa dataset. Do not expose real identities, real
 archive paths, hashes, precise private locations, credentials or production
@@ -38,5 +38,6 @@ After all six application screenshots have been inspected, run:
 Capture the completed PowerShell window as `07_v160_Validation.png`.
 
 The script validates the repository and all six application captures. It does
-not capture or approve evidence. Closure still requires visual, privacy,
-dimension and PNG metadata inspection plus explicit human approval.
+not capture or approve evidence. The completed validation was captured
+manually, and all seven evidence files passed visual, privacy, dimension and
+PNG metadata inspection before explicit human approval.

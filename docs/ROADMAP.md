@@ -18,7 +18,8 @@ Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
 with its four-file evidence pack approved. Screenshot Group 10 is implemented
 as the v1.5.0 Secure & Federated Communication boundary, with its four-file
 evidence pack approved. Screenshot Group 11 is implemented as the v1.6.0
-Portfolio Showcase boundary, with its seven-file evidence pack pending.
+Portfolio Showcase boundary, with its seven-file evidence pack approved. All
+11 screenshot groups are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -366,7 +367,7 @@ The release:
 Screenshot Group 11 is the generated Post-v1 F boundary for v1.6.0 Portfolio
 Showcase.
 
-Implementation status: implemented — seven-file screenshot evidence pending.
+Implementation status: closed — seven-file screenshot evidence approved.
 
 The release:
 

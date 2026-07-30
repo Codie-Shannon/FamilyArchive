@@ -21,9 +21,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG08 - Post-v1 C
 - Completed and closed: SG09 - Post-v1 D
 - Completed and closed: SG10 - Post-v1 E
-- Implemented, evidence pending: SG11 - Post-v1 F
+- Completed and closed: SG11 - Post-v1 F
 - Current release: v1.6.0 - Portfolio Showcase
-- Current evidence state: SG11 seven-file evidence pack pending
+- Current evidence state: all 11 screenshot groups approved and closed
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
