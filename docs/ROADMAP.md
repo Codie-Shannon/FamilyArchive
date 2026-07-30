@@ -15,7 +15,8 @@ Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
 evidence. Screenshot Group 08 is implemented as the v1.3.0 Public Discovery &
 Archive Maps boundary, with its four-file evidence pack approved. Screenshot
 Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
-with its four-file evidence pack pending.
+with its four-file evidence pack approved. Screenshot Group 10 is the next
+generated post-v1 boundary.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -321,7 +322,7 @@ The release:
 Screenshot Group 09 is the generated Post-v1 D boundary for v1.4.0 Real-Time
 Family Community.
 
-Implementation status: complete — four-file screenshot evidence pending.
+Implementation status: closed — four-file screenshot evidence approved.
 
 The release:
 

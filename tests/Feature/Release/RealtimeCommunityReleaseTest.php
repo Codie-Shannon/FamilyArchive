@@ -169,5 +169,5 @@ it('keeps v1.4 release metadata aligned', function () {
     expect(config('release.version'))->toBe('1.4.0')
         ->and(config('release.name'))->toBe('Real-Time Family Community')
         ->and(config('release.groups'))->toBe('POST-V1-D')
-        ->and(config('release.status'))->toBe('Screenshot Group 09 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 09 closed — evidence approved');
 });

@@ -187,7 +187,8 @@ three-file evidence pack approved. Screenshot Group 08 is implemented as the
 v1.3.0 Public Discovery & Archive Maps post-v1 boundary, with its four-file
 evidence pack approved. Screenshot Group 09 is implemented as v1.4.0 Real-Time
 Family Community, with its
-four-file evidence pack pending. The implemented foundation establishes:
+four-file evidence pack approved. Screenshot Group 10 is the next generated
+post-v1 boundary. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;

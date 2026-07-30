@@ -3,7 +3,7 @@
 Screenshot Group 09 is the generated Post-v1 D boundary for `1.4.0` Real-Time
 Family Community.
 
-Status: implemented — four-file evidence pack pending.
+Status: closed — all four evidence files inspected and approved.
 
 The evidence pack demonstrates membership-aware spaces and channels, expiring
 presence and typing, moderated voice messages, and an honest fail-closed voice

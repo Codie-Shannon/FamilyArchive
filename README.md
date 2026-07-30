@@ -19,9 +19,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG06 - Post-v1 A
 - Completed and closed: SG07 - Post-v1 B
 - Completed and closed: SG08 - Post-v1 C
-- Current screenshot group: SG09 - Post-v1 D
-- Current release: v1.4.0 - Real-Time Family Community
-- Current evidence state: SG09 implementation complete; four-file evidence pack pending
+- Completed and closed: SG09 - Post-v1 D
+- Next screenshot group: SG10 - Post-v1 E
+- Next release: v1.5.0 - Secure & Federated Communication
+- Current evidence state: SG09 four-file evidence pack approved and closed
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
