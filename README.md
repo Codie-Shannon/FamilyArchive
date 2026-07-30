@@ -15,8 +15,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
 - Completed and closed: SG04 - Build Groups 37-44
-- Current release: v0.44.0 - Integrity & Production
-- Next screenshot group: SG05 - Build Groups 45-46
+- Current screenshot group: SG05 - Build Groups 45-46
+- Current release candidate: v1.0.0 - Family Archive v1.0
+- Current evidence state: implementation complete; screenshot and human
+  acceptance evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -66,7 +68,11 @@ The completed system can:
 - append integrity findings without repairing or mutating stored objects;
 - separate repair review from verification observations; and
 - record synthetic backup, recovery and operational readiness without claiming
-  production infrastructure.
+  production infrastructure;
+- evaluate deterministic v1 readiness gates without granting human acceptance;
+- retain non-identifying pilot and accessibility feedback review state; and
+- record proposed and confirmed custodianship responsibilities without
+  bypassing normal access controls.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

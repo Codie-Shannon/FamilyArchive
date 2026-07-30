@@ -7,7 +7,9 @@ v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 evidence. Screenshot Group 03 covers Build Groups 29–36 and is closed with
 approved v0.36.0 Collaboration & Restoration evidence. Screenshot Group 04
 covers Build Groups 37–44 and is closed with approved v0.44.0 Integrity &
-Production evidence. Screenshot Group 05, covering Build Groups 45–46, is next.
+Production evidence. Screenshot Group 05 covers Build Groups 45–46 and is
+implemented as the v1.0.0 Family Archive v1.0 release candidate with screenshot
+and human acceptance evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -220,3 +222,24 @@ The release:
 - keeps the operations dashboard inside the verified Owner boundary; and
 - never renders credentials, provider accounts, endpoints, storage paths,
   hashes or real capacity figures.
+
+## Screenshot Group 05 Boundary
+
+Screenshot Group 05 combines Build Groups 45–46 in the generated v1.0.0 Family
+Archive v1.0 release candidate.
+
+Implementation status: complete — seven-file screenshot evidence and real
+human acceptance remain pending.
+
+The release:
+
+- records non-identifying pilot and accessibility feedback for review;
+- evaluates deterministic readiness gates and records blocked or ready runs;
+- displays missing pilot approval, production proof and custodian confirmation
+  honestly;
+- models primary, successor and emergency custodianship with explicit
+  confirmation state;
+- keeps the acceptance surface inside the verified Owner boundary;
+- preserves authentication and authorization regardless of designation; and
+- does not fabricate participants, production infrastructure, family approval
+  or custodian confirmation.

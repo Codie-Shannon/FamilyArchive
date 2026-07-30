@@ -52,6 +52,9 @@ derivative, review, access and recovery boundaries are implemented.
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
 | Providers | Provider-neutral private storage configuration and safe readiness status |
+| Integrity | No-overwrite transfer, observations, repair review and recovery evidence |
+| Release | Deterministic acceptance readiness and explicit human gates |
+| Custodianship | Proposed, confirmed and revoked long-term responsibility |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -153,8 +156,10 @@ Conversation with its seven-file evidence pack approved. Screenshot Group 03
 covers Build Groups 29–36 and is closed as v0.36.0 Collaboration & Restoration
 with its seven-file evidence pack approved. Screenshot Group 04 covers Build
 Groups 37–44 and is closed as v0.44.0 Integrity & Production with its seven-file
-evidence pack approved. Screenshot Group 05, covering Build Groups 45–46, is
-next. The implemented foundation establishes:
+evidence pack approved. Screenshot Group 05 covers Build Groups 45–46 and is
+implemented as the v1.0.0 Family Archive v1.0 release candidate; screenshot
+evidence and real human acceptance remain pending. The implemented foundation
+establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -171,7 +176,9 @@ next. The implemented foundation establishes:
 13. reviewed events, normalized locations and provenance-aware browsing;
 14. moderated family access and contributor conversation boundaries;
 15. versioned restoration and fail-closed provider configuration; and
-16. verified no-overwrite transfer, integrity observation and repair review.
+16. verified no-overwrite transfer, integrity observation and repair review;
+    and
+17. deterministic acceptance readiness and explicit custodianship state.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -182,6 +189,10 @@ job queues, review candidates and fail-closed provider configuration. Integrity
 & Production adds verified transfers, immutable integrity observations,
 human-reviewed repair cases and synthetic recovery-readiness records without
 claiming live infrastructure.
+V1 Acceptance & Custodianship adds non-identifying pilot-feedback review,
+recorded deterministic gates and proposed or confirmed responsibility. It
+keeps family-pilot approval, production proof and custodian confirmation as
+explicit human work and does not infer them from release metadata.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 
