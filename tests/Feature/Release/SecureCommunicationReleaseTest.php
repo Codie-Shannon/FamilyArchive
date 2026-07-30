@@ -218,6 +218,17 @@ it('scopes secure messages to the recipient and excludes sensitive envelope fiel
         ->assertDontSee(str_repeat('b', 64))
         ->assertDontSee(str_repeat('c', 64))
         ->assertDontSee(str_repeat('d', 64));
+
+    $this->actingAs($recipient)
+        ->get(route('secure-messages.index', ['view' => 'attachments']))
+        ->assertOk()
+        ->assertSee('Attachment security')
+        ->assertSee('Encrypted message state')
+        ->assertSee('harbour-caption-card.png')
+        ->assertDontSee('Direct-message consent')
+        ->assertDontSee('Private Outside Alias')
+        ->assertDontSee('SENSITIVE-RECIPIENT-CIPHERTEXT')
+        ->assertDontSee('SENSITIVE-RECIPIENT-PATH');
 });
 
 it('keeps v1.5 release metadata aligned', function () {

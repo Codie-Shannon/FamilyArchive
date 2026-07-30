@@ -23,6 +23,7 @@ final class SecureMessagingController extends Controller
             'attachments' => $this->attachments($acceptedThreadIds),
             'encryptionEnabled' => (bool) config('communication_bridges.end_to_end_encryption.enabled'),
             'protocolVersion' => (int) config('communication_bridges.end_to_end_encryption.protocol_version'),
+            'activeView' => request()->string('view')->toString() === 'attachments' ? 'attachments' : 'consent',
         ]);
     }
 

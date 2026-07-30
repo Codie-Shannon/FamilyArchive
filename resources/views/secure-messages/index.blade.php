@@ -6,12 +6,19 @@
                 <h1 class="mt-2 text-3xl font-semibold text-white">Secure messages</h1>
                 <p class="mt-2 max-w-3xl text-zinc-400">Consent-first public DMs with versioned encrypted envelopes and scanned attachments.</p>
             </div>
-            <div class="rounded-xl border border-emerald-900 bg-emerald-950/30 px-5 py-3 text-sm text-emerald-100">
-                v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
+            <div class="space-y-3 text-right">
+                <div class="rounded-xl border border-emerald-900 bg-emerald-950/30 px-5 py-3 text-sm text-emerald-100">
+                    v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
+                </div>
+                <nav class="flex justify-end gap-2 text-sm">
+                    <a href="{{ route('secure-messages.index') }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'consent' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Consent overview</a>
+                    <a href="{{ route('secure-messages.index', ['view' => 'attachments']) }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'attachments' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Attachment security</a>
+                </nav>
             </div>
         </header>
 
-        <section class="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <section class="grid gap-5 {{ $activeView === 'consent' ? 'xl:grid-cols-[0.9fr_1.1fr]' : '' }}">
+            @if($activeView === 'consent')
             <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -36,6 +43,7 @@
                     @endforelse
                 </div>
             </article>
+            @endif
 
             <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
                 <div class="flex items-center justify-between gap-3">
@@ -66,7 +74,7 @@
             </article>
         </section>
 
-        <section id="attachment-states" class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
+        <section id="attachment-states" class="rounded-xl border {{ $activeView === 'attachments' ? 'border-emerald-900' : 'border-zinc-700' }} bg-zinc-900 p-5">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
                     <p class="text-sm font-semibold text-emerald-300">Private attachment pipeline</p>
