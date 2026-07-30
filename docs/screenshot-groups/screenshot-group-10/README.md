@@ -3,7 +3,7 @@
 Screenshot Group 10 is the generated Post-v1 E boundary for `1.5.0` Secure &
 Federated Communication.
 
-Status: implemented — screenshot evidence pending.
+Status: closed — all four evidence files inspected and approved.
 
 The evidence pack demonstrates recipient-scoped public-DM consent, versioned
 encrypted-envelope summaries, private attachment scan states, a constrained

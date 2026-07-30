@@ -20,9 +20,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG07 - Post-v1 B
 - Completed and closed: SG08 - Post-v1 C
 - Completed and closed: SG09 - Post-v1 D
-- Implemented, evidence pending: SG10 - Post-v1 E
+- Completed and closed: SG10 - Post-v1 E
+- Next screenshot group: SG11 - Post-v1 F
 - Current release: v1.5.0 - Secure & Federated Communication
-- Current evidence state: SG10 four-file evidence pack pending
+- Current evidence state: SG10 four-file evidence pack approved and closed
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 

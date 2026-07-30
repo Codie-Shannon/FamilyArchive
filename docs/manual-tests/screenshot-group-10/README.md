@@ -1,6 +1,6 @@
 # Screenshot Group 10 Manual Test Plan
 
-Status: implemented — screenshot evidence pending.
+Status: closed — screenshot evidence approved.
 
 Use only fictional aliases, users, envelope summaries, attachments, bot
 records and bridge deliveries. Do not expose plaintext private messages,
@@ -41,5 +41,6 @@ After the three application screenshots have been inspected, run:
 Capture the completed PowerShell window as `04_v150_Validation.png`.
 
 The script validates the repository and all three application captures. It
-does not capture or approve evidence. Closure still requires visual, privacy,
-dimension and PNG metadata inspection plus explicit human approval.
+does not capture or approve evidence. The completed validation was captured
+manually, and all four evidence files passed visual, privacy, dimension and
+PNG metadata inspection before explicit human approval.

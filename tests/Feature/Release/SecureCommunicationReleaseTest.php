@@ -235,5 +235,5 @@ it('keeps v1.5 release metadata aligned', function () {
     expect(config('release.version'))->toBe('1.5.0')
         ->and(config('release.name'))->toBe('Secure & Federated Communication')
         ->and(config('release.groups'))->toBe('POST-V1-E')
-        ->and(config('release.status'))->toBe('Screenshot Group 10 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 10 closed — evidence approved');
 });

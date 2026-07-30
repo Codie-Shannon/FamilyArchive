@@ -17,7 +17,8 @@ Archive Maps boundary, with its four-file evidence pack approved. Screenshot
 Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
 with its four-file evidence pack approved. Screenshot Group 10 is implemented
 as the v1.5.0 Secure & Federated Communication boundary, with its four-file
-evidence pack pending.
+evidence pack approved. Screenshot Group 11 is the final generated post-v1
+boundary.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -343,7 +344,7 @@ The release:
 Screenshot Group 10 is the generated Post-v1 E boundary for v1.5.0 Secure &
 Federated Communication.
 
-Implementation status: implemented — four-file screenshot evidence pending.
+Implementation status: closed — four-file screenshot evidence approved.
 
 The release:
 
