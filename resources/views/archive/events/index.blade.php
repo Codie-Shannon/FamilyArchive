@@ -2,7 +2,7 @@
     <main class="mx-auto max-w-7xl space-y-6 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">Group 13 · implementation in progress</p>
+                <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ config('release.status') }}</p>
                 <h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">Reviewed events</h1>
                 <p class="mt-2 text-zinc-600 dark:text-zinc-300">Explore accepted historical events without manufacturing date precision.</p>
             </div>
