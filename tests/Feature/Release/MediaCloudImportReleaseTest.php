@@ -48,5 +48,5 @@ it('keeps v1.2 release metadata aligned', function () {
     expect(config('release.version'))->toBe('1.2.0')
         ->and(config('release.name'))->toBe('Media & Cloud Import')
         ->and(config('release.groups'))->toBe('POST-V1-B')
-        ->and(config('release.status'))->toBe('Screenshot Group 07 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 07 evidence closed');
 });

@@ -1,6 +1,6 @@
 # Screenshot Group 07 Manual Test Plan
 
-Status: implemented — screenshot evidence pending.
+Status: closed — screenshot evidence approved.
 
 Use only fictional import sessions, provider identifiers, filenames and media
 profiles. Do not expose provider credentials, account identifiers, real cloud
@@ -33,4 +33,5 @@ After the two application screenshots have been inspected, run:
 Capture the completed PowerShell window as `03_v120_Validation.png`.
 
 The script validates the repository and both desktop application captures. It
-does not capture or approve evidence.
+does not capture or approve evidence. The completed validation was captured
+manually, and all three evidence files were explicitly approved before closure.

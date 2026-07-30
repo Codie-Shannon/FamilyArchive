@@ -3,6 +3,8 @@
 Screenshot Group 07 is the generated Post-v1 B boundary for `1.2.0` Media &
 Cloud Import.
 
+Status: closed — all three evidence files inspected and approved.
+
 The three-file evidence pack demonstrates provider readiness, mixed-media
 preflight planning, versioned playback profiles and a manually run complete
 validation.

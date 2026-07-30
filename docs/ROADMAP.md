@@ -11,8 +11,8 @@ Production evidence. Screenshot Group 05 covers Build Groups 45–46 and is
 closed with approved v1.0.0 Family Archive v1.0 screenshot evidence. Real
 pilot, production and custodian acceptance gates remain human work. Screenshot
 Group 06 is closed with approved v1.1.0 Advanced Media Intelligence evidence.
-Screenshot Group 07 is implemented as the generated v1.2.0 Media & Cloud
-Import post-v1 boundary with screenshot evidence pending.
+Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
+evidence. Screenshot Group 08 is the next generated post-v1 boundary.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -280,7 +280,7 @@ The release:
 Screenshot Group 07 is the generated Post-v1 B boundary for v1.2.0 Media &
 Cloud Import.
 
-Implementation status: complete — three-file screenshot evidence pending.
+Implementation status: closed — three-file screenshot evidence approved.
 
 The release:
 
