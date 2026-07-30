@@ -47,7 +47,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
 | Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
-| Access | Account approval, branch membership, sensitive-media facts and original-access grants |
+| Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
 | Communication | Moderated public threads, approved member posts and anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
@@ -90,6 +90,8 @@ Implemented records include:
 - `FamilyBranch`
 - `FamilyBranchRevision`
 - `OriginalAccessGrant`
+- `UserInvitation`
+- `AccountAccessEvent`
 - `ContributorSubmission`
 - `UploadTemplate`
 - `UploadSession`
@@ -137,7 +139,7 @@ the capability.
 ## Current Photo Lifecycle
 
 ```text
-Owner upload
+Owner or approved contributor upload
   -> technical validation
   -> private quarantine retention
   -> SHA-256 and byte verification
@@ -167,15 +169,19 @@ Original paths never become public URLs.
 
 ## Access Model
 
-The archive and administration surface requires an authenticated, verified user
-with the Owner role. Public registration is disabled. The public conversation
-surface exposes only explicitly public moderated threads. Approved accounts may
-post; anonymous contact enters a moderation queue and never grants archive
-access.
+Public registration is disabled. An owner creates an expiring one-use
+invitation; an accepted account must verify its email and remain blocked until
+an owner records approval. Approved viewers and contributors see only
+family-visible records plus branch-visible records matching their reviewed
+branch. Admins and owners retain archive-wide visibility, while owner-only
+middleware protects account administration and preservation operations.
 
-Account state, family-branch association and explicit original-access grants are
-stored for later policy expansion. Owner-only archive access remains the
-runtime security boundary for this release.
+Preferred originals never become public URLs. A non-administrator can receive
+an original only through a separately effective, unexpired and unrevoked
+grant, and delivery verifies byte length and SHA-256 before returning a
+private, non-cacheable response. Account changes append immutable access-event
+evidence. Public conversation remains distinct: anonymous contact grants no
+identity or archive access.
 
 ## Current Build State
 
@@ -198,8 +204,10 @@ evidence pack approved. Screenshot Group 09 is implemented as v1.4.0 Real-Time
 Family Community, with its four-file evidence pack approved. Screenshot Group
 10 is implemented as v1.5.0 Secure & Federated Communication, with its
 four-file evidence pack approved. Screenshot Group 11 is implemented as v1.6.0
-Portfolio Showcase, with its seven-file evidence pack approved. All 11
-screenshot groups are closed. The implemented foundation establishes:
+Portfolio Showcase, with its seven-file evidence pack approved. Screenshot
+Group 12 is implemented as v1.7.0 Accounts & Contributor Access, with its
+six-file evidence pack approved. Screenshot Groups 01-12 are closed. The
+implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -230,7 +238,9 @@ screenshot groups are closed. The implemented foundation establishes:
     scan states, constrained guidance and official business bridge readiness;
     and
 23. a preservation-first portfolio narrative with local read-only
-    demonstration safeguards.
+    demonstration safeguards; and
+24. enforced invitations, verification, approval, branch filtering, original
+    grants and resumable contributor intake.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -271,6 +281,10 @@ Portfolio Showcase packages the cumulative architecture into six safe,
 Owner-only evidence views. Its fictional dataset is local-only, and optional
 read-only mode rejects authenticated writes without weakening authentication
 or exposing private records.
+Accounts & Contributor Access turns the earlier access schema into enforced
+runtime behavior. Contributor originals are retained unchanged in quarantine,
+automation choices are preferences for later processing work, and owner
+moderation remains ahead of duplicate review and archive promotion.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 

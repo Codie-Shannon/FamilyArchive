@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 11
+- Official screenshot groups: 12
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -22,10 +22,12 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG09 - Post-v1 D
 - Completed and closed: SG10 - Post-v1 E
 - Completed and closed: SG11 - Post-v1 F
-- Current release: v1.6.0 - Portfolio Showcase
-- Current evidence state: all 11 screenshot groups approved and closed
+- Completed and closed: SG12 - Corrective Accounts & Contributor Access
+- Current release: v1.7.0 - Accounts & Contributor Access
+- Current evidence state: Screenshot Groups 01-12 approved and closed
 - Current media support: photos
-- Current access model: verified Owner-only archive and administration
+- Current access model: invite-only, verified and approved role/branch access with
+  owner-controlled administration and original grants
 
 The completed system can:
 

@@ -1,6 +1,7 @@
 # Family Archive Roadmap
 
-Family Archive has 46 official build groups arranged into 11 screenshot groups.
+Family Archive has 46 official build groups plus corrective implementation
+releases. The repository currently has 12 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -18,8 +19,10 @@ Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
 with its four-file evidence pack approved. Screenshot Group 10 is implemented
 as the v1.5.0 Secure & Federated Communication boundary, with its four-file
 evidence pack approved. Screenshot Group 11 is implemented as the v1.6.0
-Portfolio Showcase boundary, with its seven-file evidence pack approved. All
-11 screenshot groups are closed.
+Portfolio Showcase boundary, with its seven-file evidence pack approved.
+Screenshot Group 12 is the corrective v1.7.0 Accounts & Contributor Access
+release. Its implementation and six-file evidence pack are approved and
+closed. Screenshot Groups 01-12 are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -115,6 +118,7 @@ PDFs remain external artifacts and must not be committed.
 | 09 | Post-v1 D | 1.4.0 | Real-Time Family Community |
 | 10 | Post-v1 E | 1.5.0 | Secure & Federated Communication |
 | 11 | Post-v1 F | 1.6.0 | Portfolio Showcase |
+| 12 | Corrective access | 1.7.0 | Accounts & Contributor Access |
 
 ## Group 13 Boundary
 
@@ -386,3 +390,33 @@ The release:
   explicitly enabled; and
 - de-emphasizes generic social-network expansion without deleting its bounded
   architectural history.
+
+## Screenshot Group 12 Boundary
+
+Screenshot Group 12 is the corrective v1.7.0 Accounts & Contributor Access
+release.
+
+Implementation status: complete — six-file screenshot evidence approved and
+closed.
+
+The release:
+
+- preserves public registration as unavailable and adds expiring, one-use
+  owner invitations;
+- enforces email verification through the user contract and requires explicit
+  owner approval before platform or archive access;
+- supports viewer, contributor, trusted-contributor, admin and owner roles
+  with last-owner lockout protection;
+- scopes approved archive records through visibility and reviewed family
+  branch membership;
+- serves integrity-checked originals only to archive administrators or members
+  holding an effective, unexpired and unrevoked grant;
+- appends immutable account-access history for invitation acceptance and owner
+  access changes;
+- provides resumable multi-file contributor sessions whose sources pass
+  through the established validation and private quarantine-retention
+  pipeline;
+- records uploader-selected automation preferences without modifying originals
+  or claiming that restoration operations already run; and
+- hands contributor submissions to an owner moderation queue before the
+  existing duplicate-review and archive-promotion gates.
