@@ -12,7 +12,7 @@ final class PortfolioReadiness
         return [
             'archive_items' => DB::table('media_items')->count(),
             'verified_originals' => DB::table('media_file_versions')->where('version_type', 'original')->count(),
-            'metadata_revisions' => DB::table('media_metadata_revisions')->count(),
+            'reviewed_items' => DB::table('media_items')->where('review_status', 'approved')->count(),
             'public_stories' => DB::table('public_showcase_entries')->where('state', 'published')->count(),
             'integrity_checks' => DB::table('integrity_checks')->count(),
         ];
