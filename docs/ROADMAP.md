@@ -11,7 +11,8 @@ Production evidence. Screenshot Group 05 covers Build Groups 45–46 and is
 closed with approved v1.0.0 Family Archive v1.0 screenshot evidence. Real
 pilot, production and custodian acceptance gates remain human work. Screenshot
 Group 06 is closed with approved v1.1.0 Advanced Media Intelligence evidence.
-Screenshot Group 07 is the next generated post-v1 boundary.
+Screenshot Group 07 is implemented as the generated v1.2.0 Media & Cloud
+Import post-v1 boundary with screenshot evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -273,3 +274,21 @@ The release:
 - stores merge proposals without applying them automatically;
 - keeps the intelligence workspace inside the verified Owner boundary; and
 - never renders fingerprints, internal file identifiers, paths or hashes.
+
+## Screenshot Group 07 Boundary
+
+Screenshot Group 07 is the generated Post-v1 B boundary for v1.2.0 Media &
+Cloud Import.
+
+Implementation status: complete — three-file screenshot evidence pending.
+
+The release:
+
+- plans Google Photos Picker and manual Apple Photos import sessions;
+- admits photo, video, audio and document selections into preflight only;
+- sanitizes displayed source names and stores no provider secret in evidence;
+- records versioned playback and preview profiles for non-photo media;
+- keeps Apple native access explicitly unvalidated without Apple test hardware;
+- keeps document OCR and searchable scan text explicitly excluded;
+- preserves quarantine, duplicate review and human acceptance boundaries; and
+- keeps the cloud-import workspace inside the verified Owner boundary.

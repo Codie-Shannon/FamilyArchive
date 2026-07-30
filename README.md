@@ -17,9 +17,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG04 - Build Groups 37-44
 - Completed and closed: SG05 - Build Groups 45-46
 - Completed and closed: SG06 - Post-v1 A
-- Next screenshot group: SG07 - Post-v1 B
-- Next release: v1.2.0 - Media & Cloud Import
-- Current evidence state: SG06 three-file evidence pack approved and closed
+- Current screenshot group: SG07 - Post-v1 B
+- Current release: v1.2.0 - Media & Cloud Import
+- Current evidence state: implementation in progress; screenshot evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -77,7 +77,12 @@ The completed system can:
 - compare validated perceptual fingerprints as review candidates;
 - retain alternate originals as separate immutable source records; and
 - preview metadata additions and conflicts without silently merging reviewed
-  facts.
+  facts;
+- plan Google Photos Picker and manual Apple Photos imports through preflight;
+- represent photo, video, audio and document selections without bypassing
+  quarantine, duplicate review or acceptance; and
+- keep Apple native access unvalidated and document OCR excluded until their
+  real external requirements are satisfied.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

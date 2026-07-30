@@ -56,6 +56,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Release | Deterministic acceptance readiness and explicit human gates |
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
 | Intelligence | Perceptual similarity, alternate originals and metadata merge proposals |
+| Cloud Import | Provider readiness, mixed-media preflight and playback profiles |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -103,6 +104,10 @@ Implemented records include:
 - `VisualSimilarityCandidate`
 - `AlternateMediaSource`
 - `MetadataMergeProposal`
+- `CloudImportConnection`
+- `CloudImportSession`
+- `CloudImportItem`
+- `MediaPlaybackProfile`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -166,8 +171,8 @@ closed with its seven-file v1.0.0 Family Archive v1.0 screenshot evidence pack
 approved. Real pilot, production and custodian acceptance gates remain human
 work. Screenshot Group 06 is closed as the v1.1.0 Advanced Media Intelligence
 post-v1 boundary with its three-file evidence pack approved. Screenshot Group
-07 is the next generated post-v1 boundary. The implemented foundation
-establishes:
+07 is implemented as the v1.2.0 Media & Cloud Import post-v1 boundary with
+screenshot evidence pending. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -188,6 +193,8 @@ establishes:
     and
 17. deterministic acceptance readiness and explicit custodianship state; and
 18. perceptual similarity review, alternate originals and merge previews.
+19. mixed-media cloud-import planning and provider readiness without live
+    provider claims.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -206,6 +213,10 @@ Advanced Media Intelligence adds deterministic similarity candidates,
 separate alternate-original provenance and conflict-aware metadata proposals.
 It never treats similarity as deletion authority or applies conflicting facts
 without human review.
+Media & Cloud Import adds provider readiness, mixed-media preflight sessions
+and versioned playback profiles. Selected items still pass validation,
+quarantine, duplicate review and acceptance. Apple native access remains
+unvalidated and document OCR remains excluded.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 
