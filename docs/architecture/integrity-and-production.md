@@ -1,6 +1,6 @@
 # Integrity and Production
 
-Status: Screenshot Group 04 implemented — evidence pending.
+Status: Screenshot Group 04 closed — evidence approved.
 
 Screenshot Group 04 covers Build Groups 37–44 as the v0.44.0 Integrity &
 Production release.

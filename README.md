@@ -14,9 +14,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
-- Active screenshot group: SG04 - Build Groups 37-44
+- Completed and closed: SG04 - Build Groups 37-44
 - Current release: v0.44.0 - Integrity & Production
-- SG04 status: implementation complete, evidence pending
+- Next screenshot group: SG05 - Build Groups 45-46
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 

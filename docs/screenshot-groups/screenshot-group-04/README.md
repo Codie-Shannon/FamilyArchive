@@ -1,6 +1,6 @@
 # Screenshot Group 04 Evidence Plan
 
-Status: Build Groups 37–44 implemented as v0.44.0 — evidence pending.
+Status: closed — evidence approved.
 
 ## Planned Captures
 
@@ -20,8 +20,9 @@ Status: Build Groups 37–44 implemented as v0.44.0 — evidence pending.
 - Real media, providers, accounts and infrastructure: prohibited
 - Credentials, endpoints, paths, hashes and real capacity rendered: no
 - Simulated restore, hosting or monitoring presented as production proof: no
-- Human approval: pending
+- Human approval: complete
 
-The first five screenshots may be captured from an isolated browser fixture.
-The repository owner must run and capture both terminal validations manually.
-All seven PNGs require human approval before canonical evidence is committed.
+The first five screenshots were captured from an isolated fictional browser
+fixture. The repository owner ran both terminal validations manually and
+supplied screenshots 06 and 07. All seven PNGs passed human review before
+canonical evidence was committed.

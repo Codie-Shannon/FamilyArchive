@@ -152,8 +152,9 @@ Group 02 covers Build Groups 21–28 and is closed as v0.28.0 Family Access &
 Conversation with its seven-file evidence pack approved. Screenshot Group 03
 covers Build Groups 29–36 and is closed as v0.36.0 Collaboration & Restoration
 with its seven-file evidence pack approved. Screenshot Group 04 covers Build
-Groups 37–44 and is implemented as v0.44.0 Integrity & Production with its
-seven-file evidence pack pending. The implemented foundation establishes:
+Groups 37–44 and is closed as v0.44.0 Integrity & Production with its seven-file
+evidence pack approved. Screenshot Group 05, covering Build Groups 45–46, is
+next. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;

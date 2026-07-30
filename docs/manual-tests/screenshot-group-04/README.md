@@ -1,6 +1,6 @@
 # Screenshot Group 04 Manual Test Plan
 
-Status: Build Groups 37–44 implemented as v0.44.0 — evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional objects, manifests, repair cases, backup sets and operational
 events. Do not use real media, provider accounts, endpoints, storage paths,
@@ -30,6 +30,6 @@ Run both scripts yourself after the five application screenshots are approved:
 2. `Validate-ScreenshotGroup04.ps1`
    - capture as `07_v044_Full_Validation.png`.
 
-The scripts validate the repository but do not capture or approve screenshots.
-Screenshot Group 04 remains open until all seven files are present, inspected
-and approved.
+The scripts validated the repository but did not capture or approve
+screenshots. Screenshot Group 04 closed after all seven files were present,
+inspected and approved.
