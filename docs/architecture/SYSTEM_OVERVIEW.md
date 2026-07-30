@@ -44,10 +44,11 @@ derivative, review, access and recovery boundaries are implemented.
 | Browsing | Approved private gallery and detail read models |
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
+| Knowledge | Reviewed events, normalized locations and provenance-aware browsing |
 | Media | Shared media records, versions, statuses and enums |
 
-Future roadmap groups add structured provenance, events, locations, people,
-relationships, collections, broader roles, contributor workflows, restoration,
+Future roadmap groups add people, relationships, collections, broader roles,
+contributor workflows, restoration,
 cloud storage, integrity operations and production custodianship.
 
 ## Core Records
@@ -61,11 +62,16 @@ Implemented records include:
 - `DuplicateReviewEvent`
 - `ArchivePromotion`
 - `PhotoMetadataRevision`
+- `SourceCollection`
+- `ScanBatch`
+- `ArchiveEvent`
+- `ArchiveEventRevision`
+- `ArchiveLocation`
+- `ArchiveLocationRevision`
 
 Planned records include concepts such as people, family branches, relationships,
-events, locations, sources, collections, scan batches, processing jobs,
-integrity manifests and access grants. Their final schemas are introduced only
-by the roadmap group that owns the capability.
+collections, processing jobs, integrity manifests and access grants. Their
+final schemas are introduced only by the roadmap group that owns the capability.
 
 ## Current Photo Lifecycle
 
@@ -110,7 +116,7 @@ boundary.
 
 ## Current Build State
 
-Groups 01-12 are completed and closed. They establish:
+Groups 01-13 are completed and closed. They establish:
 
 1. application foundation;
 2. core archive schema;
@@ -122,11 +128,12 @@ Groups 01-12 are completed and closed. They establish:
 8. archive acceptance and original promotion;
 9. private viewing derivatives;
 10. private archive browsing; and
-11. controlled metadata and revision history; and
-12. structured dates and source provenance.
+11. controlled metadata and revision history;
+12. structured dates and source provenance; and
+13. reviewed events, normalized locations and provenance-aware browsing.
 
-Group 13 - Events, Locations and Provenance Browsing - is the next official
-capability. It must preserve Group 12 review and privacy boundaries while
-adding events, normalized locations and safe entity browsing.
+Group 14 - People Records and Family Branches - is the next official
+capability. It must preserve Group 13 review, provenance and privacy boundaries
+while adding reviewed person identities and stable family branches.
 
-See [Roadmap](../ROADMAP.md) for Groups 13-46.
+See [Roadmap](../ROADMAP.md) for Groups 14-46.

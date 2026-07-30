@@ -1,10 +1,10 @@
 # Group 13 Evidence Plan
 
-Status: implementation complete, evidence pending.
+Status: closed — evidence approved.
 
-This directory intentionally contains no screenshots yet. Screenshots must be
-captured by a human from fictional demonstration records after implementation
-validation.
+This directory contains six application screenshots produced from an isolated,
+fictional Group 13 evidence fixture and one PowerShell validation screenshot.
+The complete set was human-reviewed and approved as canonical closure evidence.
 
 ## Planned Captures
 
@@ -14,9 +14,21 @@ validation.
 | `02_Reviewed_Event_Detail.png` | Event detail | Stable identity, date precision and confidence |
 | `03_Reviewed_Location_And_Redaction.png` | Location detail | Sensitive precision withheld |
 | `04_Event_Source_Provenance.png` | Event detail | Source collection and scan batch link |
-| `05_Event_Approved_Media_Link.png` | Event detail | Safe archive identity without storage facts |
+| `05_Event_Approved_Media_Link.png` | Approved media reached from the event | Safe archive identity without storage facts |
 | `06_Immutable_Event_Location_Revisions.png` | Event/location detail | Actor, reason and revision history |
-| `07_Group13_Validation_And_Evidence_Pending.png` | Terminal | Tests, analysis, build and repository state |
+| `07_Group13_Validation_And_Evidence_Pending.png` | Manual PowerShell validation run | Tests, build, audits, migrations and evidence-pending repository state |
+
+## Capture Verification
+
+- Canvas: 1920 × 1080 PNG
+- Application screenshots: 6
+- Validation screenshots: 1
+- Fixture: isolated SQLite database containing fictional New Zealand records
+- Page console errors observed: 0
+- Private stored location label rendered: no
+- Private stored locality rendered: no
+- Original storage path or hash rendered: no
+- Human approval: complete
 
 ## Capture Rules
 
@@ -24,5 +36,7 @@ validation.
 - Do not show real people, addresses, media or archive records.
 - Do not show secrets, hashes, storage coordinates or EXIF GPS.
 - Verify sensitive location labels are absent from every browse capture.
-- The final capture must say evidence pending, not Group 13 closed.
-- Human approval is required before PNGs are added to canonical.
+- The final capture records the evidence-pending state immediately before
+  approval and closure.
+- All PNGs require human approval before they are committed as canonical
+  evidence.

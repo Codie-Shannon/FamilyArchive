@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
-Family Archive has 46 official build groups. Groups 01-12 are completed and
-closed. Group 13 is next.
+Family Archive has 46 official build groups. Groups 01-13 are completed and
+closed. Group 14 is next.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -89,7 +89,7 @@ PDFs remain external artifacts and must not be committed.
 
 ## Group 13 Boundary
 
-Group 13 starts from the verified Group 12 closure. It introduces events,
+Group 13 started from the verified Group 12 closure. It introduced events,
 normalized locations and permission-aware provenance browsing.
 
 Group 12 established these permanent boundaries for later work:
@@ -100,5 +100,21 @@ Group 12 established these permanent boundaries for later work:
 - provenance changes append immutable revision evidence; and
 - date and provenance curation never mutates preserved files.
 
-Group 13 must preserve those contracts while adding events, normalized
-locations, safe entity browsing and privacy-aware location precision.
+Group 13 preserved those contracts while adding events, normalized locations,
+safe entity browsing and privacy-aware location precision.
+
+## Group 14 Boundary
+
+Group 14 starts from the verified Group 13 closure. It introduces reviewed
+people records and stable family branches.
+
+Group 14 must:
+
+- add to the provisional people and family-branch schema through forward-only
+  migrations;
+- preserve uncertain names and life dates without manufacturing precision;
+- attach reviewed provenance and append immutable revision evidence;
+- keep sensitive person facts inside the Owner-only boundary;
+- avoid family relationships and person-media tagging, which belong to Group
+  15; and
+- avoid unknown-person identity resolution, which belongs to Group 16.

@@ -6,8 +6,8 @@ planning and compatibility evidence, not as eight closed roadmap groups.
 
 ## Canonical Boundary
 
-- Groups 01-12 are the last implemented and evidence-closed groups.
-- Group 13 is next and must be completed to the established implementation,
+- Groups 01-13 are implemented and evidence-closed.
+- Group 14 is next and must be completed to the established implementation,
   test, documentation and evidence standard.
 - The `v0.20.0` label is reserved until Groups 13-20 are independently
   complete.
@@ -31,13 +31,13 @@ The already-applied migration
 `2026_07_25_010000_create_archive_knowledge_tables.php` is not edited or
 removed. Its tables are provisional:
 
-- Group 13 may refine `archive_events` and `archive_locations` through
-  additive migrations.
+- Group 13 refined `archive_events` and `archive_locations` through an
+  additive migration.
 - Tables belonging to Groups 14-19 remain inactive and unused until their
   owning groups.
 - Schema presence does not establish roadmap completion.
 - Corrective work must not drop these tables or assume that every machine has
   identical rows.
 
-Group 13 implementation must preserve the structured-date, provenance,
-original-storage, privacy and human-review contracts closed through Group 12.
+Group 13 preserved the structured-date, provenance, original-storage, privacy
+and human-review contracts closed through Group 12.

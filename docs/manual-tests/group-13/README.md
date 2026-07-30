@@ -1,6 +1,6 @@
 # Group 13 Manual Test Plan
 
-Status: implementation complete, evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional records. Do not enter real addresses, people, family
 history or media.
@@ -11,8 +11,7 @@ history or media.
 2. Confirm `php artisan migrate:status` reports no pending migrations.
 3. Run `npm run build`.
 4. Sign in as the verified fictional Owner.
-5. Confirm the dashboard says Groups 01-12 are complete and Group 13 evidence
-   is pending.
+5. Confirm the dashboard says Groups 01-13 are complete and Group 14 is next.
 
 ## Reviewed Location
 
@@ -63,5 +62,5 @@ history or media.
 
 ## Closure Rule
 
-Do not mark Group 13 closed until the planned screenshots are human-captured,
-inspected and approved, then the complete validation suite is rerun.
+Group 13 closed after all seven screenshots were inspected and approved and the
+complete validation suite passed.

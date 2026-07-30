@@ -11,11 +11,8 @@ system and is not part of another product or student-work archive.
 ## Current Status
 
 - Official roadmap: 46 groups
-- Completed and closed: Groups 01-12
-- Implementation complete, evidence pending: Group 13 - Events, Locations and
-  Provenance Browsing
-- Next development group after Group 13 closure: Group 14 - People Records and
-  Family Branches
+- Completed and closed: Groups 01-13
+- Next development group: Group 14 - People Records and Family Branches
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 

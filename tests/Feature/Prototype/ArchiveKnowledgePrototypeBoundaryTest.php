@@ -27,8 +27,8 @@ it('keeps the incomplete archive knowledge prototype outside the product surface
 });
 
 it('reports the last honestly closed release boundary', function () {
-    expect(config('release.version'))->toBe('0.12.0')
-        ->and(config('release.name'))->toBe('Structured Dates and Source Provenance')
-        ->and(config('release.groups'))->toBe('01-12')
-        ->and(config('release.status'))->toBe('Group 13 implementation complete — evidence pending');
+    expect(config('release.version'))->toBe('0.13.0')
+        ->and(config('release.name'))->toBe('Events, Locations and Provenance Browsing')
+        ->and(config('release.groups'))->toBe('01-13')
+        ->and(config('release.status'))->toBe('Group 13 closed — Group 14 next');
 });

@@ -2,10 +2,10 @@
 
 ## Status
 
-Group 13 implementation is complete. Evidence is pending.
+Group 13 is implementation-complete and evidence-closed.
 
-This status does not close Group 13. Only human-reviewed screenshots and final
-evidence validation can change the group to closed.
+Seven requirement-mapped screenshots were inspected and approved. Final
+validation passed before the release boundary advanced to Group 14.
 
 ## Boundary
 
