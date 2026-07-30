@@ -3,6 +3,8 @@
 Screenshot Group 06 is the generated Post-v1 A boundary for `1.1.0` Advanced
 Media Intelligence.
 
+Status: closed — all three evidence files inspected and approved.
+
 The three-file evidence pack demonstrates human-reviewed perceptual similarity,
 alternate-original tracking, conflict-aware metadata merge proposals and a
 manually run complete validation.

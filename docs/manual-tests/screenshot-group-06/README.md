@@ -1,6 +1,6 @@
 # Screenshot Group 06 Manual Test Plan
 
-Status: implemented — screenshot evidence pending.
+Status: closed — screenshot evidence approved.
 
 Use only fictional media, fingerprints, source records and metadata values. Do
 not expose real family media, internal hashes, storage paths or private source
@@ -30,3 +30,5 @@ After the two application screenshots have been inspected, run:
 Capture the completed PowerShell window as `03_v110_Validation.png`.
 
 The script validates the repository. It does not capture or approve evidence.
+The completed validation was captured manually, and all three evidence files
+were inspected and explicitly approved before closure.

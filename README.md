@@ -16,9 +16,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG03 - Build Groups 29-36
 - Completed and closed: SG04 - Build Groups 37-44
 - Completed and closed: SG05 - Build Groups 45-46
-- Current screenshot group: SG06 - Post-v1 A
-- Current release: v1.1.0 - Advanced Media Intelligence
-- Current evidence state: implementation complete; screenshot evidence pending
+- Completed and closed: SG06 - Post-v1 A
+- Next screenshot group: SG07 - Post-v1 B
+- Next release: v1.2.0 - Media & Cloud Import
+- Current evidence state: SG06 three-file evidence pack approved and closed
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
