@@ -22,6 +22,9 @@ boundaries established by a completed group.
 1. Capture the planned screenshots as one coherent evidence set.
 2. Use approved, numbered filenames.
 3. Verify every PNG is readable and has the expected dimensions.
+   Desktop application captures must run through
+   `docs/manual-tests/Test-DesktopScreenshotEvidence.ps1`; new screenshot-group
+   validation scripts must list every planned desktop capture.
 4. Copy only approved evidence into `docs/screenshot-groups/group-XX/`.
 5. Add or update that folder's `README.md` and `Evidence_Index.md`.
 6. Rerun tests, the production build, analysis, privacy checks and repository
@@ -44,6 +47,10 @@ When a screenshot plan is prepared, list artifacts in this order:
 ## Evidence Rules
 
 - Screenshots must use fictional, synthetic archive material.
+- Desktop application evidence must be captured at a viewport of at least
+  1800 by 1000 pixels. Reset temporary mobile or cropped viewports before the
+  next desktop capture.
+- PNG evidence must not contain text, comment or EXIF metadata chunks.
 - No real family identities, faces, records or media may appear without
   explicit approval.
 - Evidence must prove the capability, access boundary, persistence and relevant
