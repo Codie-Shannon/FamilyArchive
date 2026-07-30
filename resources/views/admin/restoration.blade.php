@@ -15,7 +15,9 @@
             <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
                 <p class="text-xs uppercase tracking-wide text-zinc-500">Active provider</p>
                 <h2 class="mt-1 text-xl font-semibold text-white">{{ str($provider['provider'])->headline() }}</h2>
-                <p class="mt-2 text-emerald-300">Private · configured</p>
+                <p class="mt-2 {{ $provider['configured'] ? 'text-emerald-300' : 'text-amber-300' }}">
+                    Private · {{ $provider['configured'] ? 'configured' : 'configuration incomplete' }}
+                </p>
                 <p class="mt-1 text-sm text-zinc-400">Provider-neutral storage remains behind the archive boundary.</p>
             </article>
             <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
