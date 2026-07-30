@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 12 screenshot groups.
+releases. The repository currently has 13 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -22,7 +22,9 @@ evidence pack approved. Screenshot Group 11 is implemented as the v1.6.0
 Portfolio Showcase boundary, with its seven-file evidence pack approved.
 Screenshot Group 12 is the corrective v1.7.0 Accounts & Contributor Access
 release. Its implementation and six-file evidence pack are approved and
-closed. Screenshot Groups 01-12 are closed.
+closed. Screenshot Group 13 is the corrective v1.8.0 Restoration Automation
+release. Its implementation and six-file evidence pack are approved and
+closed. Screenshot Groups 01-13 are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -119,6 +121,7 @@ PDFs remain external artifacts and must not be committed.
 | 10 | Post-v1 E | 1.5.0 | Secure & Federated Communication |
 | 11 | Post-v1 F | 1.6.0 | Portfolio Showcase |
 | 12 | Corrective access | 1.7.0 | Accounts & Contributor Access |
+| 13 | Corrective restoration | 1.8.0 | Restoration Automation |
 
 ## Group 13 Boundary
 
@@ -420,3 +423,26 @@ The release:
   or claiming that restoration operations already run; and
 - hands contributor submissions to an owner moderation queue before the
   existing duplicate-review and archive-promotion gates.
+
+## Screenshot Group 13 Boundary
+
+Screenshot Group 13 is the corrective v1.8.0 Restoration Automation release.
+
+Implementation status: closed — six-file screenshot evidence approved.
+
+The release:
+
+- converts enabled uploader automation preferences into versioned processing
+  recipes and immutable-source jobs;
+- verifies a ready preferred original before and after processing;
+- applies supported EXIF orientation, conservative deskew and photo-edge crop
+  detection plus optional gentle exposure, colour, denoise, sharpen and surface
+  cleanup;
+- writes each result as a separate private WebP `edited_full` candidate whose
+  lineage points to the original;
+- leaves perspective correction, damage reconstruction and upscaling
+  manual-only instead of fabricating unsupported output;
+- requires owner review before a candidate becomes preferred within its
+  derivative type; and
+- appends immutable processing history without rendering paths, hashes or
+  credentials.

@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $incoming_upload_id
+ * @property array<string, mixed>|null $automation_preferences
+ */
 #[Fillable([
     'submission_id', 'user_id', 'upload_session_id', 'incoming_upload_id', 'status',
     'original_name', 'source_context', 'proposed_metadata', 'automation_preferences',

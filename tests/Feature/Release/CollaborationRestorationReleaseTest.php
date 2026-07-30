@@ -81,8 +81,8 @@ it('keeps the restoration workspace inside the verified owner boundary', functio
     $this->actingAs($owner)
         ->get(route('admin.restoration'))
         ->assertOk()
-        ->assertSee('Collaboration and restoration')
-        ->assertSee('External configuration required')
+        ->assertSee('Non-destructive restoration automation')
+        ->assertSee('Wasabi remains fail-closed')
         ->assertDontSee('WASABI_SECRET_ACCESS_KEY');
 });
 

@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 12
+- Official screenshot groups: 13
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -23,11 +23,14 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG10 - Post-v1 E
 - Completed and closed: SG11 - Post-v1 F
 - Completed and closed: SG12 - Corrective Accounts & Contributor Access
-- Current release: v1.7.0 - Accounts & Contributor Access
-- Current evidence state: Screenshot Groups 01-12 approved and closed
+- Completed and closed: SG13 - Corrective Restoration Automation
+- Current release: v1.8.0 - Restoration Automation
+- Current evidence state: Screenshot Groups 01-13 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
+- Current restoration model: uploader-controlled, integrity-verified,
+  non-destructive candidates with explicit human review
 
 The completed system can:
 
@@ -113,6 +116,14 @@ The completed system can:
   bridges without implying access to arbitrary personal chats; and
 - present the preservation, provenance, integrity, privacy and recovery
   architecture through a focused read-only fictional portfolio narrative.
+- turn enabled uploader automation preferences into versioned restoration
+  recipes and separate WebP review candidates;
+- apply EXIF orientation, conservative deskew/crop analysis and optional gentle
+  tonal cleanup without changing an original;
+- retain perspective correction, damage reconstruction and upscaling as
+  manual-only requests until a supported processor exists; and
+- append processing and review history while requiring human approval before a
+  restored derivative can become preferred.
 
 ## Product Position
 

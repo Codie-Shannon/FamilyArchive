@@ -206,8 +206,9 @@ Family Community, with its four-file evidence pack approved. Screenshot Group
 four-file evidence pack approved. Screenshot Group 11 is implemented as v1.6.0
 Portfolio Showcase, with its seven-file evidence pack approved. Screenshot
 Group 12 is implemented as v1.7.0 Accounts & Contributor Access, with its
-six-file evidence pack approved. Screenshot Groups 01-12 are closed. The
-implemented foundation establishes:
+six-file evidence pack approved. Screenshot Group 13 is implemented as v1.8.0
+Restoration Automation, with its six-file evidence pack approved. Screenshot
+Groups 01-13 are closed. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
