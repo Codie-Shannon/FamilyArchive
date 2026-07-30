@@ -1,6 +1,6 @@
 # Screenshot Group 01 Evidence Plan
 
-Status: Build Groups 13–20 implemented as v0.20.0 — evidence pending.
+Status: closed — evidence approved.
 
 This directory contains the application and manual validation evidence defined
 by the generated Screenshot Group 01 pack.
@@ -23,9 +23,9 @@ by the generated Screenshot Group 01 pack.
 - Living-person detail rendered: no
 - Sensitive or private location rendered: no
 - Original storage paths, hashes or EXIF GPS rendered: no
-- Human approval: pending
+- Human approval: complete
 
-The first five screenshots may be automated in an isolated browser fixture.
-The repository owner must run the validation script and capture screenshot 06
-manually. All six PNGs require human approval before canonical evidence is
+The first five screenshots were captured from an isolated fictional browser
+fixture. The repository owner ran the validation script manually and supplied
+screenshot 06. All six PNGs passed human review before canonical evidence was
 committed.

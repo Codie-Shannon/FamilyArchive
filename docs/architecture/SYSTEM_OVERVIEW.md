@@ -120,10 +120,9 @@ boundary.
 
 ## Current Build State
 
-Historical evidence is closed through Build Group 13. Screenshot Group 01
-covers Build Groups 13–20 and is implemented as the v0.20.0 Archive Knowledge
-release with its six-file evidence pack pending. The implemented foundation
-establishes:
+Screenshot Group 01 covers Build Groups 13–20 and is closed as the v0.20.0
+Archive Knowledge release with its six-file evidence pack approved. The
+implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -142,7 +141,7 @@ establishes:
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
 Incomplete relationship, person-media, identity-merge and resolution workflows
-remain unavailable. Build Group 13 remains the last independently approved
-historical checkpoint until Screenshot Group 01 evidence is approved.
+remain unavailable. Screenshot Group 02, covering Build Groups 21–28, is the
+next generated release boundary.
 
 See [Roadmap](../ROADMAP.md) for the complete 46-group sequence.

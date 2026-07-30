@@ -11,9 +11,9 @@ system and is not part of another product or student-work archive.
 ## Current Status
 
 - Official screenshot groups: 11
-- Active screenshot group: SG01 - Build Groups 13-20
+- Completed and closed: SG01 - Build Groups 13-20
 - Current release: v0.20.0 - Archive Knowledge
-- SG01 status: implementation complete, evidence pending
+- Next screenshot group: SG02 - Build Groups 21-28
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 

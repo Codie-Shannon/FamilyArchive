@@ -1,6 +1,6 @@
 # Reviewed People and Family Branches
 
-Status: implemented within Screenshot Group 01 — evidence pending.
+Status: closed within Screenshot Group 01 — evidence approved.
 
 Group 14 refines the provisional `archive_people` and `family_branches` tables
 through a forward-only migration. It does not activate the provisional

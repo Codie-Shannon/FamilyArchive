@@ -1,8 +1,9 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups arranged into 11 screenshot groups.
-Screenshot Group 01 covers Build Groups 13–20 and is implemented as the
-v0.20.0 Archive Knowledge release with evidence pending.
+Screenshot Group 01, covering Build Groups 13–20, is closed with approved
+v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
+21–28 and is next.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -110,7 +111,7 @@ Screenshot Group 01 combines Build Groups 13–20 in the generated Archive
 Knowledge release. Its hardened implementation includes reviewed events,
 locations, people and stable family branches behind a permission-aware hub.
 
-Implementation status: complete — six-file evidence pack pending.
+Implementation status: closed — six-file evidence pack approved.
 
 The Build Group 14 portion:
 

@@ -1,22 +1,22 @@
 # Screenshot Group 01 Evidence Index
 
-Status: implementation complete — evidence pending.
+Status: closed — evidence approved.
 
-- Captured PNG screenshots: 0
-- Approved PNG screenshots: 0
+- Captured PNG screenshots: 6
+- Approved PNG screenshots: 6
 - Planned PNG screenshots: 6
 - Application screenshots planned: 5
 - Manual validation screenshots planned: 1
-- Closure state: open
+- Closure state: closed
 
 | File | Requirement demonstrated | Approval |
 |---|---|---|
-| `01_v020_Release_Dashboard.png` | v0.20.0 Archive Knowledge release covering Build Groups 13–20. | Pending |
-| `02_Archive_Knowledge_Hub.png` | Reviewed archive counts and privacy statement. | Pending |
-| `03_Knowledge_Search_Results.png` | Safe reviewed results for the fictional Wellington query. | Pending |
-| `04_Knowledge_Hub_Mobile.png` | Responsive private knowledge surface. | Pending |
-| `05_Private_Knowledge_Boundary.png` | Signed-out users are redirected to authentication. | Pending |
-| `06_v020_Validation.png` | Manually run full validation and evidence-pending repository state. | Pending |
+| `01_v020_Release_Dashboard.png` | v0.20.0 Archive Knowledge release covering Build Groups 13–20. | Approved |
+| `02_Archive_Knowledge_Hub.png` | Reviewed archive counts and privacy statement. | Approved |
+| `03_Knowledge_Search_Results.png` | Safe reviewed results for the fictional Wellington query. | Approved |
+| `04_Knowledge_Hub_Mobile.png` | Responsive private knowledge surface. | Approved |
+| `05_Private_Knowledge_Boundary.png` | Signed-out users are redirected to authentication. | Approved |
+| `06_v020_Validation.png` | Manually run full validation and evidence-pending repository state. | Approved |
 
-Screenshot Group 01 cannot close until all six files are present, inspected and
-approved.
+All six files passed visual, privacy and metadata inspection. Human approval
+was recorded before Screenshot Group 01 closed.

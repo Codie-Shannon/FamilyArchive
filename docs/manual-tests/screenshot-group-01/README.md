@@ -1,6 +1,6 @@
 # Screenshot Group 01 Manual Test Plan
 
-Status: Build Groups 13–20 implemented as v0.20.0 — evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional records. Do not enter real people, family history,
 addresses or media.
@@ -27,6 +27,6 @@ After inspecting the five application screenshots, run
 `Validate-ScreenshotGroup01.ps1` yourself from PowerShell. Capture the final
 terminal result as `06_v020_Validation.png`.
 
-The script validates the repository but does not capture or approve
-screenshots. Screenshot Group 01 remains open until all six files are present,
+The script validated the repository but did not capture or approve
+screenshots. Screenshot Group 01 closed after all six files were present,
 inspected and approved.

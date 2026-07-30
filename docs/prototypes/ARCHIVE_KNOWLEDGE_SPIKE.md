@@ -10,7 +10,7 @@ prototype.
 - Screenshot Group 01 is one generated release boundary, not eight screenshot
   groups.
 - Its release is v0.20.0, Archive Knowledge, covering Build Groups 13–20.
-- Implementation is complete and the six-file evidence pack is pending.
+- Implementation and the approved six-file evidence pack are complete.
 - Screenshot Groups 02–11 remain separate later packs.
 
 ## Hardened Knowledge Surface
