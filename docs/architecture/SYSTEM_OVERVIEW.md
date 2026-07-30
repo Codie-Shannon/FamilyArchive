@@ -157,8 +157,10 @@ covers Build Groups 29–36 and is closed as v0.36.0 Collaboration & Restoration
 with its seven-file evidence pack approved. Screenshot Group 04 covers Build
 Groups 37–44 and is closed as v0.44.0 Integrity & Production with its seven-file
 evidence pack approved. Screenshot Group 05 covers Build Groups 45–46 and is
-implemented as the v1.0.0 Family Archive v1.0 release candidate; screenshot
-evidence and real human acceptance remain pending. The implemented foundation
+closed with its seven-file v1.0.0 Family Archive v1.0 screenshot evidence pack
+approved. Real pilot, production and custodian acceptance gates remain human
+work. Screenshot Group 06 is the next generated post-v1 evidence group and
+targets v1.1.0 Advanced Media Intelligence. The implemented foundation
 establishes:
 
 1. application foundation;

@@ -1,6 +1,6 @@
 # Screenshot Group 05 Manual Test Plan
 
-Status: implemented — screenshot evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional feedback, acceptance runs, users, custodian designations,
 backup records and provider status. Do not use real family participants,
@@ -34,5 +34,6 @@ After the six application screenshots have been inspected, run:
 Capture the completed PowerShell window as
 `07_v100_Complete_Validation.png`.
 
-The script validates the repository. It does not capture screenshots, approve
-evidence or satisfy the real human acceptance gates.
+The script validated the repository but did not capture or approve evidence.
+Screenshot Group 05 closed after all seven files were present, inspected and
+approved. The real human acceptance gates remain separate.

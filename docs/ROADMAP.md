@@ -8,8 +8,10 @@ evidence. Screenshot Group 03 covers Build Groups 29–36 and is closed with
 approved v0.36.0 Collaboration & Restoration evidence. Screenshot Group 04
 covers Build Groups 37–44 and is closed with approved v0.44.0 Integrity &
 Production evidence. Screenshot Group 05 covers Build Groups 45–46 and is
-implemented as the v1.0.0 Family Archive v1.0 release candidate with screenshot
-and human acceptance evidence pending.
+closed with approved v1.0.0 Family Archive v1.0 screenshot evidence. Real
+pilot, production and custodian acceptance gates remain human work. Screenshot
+Group 06 is the next generated post-v1 evidence group and targets v1.1.0
+Advanced Media Intelligence.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -228,8 +230,8 @@ The release:
 Screenshot Group 05 combines Build Groups 45–46 in the generated v1.0.0 Family
 Archive v1.0 release candidate.
 
-Implementation status: complete — seven-file screenshot evidence and real
-human acceptance remain pending.
+Implementation status: closed — seven-file screenshot evidence approved; real
+human acceptance gates remain pending.
 
 The release:
 
