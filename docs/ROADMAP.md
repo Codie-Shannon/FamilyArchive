@@ -14,7 +14,8 @@ Group 06 is closed with approved v1.1.0 Advanced Media Intelligence evidence.
 Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
 evidence. Screenshot Group 08 is implemented as the v1.3.0 Public Discovery &
 Archive Maps boundary, with its four-file evidence pack approved. Screenshot
-Group 09 is the next generated post-v1 boundary.
+Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
+with its four-file evidence pack pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -314,3 +315,23 @@ The release:
 - records social-publication receipt state without displaying external
   references or provider responses; and
 - keeps publication administration inside the verified Owner boundary.
+
+## Screenshot Group 09 Boundary
+
+Screenshot Group 09 is the generated Post-v1 D boundary for v1.4.0 Real-Time
+Family Community.
+
+Implementation status: complete — four-file screenshot evidence pending.
+
+The release:
+
+- stores large community spaces, channels, memberships and roles;
+- filters the community read model through active, non-suspended membership;
+- expires presence and typing signals rather than preserving them as facts;
+- renders only allowed voice messages after moderation;
+- excludes storage keys, checksums and raw permission overrides from member
+  output;
+- keeps call identifiers, diagnostics, endpoints and secrets out of the
+  Owner operations view;
+- fails closed when signalling or TURN infrastructure is absent; and
+- does not claim live calls until browser interoperability testing passes.

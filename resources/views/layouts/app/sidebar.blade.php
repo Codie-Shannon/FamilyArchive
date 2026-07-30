@@ -8,6 +8,7 @@
  <flux:navlist variant="outline">
   <flux:navlist.group :heading="__('Platform')" class="grid">
    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+   <flux:navlist.item icon="chat-bubble-left-right" :href="route('community.index')" :current="request()->routeIs('community.*')" wire:navigate>{{ __('Family Community') }}</flux:navlist.item>
    @if(auth()->user()?->role === 'owner')
     <flux:navlist.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Archive Administration') }}</flux:navlist.item>
     <flux:navlist.item icon="circle-stack" :href="route('admin.archive-schema')" :current="request()->routeIs('admin.archive-schema')" wire:navigate>{{ __('Archive Schema') }}</flux:navlist.item>
@@ -18,6 +19,7 @@
     <flux:navlist.item icon="sparkles" :href="route('admin.media-intelligence')" :current="request()->routeIs('admin.media-intelligence')" wire:navigate>{{ __('Media Intelligence') }}</flux:navlist.item>
     <flux:navlist.item icon="arrow-down-tray" :href="route('admin.cloud-imports')" :current="request()->routeIs('admin.cloud-imports')" wire:navigate>{{ __('Cloud Import') }}</flux:navlist.item>
     <flux:navlist.item icon="globe-alt" :href="route('admin.public-discovery')" :current="request()->routeIs('admin.public-discovery')" wire:navigate>{{ __('Public Discovery') }}</flux:navlist.item>
+    <flux:navlist.item icon="user-group" :href="route('admin.community-operations')" :current="request()->routeIs('admin.community-operations')" wire:navigate>{{ __('Community Operations') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>

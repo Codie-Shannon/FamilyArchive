@@ -114,9 +114,6 @@ it('restricts the publication workspace to owners', function () {
         ->assertSee('Public discovery review');
 });
 
-it('keeps v1.3 release metadata aligned', function () {
-    expect(config('release.version'))->toBe('1.3.0')
-        ->and(config('release.name'))->toBe('Public Discovery & Archive Maps')
-        ->and(config('release.groups'))->toBe('POST-V1-C')
-        ->and(config('release.status'))->toBe('Screenshot Group 08 closed — evidence approved');
+it('keeps public discovery and maps in the cumulative build', function () {
+    expect(version_compare(config('release.version'), '1.3.0', '>='))->toBeTrue();
 });

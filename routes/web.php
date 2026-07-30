@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
+use App\Http\Controllers\Admin\RealtimeCommunityController;
 use App\Http\Controllers\Admin\ReleaseAcceptanceController;
 use App\Http\Controllers\Admin\RestorationWorkspaceController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
+use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +44,7 @@ Route::match(['get', 'post'], '/register', function (): never {
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('/conversations/messages', [PublicConversationController::class, 'message'])->middleware('throttle:20,1')->name('public-chat.message');
     Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
         Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
@@ -96,6 +99,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/media-intelligence', MediaIntelligenceController::class)->name('media-intelligence');
         Route::get('/cloud-imports', CloudImportController::class)->name('cloud-imports');
         Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
+        Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/release-acceptance', ReleaseAcceptanceController::class)->name('release-acceptance');
         Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');

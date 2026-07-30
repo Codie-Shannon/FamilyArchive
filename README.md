@@ -19,9 +19,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG06 - Post-v1 A
 - Completed and closed: SG07 - Post-v1 B
 - Completed and closed: SG08 - Post-v1 C
-- Next screenshot group: SG09 - Post-v1 D
-- Next release: v1.4.0 - Real-Time Family Community
-- Current evidence state: SG08 four-file evidence pack approved and closed
+- Current screenshot group: SG09 - Post-v1 D
+- Current release: v1.4.0 - Real-Time Family Community
+- Current evidence state: SG09 implementation complete; four-file evidence pack pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -90,7 +90,14 @@ The completed system can:
 - render only privacy-reviewed neighbourhood, town or region map labels while
   withholding exact coordinates; and
 - review public entries, map privacy and social-publication receipt state
-  inside the verified Owner boundary.
+  inside the verified Owner boundary;
+- restrict community spaces and channels to active memberships;
+- resolve presence and typing as short-lived signals rather than durable
+  identity facts;
+- show only moderated, allowed voice messages without storage keys or
+  checksums; and
+- keep voice calls disabled until signalling, TURN and browser
+  interoperability requirements are genuinely satisfied.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.
