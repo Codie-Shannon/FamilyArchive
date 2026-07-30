@@ -12,8 +12,9 @@ system and is not part of another product or student-work archive.
 
 - Official screenshot groups: 11
 - Completed and closed: SG01 - Build Groups 13-20
-- Current release: v0.20.0 - Archive Knowledge
-- Next screenshot group: SG02 - Build Groups 21-28
+- Active screenshot group: SG02 - Build Groups 21-28
+- Current release: v0.28.0 - Family Access & Conversation
+- SG02 status: implementation complete, evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -44,7 +45,14 @@ The completed system can:
 - search reviewed archive knowledge without exposing living people, private
   identities, sensitive locations or unreviewed records; and
 - use the responsive Archive Knowledge hub across Build Groups 13-20 inside
-  the verified Owner boundary.
+  the verified Owner boundary;
+- record account approval, branch membership, sensitive-media flags and
+  explicit original-access grants;
+- retain contributor submissions, upload templates and resumable sessions;
+- publish moderated public family conversations without exposing the private
+  archive; and
+- accept anonymous messages into moderation without creating an account or
+  granting archive access.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

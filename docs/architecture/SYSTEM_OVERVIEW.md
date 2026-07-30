@@ -1,8 +1,10 @@
 # Family Archive System Overview
 
-Family Archive is a standalone, archive-grade private family media preservation
-platform. It is built as a modular Laravel monolith with preservation,
-privacy, review and auditability as primary design constraints.
+Family Archive is a standalone, archive-grade family media preservation
+platform. Its archive is private, while v1.0 also provides deliberately
+separated public-chat and anonymous-contact surfaces. It is built as a modular
+Laravel monolith with preservation, privacy, review and auditability as primary
+design constraints.
 
 ## Product Boundary
 
@@ -45,11 +47,14 @@ derivative, review, access and recovery boundaries are implemented.
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
 | Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
+| Access | Account approval, branch membership, sensitive-media facts and original-access grants |
+| Communication | Moderated public threads, approved member posts and anonymous contact intake |
 | Media | Shared media records, versions, statuses and enums |
 
-Future roadmap groups add relationships, collections, broader roles,
-contributor workflows, restoration,
-cloud storage, integrity operations and production custodianship.
+Future roadmap groups add deeper relationships, collections, restoration,
+cloud storage, integrity operations and production custodianship. Private
+family content and archive facts remain distinct from moderated public chat and
+constrained anonymous contact.
 
 ## Core Records
 
@@ -72,10 +77,20 @@ Implemented records include:
 - `ArchivePersonRevision`
 - `FamilyBranch`
 - `FamilyBranchRevision`
+- `OriginalAccessGrant`
+- `ContributorSubmission`
+- `UploadTemplate`
+- `UploadSession`
+- `ArchiveStory`
+- `ConversationThread`
+- `ConversationMessage`
+- `AnonymousMessage`
+- `MetadataSuggestion`
 
-Planned records include concepts such as relationships,
-collections, processing jobs, integrity manifests and access grants. Their
-final schemas are introduced only by the roadmap group that owns the capability.
+Planned records include concepts such as deeper relationships, collections,
+processing jobs, integrity manifests, notifications and expanded moderation
+events. Their final schemas are introduced only by the roadmap group that owns
+the capability.
 
 ## Current Photo Lifecycle
 
@@ -110,19 +125,23 @@ Original paths never become public URLs.
 
 ## Access Model
 
-The current archive and administration surface requires an authenticated,
-verified user with the Owner role. Public registration is disabled.
+The archive and administration surface requires an authenticated, verified user
+with the Owner role. Public registration is disabled. The public conversation
+surface exposes only explicitly public moderated threads. Approved accounts may
+post; anonymous contact enters a moderation queue and never grants archive
+access.
 
-The full role and policy model, controlled registration, family access,
-branch-based visibility and explicit original-access grants belong to Groups
-20-23. Until those groups close, Owner-only access remains the security
-boundary.
+Account state, family-branch association and explicit original-access grants are
+stored for later policy expansion. Owner-only archive access remains the
+runtime security boundary for this release.
 
 ## Current Build State
 
 Screenshot Group 01 covers Build Groups 13–20 and is closed as the v0.20.0
-Archive Knowledge release with its six-file evidence pack approved. The
-implemented foundation establishes:
+Archive Knowledge release with its six-file evidence pack approved. Screenshot
+Group 02 covers Build Groups 21–28 and is implemented as v0.28.0 Family Access
+& Conversation with its seven-file evidence pack pending. The implemented
+foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -140,8 +159,9 @@ implemented foundation establishes:
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
-Incomplete relationship, person-media, identity-merge and resolution workflows
-remain unavailable. Screenshot Group 02, covering Build Groups 21–28, is the
-next generated release boundary.
+Family Access & Conversation adds account approval facts, contributor intake
+records and moderated communication while preserving the private archive
+boundary. Incomplete relationship, person-media, identity-merge and resolution
+workflows remain unavailable.
 
 See [Roadmap](../ROADMAP.md) for the complete 46-group sequence.

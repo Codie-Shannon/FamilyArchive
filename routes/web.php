@@ -22,13 +22,17 @@ use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
+use App\Http\Controllers\PublicConversationController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/conversations', [PublicConversationController::class, 'index'])->name('public-chat.index');
+Route::post('/contact/anonymous', [PublicConversationController::class, 'anonymous'])->middleware('throttle:5,1')->name('anonymous-message.store');
 Route::match(['get', 'post'], '/register', function (): never {
     abort(404);
 })->name('register');
 Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::post('/conversations/messages', [PublicConversationController::class, 'message'])->middleware('throttle:20,1')->name('public-chat.message');
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');

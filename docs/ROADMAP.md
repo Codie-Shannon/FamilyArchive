@@ -3,7 +3,8 @@
 Family Archive has 46 official build groups arranged into 11 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
-21–28 and is next.
+21–28 and is implemented as v0.28.0 Family Access & Conversation with evidence
+pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -54,8 +55,8 @@ PDFs remain external artifacts and must not be committed.
 | 25 | Trusted Contributor and Moderation |
 | 26 | Mobile and Multi-File Uploads |
 | 27 | Upload Templates and Resumable Intake |
-| 28 | Stories, Comments and Metadata Suggestions |
-| 29 | Identity Suggestions, Corrections and Notifications |
+| 28 | Stories, Comments, Family Conversations, Public Chat and Metadata Suggestions |
+| 29 | Identity Suggestions, Corrections, Anonymous Messaging and Notifications |
 
 ## Processing and Restoration
 
@@ -124,3 +125,55 @@ The Build Group 14 portion:
   visible hub; and
 - keeps incomplete unknown-person resolution and merge workflows outside the
   visible hub.
+
+## Family Communication Boundary
+
+Groups 28-29 introduce archive-aware family communication plus deliberately
+separated public and anonymous communication surfaces:
+
+- members can hold permission-aware conversation threads around photos,
+  people, events, collections and family-history questions;
+- comments, replies and mentions retain authorship and timestamps;
+- participants receive controlled in-application notifications;
+- members can participate in a moderated public chat without receiving access
+  to private archive entities;
+- visitors can send anonymous messages through a constrained contact surface
+  without acquiring an archive identity, conversation membership or browsing
+  permission;
+- visibility follows the same family-branch, sensitivity and entity-access
+  policies established by Groups 20-23;
+- moderation supports reporting, locking and hiding content without erasing
+  required audit evidence;
+- public and anonymous surfaces require rate limits, abuse detection, spam
+  controls, moderation queues and operator blocking controls;
+- anonymous senders receive non-identifying correlation tokens so abuse can be
+  investigated without presenting them as verified family members;
+- conversations cannot expose inaccessible originals, storage coordinates or
+  restricted archive metadata; and
+- public chat and anonymous messages remain technically and visually distinct
+  from trusted family-history evidence.
+
+Conversation content can inform a metadata or identity suggestion, but it does
+not become an accepted archive fact until it passes the relevant human-review
+workflow. Public or anonymous content must never be accepted automatically.
+
+## Screenshot Group 02 Boundary
+
+Screenshot Group 02 combines Build Groups 21–28 in the generated v0.28.0 Family
+Access & Conversation release.
+
+Implementation status: complete — seven-file evidence pack pending.
+
+The release:
+
+- records approved, pending, rejected and suspended account states;
+- associates approved members with family branches without widening the Owner
+  administration boundary;
+- stores sensitive-media flags and explicit, revocable original-access grants;
+- provides contributor submissions, upload templates and resumable sessions;
+- separates moderated public conversation from private archive knowledge;
+- admits posts only from approved signed-in accounts;
+- sends anonymous contact into moderation without creating an identity or
+  archive access; and
+- keeps email addresses, network fingerprints, correlation tokens and private
+  family content out of public output.
