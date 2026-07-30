@@ -44,10 +44,10 @@ derivative, review, access and recovery boundaries are implemented.
 | Browsing | Approved private gallery and detail read models |
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
-| Knowledge | Reviewed events, normalized locations and provenance-aware browsing |
+| Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
 | Media | Shared media records, versions, statuses and enums |
 
-Future roadmap groups add people, relationships, collections, broader roles,
+Future roadmap groups add relationships, collections, broader roles,
 contributor workflows, restoration,
 cloud storage, integrity operations and production custodianship.
 
@@ -68,8 +68,12 @@ Implemented records include:
 - `ArchiveEventRevision`
 - `ArchiveLocation`
 - `ArchiveLocationRevision`
+- `ArchivePerson`
+- `ArchivePersonRevision`
+- `FamilyBranch`
+- `FamilyBranchRevision`
 
-Planned records include concepts such as people, family branches, relationships,
+Planned records include concepts such as relationships,
 collections, processing jobs, integrity manifests and access grants. Their
 final schemas are introduced only by the roadmap group that owns the capability.
 
@@ -132,8 +136,8 @@ Groups 01-13 are completed and closed. They establish:
 12. structured dates and source provenance; and
 13. reviewed events, normalized locations and provenance-aware browsing.
 
-Group 14 - People Records and Family Branches - is the next official
-capability. It must preserve Group 13 review, provenance and privacy boundaries
-while adding reviewed person identities and stable family branches.
+Group 14 - People Records and Family Branches - is implemented and awaiting
+evidence closure. Groups 01-13 remain the last closed boundary until its
+screenshots and manual validation proof are approved.
 
 See [Roadmap](../ROADMAP.md) for Groups 14-46.

@@ -7,8 +7,7 @@ planning and compatibility evidence, not as eight closed roadmap groups.
 ## Canonical Boundary
 
 - Groups 01-13 are implemented and evidence-closed.
-- Group 14 is next and must be completed to the established implementation,
-  test, documentation and evidence standard.
+- Group 14 is implemented and awaiting evidence review and closure.
 - The `v0.20.0` label is reserved until Groups 13-20 are independently
   complete.
 - External Packs 02-11 are planning references and must not be applied as
@@ -33,11 +32,13 @@ removed. Its tables are provisional:
 
 - Group 13 refined `archive_events` and `archive_locations` through an
   additive migration.
-- Tables belonging to Groups 14-19 remain inactive and unused until their
+- Group 14 refined `archive_people` and `family_branches` through an additive
+  migration.
+- Tables belonging to Groups 15-19 remain inactive and unused until their
   owning groups.
 - Schema presence does not establish roadmap completion.
 - Corrective work must not drop these tables or assume that every machine has
   identical rows.
 
-Group 13 preserved the structured-date, provenance, original-storage, privacy
-and human-review contracts closed through Group 12.
+Group 14 preserves the structured-date, provenance, original-storage, privacy
+and human-review contracts closed through Group 13.

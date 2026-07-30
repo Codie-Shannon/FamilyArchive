@@ -32,7 +32,9 @@ final class ArchiveKnowledgeExplorer
         return DB::table('archive_people')
             ->select(['person_id as stable_id', 'display_name as label'])
             ->selectRaw("'person' as entity_type")
-            ->where('identity_state', '!=', 'merged')
+            ->where('identity_state', 'confirmed')
+            ->where('review_state', 'accepted')
+            ->where('is_private', false)
             ->where(function ($builder) use ($term): void {
                 $builder->where('display_name', 'like', "%{$term}%")
                     ->orWhere('person_id', 'like', "%{$term}%");

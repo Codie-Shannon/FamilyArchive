@@ -108,6 +108,8 @@ safe entity browsing and privacy-aware location precision.
 Group 14 starts from the verified Group 13 closure. It introduces reviewed
 people records and stable family branches.
 
+Implementation status: complete — evidence pending.
+
 Group 14 must:
 
 - add to the provisional people and family-branch schema through forward-only
