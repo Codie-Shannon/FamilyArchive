@@ -59,6 +59,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Cloud Import | Provider readiness, mixed-media preflight and playback profiles |
 | Public Discovery | Restricted public showcase, privacy-reviewed map labels and publication receipts |
 | Community | Membership-aware spaces, expiring presence, moderated voice and call readiness |
+| Secure Communication | Recipient-scoped DM consent, encrypted envelopes, attachment scans, constrained guidance and official business bridges |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -119,6 +120,12 @@ Implemented records include:
 - `CommunityPresence`
 - `VoiceMessage`
 - `VoiceCallSession`
+- `PublicIdentityAlias`
+- `PublicDirectThread`
+- `EncryptedMessageEnvelope`
+- `MessageAttachment`
+- `GuidanceBotInteraction`
+- `MessagingBridgeDelivery`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -186,9 +193,9 @@ post-v1 boundary with its three-file evidence pack approved. Screenshot Group
 three-file evidence pack approved. Screenshot Group 08 is implemented as the
 v1.3.0 Public Discovery & Archive Maps post-v1 boundary, with its four-file
 evidence pack approved. Screenshot Group 09 is implemented as v1.4.0 Real-Time
-Family Community, with its
-four-file evidence pack approved. Screenshot Group 10 is the next generated
-post-v1 boundary. The implemented foundation establishes:
+Family Community, with its four-file evidence pack approved. Screenshot Group
+10 is implemented as v1.5.0 Secure & Federated Communication, with its
+four-file evidence pack pending. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -214,7 +221,9 @@ post-v1 boundary. The implemented foundation establishes:
 20. reviewed public showcase entries, reduced-precision map publication and
     social-publication receipt review; and
 21. membership-aware community spaces, expiring presence, moderated voice
-    messages and fail-closed call readiness.
+    messages and fail-closed call readiness; and
+22. recipient-scoped public-DM consent, encrypted-envelope records, attachment
+    scan states, constrained guidance and official business bridge readiness.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -246,6 +255,11 @@ Real-Time Family Community adds membership-filtered spaces and channels,
 temporary presence and typing signals, and moderated voice-message read
 models. Live voice calls remain disabled until signalling, TURN and browser
 interoperability requirements are externally satisfied.
+Secure & Federated Communication adds recipient-filtered anonymous public-DM
+requests, versioned encrypted-envelope validation and private attachment scan
+states. Its guidance bot cannot read the private archive. WhatsApp and
+Messenger records describe only official business platforms, and end-to-end
+encryption remains disabled until runtime interoperability is proven.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 

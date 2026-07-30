@@ -15,8 +15,9 @@ Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
 evidence. Screenshot Group 08 is implemented as the v1.3.0 Public Discovery &
 Archive Maps boundary, with its four-file evidence pack approved. Screenshot
 Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
-with its four-file evidence pack approved. Screenshot Group 10 is the next
-generated post-v1 boundary.
+with its four-file evidence pack approved. Screenshot Group 10 is implemented
+as the v1.5.0 Secure & Federated Communication boundary, with its four-file
+evidence pack pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -336,3 +337,25 @@ The release:
   Owner operations view;
 - fails closed when signalling or TURN infrastructure is absent; and
 - does not claim live calls until browser interoperability testing passes.
+
+## Screenshot Group 10 Boundary
+
+Screenshot Group 10 is the generated Post-v1 E boundary for v1.5.0 Secure &
+Federated Communication.
+
+Implementation status: implemented — four-file screenshot evidence pending.
+
+The release:
+
+- scopes anonymous public direct-message requests to the intended recipient;
+- requires explicit consent before encrypted-envelope summaries are available;
+- validates versioned envelope structure and hexadecimal SHA-256 digests
+  without inspecting plaintext;
+- renders only safe attachment facts from authorized accepted threads;
+- keeps ciphertext, wrapped keys, digests, moderation fingerprints, storage
+  paths and checksums outside user-facing read models;
+- disables the guidance bot by default and prohibits private archive access;
+- fails closed while end-to-end encryption runtime setup is incomplete;
+- models only the official WhatsApp Business Cloud API and Messenger Platform;
+  and
+- never claims access to arbitrary personal chats.

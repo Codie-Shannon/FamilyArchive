@@ -20,9 +20,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG07 - Post-v1 B
 - Completed and closed: SG08 - Post-v1 C
 - Completed and closed: SG09 - Post-v1 D
-- Next screenshot group: SG10 - Post-v1 E
-- Next release: v1.5.0 - Secure & Federated Communication
-- Current evidence state: SG09 four-file evidence pack approved and closed
+- Implemented, evidence pending: SG10 - Post-v1 E
+- Current release: v1.5.0 - Secure & Federated Communication
+- Current evidence state: SG10 four-file evidence pack pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -98,7 +98,16 @@ The completed system can:
 - show only moderated, allowed voice messages without storage keys or
   checksums; and
 - keep voice calls disabled until signalling, TURN and browser
-  interoperability requirements are genuinely satisfied.
+  interoperability requirements are genuinely satisfied;
+- scope anonymous public direct-message requests to their intended recipient
+  and require explicit consent before envelope summaries appear;
+- validate versioned encrypted-envelope records without rendering plaintext,
+  ciphertext, wrapped keys or digests;
+- retain private attachment scan states without exposing storage paths or
+  checksums;
+- prohibit the guidance bot from private archive access; and
+- model only official WhatsApp Business Cloud API and Messenger Platform
+  bridges without implying access to arbitrary personal chats.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

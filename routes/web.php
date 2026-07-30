@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\RealtimeCommunityController;
 use App\Http\Controllers\Admin\ReleaseAcceptanceController;
 use App\Http\Controllers\Admin\RestorationWorkspaceController;
+use App\Http\Controllers\Admin\SecureCommunicationController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
 use App\Http\Controllers\Archive\ArchiveEventController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Archive\SourceCollectionController;
 use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
+use App\Http\Controllers\SecureMessagingController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -45,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('/conversations/messages', [PublicConversationController::class, 'message'])->middleware('throttle:20,1')->name('public-chat.message');
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
+    Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
         Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
@@ -100,6 +103,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/cloud-imports', CloudImportController::class)->name('cloud-imports');
         Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
+        Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');
         Route::get('/release-acceptance', ReleaseAcceptanceController::class)->name('release-acceptance');
         Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');

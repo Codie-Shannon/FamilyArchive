@@ -165,9 +165,6 @@ it('shows only active memberships and allowed voice messages in the community wo
         ->assertDontSee('private_internal_rule');
 });
 
-it('keeps v1.4 release metadata aligned', function () {
-    expect(config('release.version'))->toBe('1.4.0')
-        ->and(config('release.name'))->toBe('Real-Time Family Community')
-        ->and(config('release.groups'))->toBe('POST-V1-D')
-        ->and(config('release.status'))->toBe('Screenshot Group 09 closed — evidence approved');
+it('keeps the real-time community release in the cumulative build', function () {
+    expect(version_compare(config('release.version'), '1.4.0', '>='))->toBeTrue();
 });
