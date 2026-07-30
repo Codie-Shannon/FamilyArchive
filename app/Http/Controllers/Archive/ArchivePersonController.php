@@ -60,7 +60,9 @@ final class ArchivePersonController extends Controller
     ): View {
         $this->abortUnlessAccepted($archivePerson);
         $archivePerson->load([
-            'familyBranch',
+            'familyBranch.revisions' => fn ($query) => $query
+                ->with('actor:id,name')
+                ->latest('revision_number'),
             'provenanceLinks' => fn ($query) => $query
                 ->with(['sourceCollection', 'scanBatch'])
                 ->orderBy('id'),

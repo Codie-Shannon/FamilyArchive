@@ -55,7 +55,18 @@
 
         <section class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-700">
             <h2 class="text-xl font-semibold">Immutable revision evidence</h2>
-            <div class="mt-4 space-y-3">@foreach($person->revisions as $revision)<article class="rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-900"><strong>Revision {{ $revision->revision_number }}</strong><p class="text-zinc-500">{{ implode(', ', $revision->changed_fields) }} · {{ $revision->actor->name }}</p><p class="mt-1">{{ $revision->change_reason }}</p></article>@endforeach</div>
+            <div class="mt-4 grid gap-5 lg:grid-cols-2">
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide text-zinc-500">Person record</h3>
+                    <div class="mt-3 space-y-3">@foreach($person->revisions as $revision)<article class="rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-900"><strong>Revision {{ $revision->revision_number }}</strong><p class="text-zinc-500">{{ implode(', ', $revision->changed_fields) }} · {{ $revision->actor->name }}</p><p class="mt-1">{{ $revision->change_reason }}</p></article>@endforeach</div>
+                </div>
+                @if(!$person->is_private && $person->familyBranch)
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-zinc-500">Family branch</h3>
+                        <div class="mt-3 space-y-3">@foreach($person->familyBranch->revisions as $revision)<article class="rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-900"><strong>Revision {{ $revision->revision_number }}</strong><p class="text-zinc-500">{{ implode(', ', $revision->changed_fields) }} · {{ $revision->actor->name }}</p><p class="mt-1">{{ $revision->change_reason }}</p></article>@endforeach</div>
+                    </div>
+                @endif
+            </div>
         </section>
 
         <aside class="rounded-xl border border-sky-300 bg-sky-50 p-5 text-sm text-sky-950 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-100">Group 14 records identity evidence only. Relationships, person-media tagging and unknown-person resolution remain unavailable until their owning groups.</aside>
