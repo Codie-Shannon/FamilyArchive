@@ -12,7 +12,10 @@ system and is not part of another product or student-work archive.
 
 - Official roadmap: 46 groups
 - Completed and closed: Groups 01-12
-- Next official group: Group 13 - Events, Locations and Provenance Browsing
+- Implementation complete, evidence pending: Group 13 - Events, Locations and
+  Provenance Browsing
+- Next development group after Group 13 closure: Group 14 - People Records and
+  Family Branches
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -30,8 +33,12 @@ The completed system can:
 - browse approved photos through private archive views;
 - edit descriptive metadata with optimistic locking and immutable revisions;
 - represent uncertain historical dates without manufacturing precision;
-- manage stable source collections and scan batches; and
-- attach multiple reviewed provenance records with immutable revision evidence.
+- manage stable source collections and scan batches;
+- attach multiple reviewed provenance records with immutable revision evidence;
+- curate reviewed events and normalized locations with stable identities;
+- preserve uncertain event dates with explicit precision and confidence;
+- redact sensitive location precision from browse surfaces; and
+- link events safely to approved media and existing source provenance.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

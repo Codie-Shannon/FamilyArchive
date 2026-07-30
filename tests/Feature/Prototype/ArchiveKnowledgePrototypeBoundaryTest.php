@@ -30,5 +30,5 @@ it('reports the last honestly closed release boundary', function () {
     expect(config('release.version'))->toBe('0.12.0')
         ->and(config('release.name'))->toBe('Structured Dates and Source Provenance')
         ->and(config('release.groups'))->toBe('01-12')
-        ->and(config('release.status'))->toBe('Group 13 next / in development');
+        ->and(config('release.status'))->toBe('Group 13 implementation complete — evidence pending');
 });
