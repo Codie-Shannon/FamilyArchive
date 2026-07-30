@@ -14,8 +14,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
-- Current release: v0.36.0 - Collaboration & Restoration
-- Next screenshot group: SG04 - Build Groups 37-44
+- Active screenshot group: SG04 - Build Groups 37-44
+- Current release: v0.44.0 - Integrity & Production
+- SG04 status: implementation complete, evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -60,7 +61,12 @@ The completed system can:
 - retain restoration output as review candidates rather than replacing source
   records; and
 - validate local and external archive-provider configuration without exposing
-  credentials or claiming an unverified live connection.
+  credentials or claiming an unverified live connection;
+- refuse to overwrite an existing destination during verified transfer;
+- append integrity findings without repairing or mutating stored objects;
+- separate repair review from verification observations; and
+- record synthetic backup, recovery and operational readiness without claiming
+  production infrastructure.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

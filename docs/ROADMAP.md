@@ -5,8 +5,9 @@ Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
 evidence. Screenshot Group 03 covers Build Groups 29–36 and is closed with
-approved v0.36.0 Collaboration & Restoration evidence. Screenshot Group 04,
-covering Build Groups 37–44, is next.
+approved v0.36.0 Collaboration & Restoration evidence. Screenshot Group 04
+covers Build Groups 37–44 and is implemented as v0.44.0 Integrity & Production
+with evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -199,3 +200,23 @@ The release:
 - fails closed when external Wasabi configuration is incomplete; and
 - never renders credentials, bucket names or endpoints or claims an unverified
   live Wasabi connection.
+
+## Screenshot Group 04 Boundary
+
+Screenshot Group 04 combines Build Groups 37–44 in the generated v0.44.0
+Integrity & Production release.
+
+Implementation status: complete — seven-file evidence pack pending.
+
+The release:
+
+- refuses verified transfer when a destination already exists;
+- verifies source identity before writing and destination identity before
+  permitting later cutover;
+- appends integrity observations without mutating stored objects;
+- separates repair cases from observations for human review;
+- records manifest, scan-import, backup and operational readiness state;
+- marks restore records and recovery metrics as synthetic isolated rehearsals;
+- keeps the operations dashboard inside the verified Owner boundary; and
+- never renders credentials, provider accounts, endpoints, storage paths,
+  hashes or real capacity figures.

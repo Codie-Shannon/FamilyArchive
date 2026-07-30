@@ -151,8 +151,9 @@ Archive Knowledge release with its six-file evidence pack approved. Screenshot
 Group 02 covers Build Groups 21–28 and is closed as v0.28.0 Family Access &
 Conversation with its seven-file evidence pack approved. Screenshot Group 03
 covers Build Groups 29–36 and is closed as v0.36.0 Collaboration & Restoration
-with its seven-file evidence pack approved. Screenshot Group 04, covering Build
-Groups 37–44, is next. The implemented foundation establishes:
+with its seven-file evidence pack approved. Screenshot Group 04 covers Build
+Groups 37–44 and is implemented as v0.44.0 Integrity & Production with its
+seven-file evidence pack pending. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -166,14 +167,20 @@ Groups 37–44, is next. The implemented foundation establishes:
 10. private archive browsing; and
 11. controlled metadata and revision history;
 12. structured dates and source provenance; and
-13. reviewed events, normalized locations and provenance-aware browsing.
+13. reviewed events, normalized locations and provenance-aware browsing;
+14. moderated family access and contributor conversation boundaries;
+15. versioned restoration and fail-closed provider configuration; and
+16. verified no-overwrite transfer, integrity observation and repair review.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
 Family Access & Conversation adds account approval facts, contributor intake
 records and moderated communication while preserving the private archive
 boundary. Collaboration & Restoration adds versioned recipes, immutable-source
-job queues, review candidates and fail-closed provider configuration.
+job queues, review candidates and fail-closed provider configuration. Integrity
+& Production adds verified transfers, immutable integrity observations,
+human-reviewed repair cases and synthetic recovery-readiness records without
+claiming live infrastructure.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 
