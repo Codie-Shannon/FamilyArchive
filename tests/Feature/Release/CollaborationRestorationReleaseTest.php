@@ -90,5 +90,5 @@ it('reports the Screenshot Group 03 release boundary', function () {
     expect(config('release.version'))->toBe('0.36.0')
         ->and(config('release.name'))->toBe('Collaboration & Restoration')
         ->and(config('release.groups'))->toBe('29-36')
-        ->and(config('release.status'))->toBe('Screenshot Group 03 implemented — evidence pending');
+        ->and(config('release.status'))->toBe('Screenshot Group 03 closed — Screenshot Group 04 next');
 });

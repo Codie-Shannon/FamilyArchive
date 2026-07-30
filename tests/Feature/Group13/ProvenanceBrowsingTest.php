@@ -83,12 +83,12 @@ it('keeps event and location browsing private to the verified owner with safe em
     $this->actingAs($owner)
         ->get(route('archive.events.index'))
         ->assertOk()
-        ->assertSee('Screenshot Group 03 implemented — evidence pending')
+        ->assertSee('Screenshot Group 03 closed — Screenshot Group 04 next')
         ->assertSee('No reviewed events yet');
     $this->actingAs($owner)
         ->get(route('archive.locations.index'))
         ->assertOk()
-        ->assertSee('Screenshot Group 03 implemented — evidence pending')
+        ->assertSee('Screenshot Group 03 closed — Screenshot Group 04 next')
         ->assertSee('No reviewed locations yet');
 });
 

@@ -1,6 +1,6 @@
 # Collaboration and Restoration
 
-Status: Screenshot Group 03 implemented — evidence pending.
+Status: Screenshot Group 03 closed — evidence approved.
 
 Screenshot Group 03 covers Build Groups 29–36 as the v0.36.0 Collaboration &
 Restoration release.

@@ -4,8 +4,9 @@ Family Archive has 46 official build groups arranged into 11 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
-evidence. Screenshot Group 03 covers Build Groups 29–36 and is implemented as
-v0.36.0 Collaboration & Restoration with evidence pending.
+evidence. Screenshot Group 03 covers Build Groups 29–36 and is closed with
+approved v0.36.0 Collaboration & Restoration evidence. Screenshot Group 04,
+covering Build Groups 37–44, is next.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -184,7 +185,7 @@ The release:
 Screenshot Group 03 combines Build Groups 29–36 in the generated v0.36.0
 Collaboration & Restoration release.
 
-Implementation status: complete — seven-file evidence pack pending.
+Implementation status: closed — seven-file evidence pack approved.
 
 The release:
 

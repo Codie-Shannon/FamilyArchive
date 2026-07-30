@@ -1,6 +1,6 @@
 # Screenshot Group 03 Manual Test Plan
 
-Status: Build Groups 29–36 implemented as v0.36.0 — evidence pending.
+Status: closed — evidence approved.
 
 Use only fictional recipes, jobs, candidates and media records. Do not use real
 media, credentials, endpoints or bucket names.
@@ -28,6 +28,6 @@ Run both scripts yourself after the five application screenshots are approved:
 2. `Validate-ScreenshotGroup03.ps1`
    - capture as `07_v036_Full_Validation.png`.
 
-The scripts validate the repository but do not capture or approve screenshots.
-Screenshot Group 03 remains open until all seven files are present, inspected
-and approved.
+The scripts validated the repository but did not capture or approve
+screenshots. Screenshot Group 03 closed after all seven files were present,
+inspected and approved.

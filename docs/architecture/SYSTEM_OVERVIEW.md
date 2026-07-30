@@ -150,9 +150,9 @@ Screenshot Group 01 covers Build Groups 13–20 and is closed as the v0.20.0
 Archive Knowledge release with its six-file evidence pack approved. Screenshot
 Group 02 covers Build Groups 21–28 and is closed as v0.28.0 Family Access &
 Conversation with its seven-file evidence pack approved. Screenshot Group 03
-covers Build Groups 29–36 and is implemented as v0.36.0 Collaboration &
-Restoration with its seven-file evidence pack pending. The implemented
-foundation establishes:
+covers Build Groups 29–36 and is closed as v0.36.0 Collaboration & Restoration
+with its seven-file evidence pack approved. Screenshot Group 04, covering Build
+Groups 37–44, is next. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
