@@ -97,4 +97,6 @@ composer test
 
 The complete command includes formatting verification, static analysis and
 automated tests. See [Build and Evidence Process](docs/BUILD_AND_EVIDENCE.md)
-for the closure requirements used by each roadmap group.
+for the closure requirements used by each roadmap group and
+[Development Process and Tooling](docs/DEVELOPMENT_PROCESS.md) for the
+project's AI-assisted engineering disclosure and human-ownership boundary.
