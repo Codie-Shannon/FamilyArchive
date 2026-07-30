@@ -12,7 +12,8 @@ closed with approved v1.0.0 Family Archive v1.0 screenshot evidence. Real
 pilot, production and custodian acceptance gates remain human work. Screenshot
 Group 06 is closed with approved v1.1.0 Advanced Media Intelligence evidence.
 Screenshot Group 07 is closed with approved v1.2.0 Media & Cloud Import
-evidence. Screenshot Group 08 is the next generated post-v1 boundary.
+evidence. Screenshot Group 08 is implemented as the v1.3.0 Public Discovery &
+Archive Maps boundary, with its four-file evidence pack pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -292,3 +293,23 @@ The release:
 - keeps document OCR and searchable scan text explicitly excluded;
 - preserves quarantine, duplicate review and human acceptance boundaries; and
 - keeps the cloud-import workspace inside the verified Owner boundary.
+
+## Screenshot Group 08 Boundary
+
+Screenshot Group 08 is the generated Post-v1 C boundary for v1.3.0 Public
+Discovery & Archive Maps.
+
+Implementation status: complete — four-file screenshot evidence pending.
+
+The release:
+
+- publishes only explicitly reviewed showcase entries;
+- keeps draft, review and withdrawn entries out of public output;
+- requires map points to pass a separate privacy review;
+- permits only neighbourhood, town or region precision on the public map;
+- rejects exact points from public output even when incorrectly marked
+  reviewed;
+- removes source coordinates before rendering the map view;
+- records social-publication receipt state without displaying external
+  references or provider responses; and
+- keeps publication administration inside the verified Owner boundary.

@@ -28,9 +28,12 @@ use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
 use App\Http\Controllers\PublicConversationController;
+use App\Http\Controllers\PublicDiscoveryController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/discover', [PublicDiscoveryController::class, 'index'])->name('public-discovery.index');
+Route::get('/discover/map', [PublicDiscoveryController::class, 'map'])->name('public-discovery.map');
 Route::get('/conversations', [PublicConversationController::class, 'index'])->name('public-chat.index');
 Route::post('/contact/anonymous', [PublicConversationController::class, 'anonymous'])->middleware('throttle:5,1')->name('anonymous-message.store');
 Route::match(['get', 'post'], '/register', function (): never {
@@ -92,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/operations', OperationsController::class)->name('operations');
         Route::get('/media-intelligence', MediaIntelligenceController::class)->name('media-intelligence');
         Route::get('/cloud-imports', CloudImportController::class)->name('cloud-imports');
+        Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
         Route::get('/release-acceptance', ReleaseAcceptanceController::class)->name('release-acceptance');
         Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');

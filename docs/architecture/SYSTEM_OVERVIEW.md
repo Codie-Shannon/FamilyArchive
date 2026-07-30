@@ -57,6 +57,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
 | Intelligence | Perceptual similarity, alternate originals and metadata merge proposals |
 | Cloud Import | Provider readiness, mixed-media preflight and playback profiles |
+| Public Discovery | Restricted public showcase, privacy-reviewed map labels and publication receipts |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -108,6 +109,9 @@ Implemented records include:
 - `CloudImportSession`
 - `CloudImportItem`
 - `MediaPlaybackProfile`
+- `PublicShowcaseEntry`
+- `PublicMapPoint`
+- `SocialPublicationReceipt`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -172,8 +176,9 @@ approved. Real pilot, production and custodian acceptance gates remain human
 work. Screenshot Group 06 is closed as the v1.1.0 Advanced Media Intelligence
 post-v1 boundary with its three-file evidence pack approved. Screenshot Group
 07 is closed as the v1.2.0 Media & Cloud Import post-v1 boundary with its
-three-file evidence pack approved. Screenshot Group 08 is the next generated
-post-v1 boundary. The implemented foundation establishes:
+three-file evidence pack approved. Screenshot Group 08 is implemented as the
+v1.3.0 Public Discovery & Archive Maps post-v1 boundary, with its four-file
+evidence pack pending. The implemented foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -195,7 +200,9 @@ post-v1 boundary. The implemented foundation establishes:
 17. deterministic acceptance readiness and explicit custodianship state; and
 18. perceptual similarity review, alternate originals and merge previews.
 19. mixed-media cloud-import planning and provider readiness without live
-    provider claims.
+    provider claims; and
+20. reviewed public showcase entries, reduced-precision map publication and
+    social-publication receipt review.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -218,6 +225,11 @@ Media & Cloud Import adds provider readiness, mixed-media preflight sessions
 and versioned playback profiles. Selected items still pass validation,
 quarantine, duplicate review and acceptance. Apple native access remains
 unvalidated and document OCR remains excluded.
+Public Discovery & Archive Maps adds a deliberately restricted public read
+model for reviewed showcase stories and privacy-reviewed place labels. Exact
+coordinates, unpublished entries, external publication references and private
+archive access remain outside public output. Publication review stays inside
+the verified Owner boundary.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 

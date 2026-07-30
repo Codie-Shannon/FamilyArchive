@@ -18,9 +18,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG05 - Build Groups 45-46
 - Completed and closed: SG06 - Post-v1 A
 - Completed and closed: SG07 - Post-v1 B
-- Next screenshot group: SG08 - Post-v1 C
-- Next release: v1.3.0 - Public Discovery & Archive Maps
-- Current evidence state: SG07 three-file evidence pack approved and closed
+- Current screenshot group: SG08 - Post-v1 C
+- Current release: v1.3.0 - Public Discovery & Archive Maps
+- Current evidence state: SG08 implementation complete; four-file evidence pack pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -83,7 +83,13 @@ The completed system can:
 - represent photo, video, audio and document selections without bypassing
   quarantine, duplicate review or acceptance; and
 - keep Apple native access unvalidated and document OCR excluded until their
-  real external requirements are satisfied.
+  real external requirements are satisfied;
+- publish only explicitly reviewed showcase stories through a restricted
+  public read model;
+- render only privacy-reviewed neighbourhood, town or region map labels while
+  withholding exact coordinates; and
+- review public entries, map privacy and social-publication receipt state
+  inside the verified Owner boundary.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

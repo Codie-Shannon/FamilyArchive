@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'version' => env('FAMILY_ARCHIVE_VERSION', '1.2.0'),
-    'name' => env('FAMILY_ARCHIVE_RELEASE_NAME', 'Media & Cloud Import'),
-    'groups' => env('FAMILY_ARCHIVE_RELEASE_GROUPS', 'POST-V1-B'),
-    'status' => env('FAMILY_ARCHIVE_RELEASE_STATUS', 'Screenshot Group 07 evidence closed'),
+    'version' => env('FAMILY_ARCHIVE_VERSION', '1.3.0'),
+    'name' => env('FAMILY_ARCHIVE_RELEASE_NAME', 'Public Discovery & Archive Maps'),
+    'groups' => env('FAMILY_ARCHIVE_RELEASE_GROUPS', 'POST-V1-C'),
+    'status' => env('FAMILY_ARCHIVE_RELEASE_STATUS', 'Screenshot Group 08 implemented — evidence pending'),
 ];
