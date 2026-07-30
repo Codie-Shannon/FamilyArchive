@@ -1,7 +1,8 @@
 # Family Archive Roadmap
 
-Family Archive has 46 official build groups. Groups 01-13 are completed and
-closed. Group 14 is next.
+Family Archive has 46 official build groups arranged into 11 screenshot groups.
+Screenshot Group 01 covers Build Groups 13–20 and is implemented as the
+v0.20.0 Archive Knowledge release with evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -103,20 +104,22 @@ Group 12 established these permanent boundaries for later work:
 Group 13 preserved those contracts while adding events, normalized locations,
 safe entity browsing and privacy-aware location precision.
 
-## Group 14 Boundary
+## Screenshot Group 01 Boundary
 
-Group 14 starts from the verified Group 13 closure. It introduces reviewed
-people records and stable family branches.
+Screenshot Group 01 combines Build Groups 13–20 in the generated Archive
+Knowledge release. Its hardened implementation includes reviewed events,
+locations, people and stable family branches behind a permission-aware hub.
 
-Implementation status: complete — evidence pending.
+Implementation status: complete — six-file evidence pack pending.
 
-Group 14 must:
+The Build Group 14 portion:
 
 - add to the provisional people and family-branch schema through forward-only
   migrations;
 - preserve uncertain names and life dates without manufacturing precision;
 - attach reviewed provenance and append immutable revision evidence;
 - keep sensitive person facts inside the Owner-only boundary;
-- avoid family relationships and person-media tagging, which belong to Group
-  15; and
-- avoid unknown-person identity resolution, which belongs to Group 16.
+- keeps incomplete relationship and person-media tagging workflows outside the
+  visible hub; and
+- keeps incomplete unknown-person resolution and merge workflows outside the
+  visible hub.

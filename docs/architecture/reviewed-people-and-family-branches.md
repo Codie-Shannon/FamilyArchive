@@ -1,6 +1,6 @@
 # Reviewed People and Family Branches
 
-Status: Group 14 implemented — evidence pending.
+Status: implemented within Screenshot Group 01 — evidence pending.
 
 Group 14 refines the provisional `archive_people` and `family_branches` tables
 through a forward-only migration. It does not activate the provisional
@@ -50,8 +50,9 @@ stale edits.
 Group 14 changes database knowledge only. It does not move, rename, replace,
 delete or expose quarantine objects, archive originals or viewing derivatives.
 
-## Deferred Boundaries
+## Screenshot Group 01 Boundary
 
-- family relationships and person-media tagging belong to Group 15;
-- unknown-person identity resolution and merges belong to Group 16; and
-- the generated Archive Knowledge Hub remains an inactive prototype.
+These safeguards are part of the generated v0.20.0 Archive Knowledge release
+covering Build Groups 13–20. The shared hub exposes only accepted,
+non-sensitive records; it does not expose incomplete relationship,
+person-media, identity-merge or unknown-person resolution workflows.

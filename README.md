@@ -10,10 +10,10 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official roadmap: 46 groups
-- Completed and closed: Groups 01-13
-- Active evidence group: Group 14 - People Records and Family Branches
-- Group 14 status: implementation complete, evidence pending
+- Official screenshot groups: 11
+- Active screenshot group: SG01 - Build Groups 13-20
+- Current release: v0.20.0 - Archive Knowledge
+- SG01 status: implementation complete, evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -39,8 +39,12 @@ The completed system can:
 - link events safely to approved media and existing source provenance;
 - curate stable, reviewed person identities and family branches;
 - preserve uncertain names and incomplete life dates without invented detail;
-- redact sensitive person and family-branch facts from browse surfaces; and
-- append immutable person and branch revisions with reviewed provenance.
+- redact sensitive person and family-branch facts from browse surfaces;
+- append immutable person and branch revisions with reviewed provenance;
+- search reviewed archive knowledge without exposing living people, private
+  identities, sensitive locations or unreviewed records; and
+- use the responsive Archive Knowledge hub across Build Groups 13-20 inside
+  the verified Owner boundary.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

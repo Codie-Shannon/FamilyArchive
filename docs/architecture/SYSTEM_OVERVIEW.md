@@ -120,7 +120,10 @@ boundary.
 
 ## Current Build State
 
-Groups 01-13 are completed and closed. They establish:
+Historical evidence is closed through Build Group 13. Screenshot Group 01
+covers Build Groups 13–20 and is implemented as the v0.20.0 Archive Knowledge
+release with its six-file evidence pack pending. The implemented foundation
+establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -136,8 +139,10 @@ Groups 01-13 are completed and closed. They establish:
 12. structured dates and source provenance; and
 13. reviewed events, normalized locations and provenance-aware browsing.
 
-Group 14 - People Records and Family Branches - is implemented and awaiting
-evidence closure. Groups 01-13 remain the last closed boundary until its
-screenshots and manual validation proof are approved.
+The Archive Knowledge hub adds reviewed, permission-aware discovery across
+events, safe locations, non-private non-living people and family branches.
+Incomplete relationship, person-media, identity-merge and resolution workflows
+remain unavailable. Build Group 13 remains the last independently approved
+historical checkpoint until Screenshot Group 01 evidence is approved.
 
-See [Roadmap](../ROADMAP.md) for Groups 14-46.
+See [Roadmap](../ROADMAP.md) for the complete 46-group sequence.

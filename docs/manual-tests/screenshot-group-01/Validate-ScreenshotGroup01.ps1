@@ -22,10 +22,11 @@ Invoke-Checked 'Formatting verification' { php vendor/bin/pint --parallel --test
 Invoke-Checked 'Static analysis' { php -d memory_limit=1G vendor/bin/phpstan analyse --no-progress }
 Invoke-Checked 'Automated tests' { php artisan test --compact }
 Invoke-Checked 'Production asset build' { npm run build }
+Invoke-Checked 'Screenshot Group 01 release tests' { php artisan test --compact tests/Feature/Release/ArchiveKnowledgeReleaseTest.php }
 Invoke-Checked 'Composer security audit' { composer audit --no-interaction }
 Invoke-Checked 'NPM security audit' { npm audit --audit-level=high }
 Invoke-Checked 'Migration status' { php artisan migrate:status }
 Invoke-Checked 'Repository evidence state' { git status --short }
 
-Write-Host "`nGroup 14 validation commands passed." -ForegroundColor Green
-Write-Host 'Capture this PowerShell window as 07_Group14_Validation_And_Evidence_Pending.png.' -ForegroundColor Yellow
+Write-Host "`nScreenshot Group 01 validation commands passed." -ForegroundColor Green
+Write-Host 'Capture this PowerShell window as 06_v020_Validation.png.' -ForegroundColor Yellow

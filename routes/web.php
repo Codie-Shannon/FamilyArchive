@@ -22,7 +22,6 @@ use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
 use App\Http\Controllers\Archive\SourceCollectionController;
-use App\Support\Release;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -33,9 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
-        if (Release::archiveKnowledgePrototypeEnabled()) {
-            Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
-        }
+        Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
         Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');
         Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');
         Route::post('/archive/events', [ArchiveEventController::class, 'store'])->name('archive.events.store');
