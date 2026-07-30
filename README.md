@@ -1,6 +1,6 @@
 # Family Archive
 
-Family Archive is an archive-grade private family media preservation platform
+Family Archive is a privacy-first, preservation-grade family history platform
 and a flagship product.
 
 It preserves original family media, creates optimized viewing versions, detects
@@ -21,9 +21,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG08 - Post-v1 C
 - Completed and closed: SG09 - Post-v1 D
 - Completed and closed: SG10 - Post-v1 E
-- Next screenshot group: SG11 - Post-v1 F
-- Current release: v1.5.0 - Secure & Federated Communication
-- Current evidence state: SG10 four-file evidence pack approved and closed
+- Implemented, evidence pending: SG11 - Post-v1 F
+- Current release: v1.6.0 - Portfolio Showcase
+- Current evidence state: SG11 seven-file evidence pack pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -108,10 +108,20 @@ The completed system can:
   checksums;
 - prohibit the guidance bot from private archive access; and
 - model only official WhatsApp Business Cloud API and Messenger Platform
-  bridges without implying access to arbitrary personal chats.
+  bridges without implying access to arbitrary personal chats; and
+- present the preservation, provenance, integrity, privacy and recovery
+  architecture through a focused read-only fictional portfolio narrative.
 
-See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
-architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.
+## Product Position
+
+The portfolio story deliberately leads with preservation integrity,
+provenance, human review, family access, recovery and controlled sharing.
+Communication features support that story. Generic social-network expansion is
+disabled or de-emphasized in the portfolio presentation.
+
+See [Product Positioning](docs/PRODUCT_POSITIONING.md),
+[System Overview](docs/architecture/SYSTEM_OVERVIEW.md) and
+[Roadmap](docs/ROADMAP.md).
 
 ## Preservation Rules
 
@@ -170,3 +180,17 @@ automated tests. See [Build and Evidence Process](docs/BUILD_AND_EVIDENCE.md)
 for the closure requirements used by each roadmap group and
 [Development Process and Tooling](docs/DEVELOPMENT_PROCESS.md) for the
 project's AI-assisted engineering disclosure and human-ownership boundary.
+
+## Portfolio Demonstration
+
+Use a fresh local database and set a unique `PORTFOLIO_DEMO_PASSWORD`; then
+run:
+
+```bash
+php artisan db:seed --class=PortfolioDemoSeeder
+```
+
+Enable `PORTFOLIO_DEMO_MODE=true` only after seeding. Authenticated product
+writes are then rejected, keeping the demonstration repeatable and preventing
+accidental edits. Never reuse the demonstration password or dataset in
+production.

@@ -60,6 +60,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Public Discovery | Restricted public showcase, privacy-reviewed map labels and publication receipts |
 | Community | Membership-aware spaces, expiring presence, moderated voice and call readiness |
 | Secure Communication | Recipient-scoped DM consent, encrypted envelopes, attachment scans, constrained guidance and official business bridges |
+| Portfolio | Preservation-first evidence views and local read-only demonstration safeguards |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -126,6 +127,7 @@ Implemented records include:
 - `MessageAttachment`
 - `GuidanceBotInteraction`
 - `MessagingBridgeDelivery`
+- `PortfolioDemoSeeder`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -195,8 +197,9 @@ v1.3.0 Public Discovery & Archive Maps post-v1 boundary, with its four-file
 evidence pack approved. Screenshot Group 09 is implemented as v1.4.0 Real-Time
 Family Community, with its four-file evidence pack approved. Screenshot Group
 10 is implemented as v1.5.0 Secure & Federated Communication, with its
-four-file evidence pack approved. Screenshot Group 11 is the final generated
-post-v1 boundary. The implemented foundation establishes:
+four-file evidence pack approved. Screenshot Group 11 is implemented as v1.6.0
+Portfolio Showcase, with its seven-file evidence pack pending. The implemented
+foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -224,7 +227,10 @@ post-v1 boundary. The implemented foundation establishes:
 21. membership-aware community spaces, expiring presence, moderated voice
     messages and fail-closed call readiness; and
 22. recipient-scoped public-DM consent, encrypted-envelope records, attachment
-    scan states, constrained guidance and official business bridge readiness.
+    scan states, constrained guidance and official business bridge readiness;
+    and
+23. a preservation-first portfolio narrative with local read-only
+    demonstration safeguards.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -261,6 +267,10 @@ requests, versioned encrypted-envelope validation and private attachment scan
 states. Its guidance bot cannot read the private archive. WhatsApp and
 Messenger records describe only official business platforms, and end-to-end
 encryption remains disabled until runtime interoperability is proven.
+Portfolio Showcase packages the cumulative architecture into six safe,
+Owner-only evidence views. Its fictional dataset is local-only, and optional
+read-only mode rejects authenticated writes without weakening authentication
+or exposing private records.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
+use App\Http\Controllers\Admin\PortfolioShowcaseController;
 use App\Http\Controllers\Admin\RealtimeCommunityController;
 use App\Http\Controllers\Admin\ReleaseAcceptanceController;
 use App\Http\Controllers\Admin\RestorationWorkspaceController;
@@ -43,7 +44,7 @@ Route::post('/contact/anonymous', [PublicConversationController::class, 'anonymo
 Route::match(['get', 'post'], '/register', function (): never {
     abort(404);
 })->name('register');
-Route::middleware(['auth', 'verified'])->group(function (): void {
+Route::middleware(['auth', 'verified', 'demo.readonly'])->group(function (): void {
     Route::post('/conversations/messages', [PublicConversationController::class, 'message'])->middleware('throttle:20,1')->name('public-chat.message');
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
@@ -104,6 +105,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');
+        Route::get('/portfolio-showcase', PortfolioShowcaseController::class)->name('portfolio-showcase');
         Route::get('/release-acceptance', ReleaseAcceptanceController::class)->name('release-acceptance');
         Route::get('/restoration', RestorationWorkspaceController::class)->name('restoration');
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');

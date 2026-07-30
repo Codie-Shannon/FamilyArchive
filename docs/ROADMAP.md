@@ -17,8 +17,8 @@ Archive Maps boundary, with its four-file evidence pack approved. Screenshot
 Group 09 is implemented as the v1.4.0 Real-Time Family Community boundary,
 with its four-file evidence pack approved. Screenshot Group 10 is implemented
 as the v1.5.0 Secure & Federated Communication boundary, with its four-file
-evidence pack approved. Screenshot Group 11 is the final generated post-v1
-boundary.
+evidence pack approved. Screenshot Group 11 is implemented as the v1.6.0
+Portfolio Showcase boundary, with its seven-file evidence pack pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -360,3 +360,28 @@ The release:
 - models only the official WhatsApp Business Cloud API and Messenger Platform;
   and
 - never claims access to arbitrary personal chats.
+
+## Screenshot Group 11 Boundary
+
+Screenshot Group 11 is the generated Post-v1 F boundary for v1.6.0 Portfolio
+Showcase.
+
+Implementation status: implemented — seven-file screenshot evidence pending.
+
+The release:
+
+- positions preservation integrity and provenance as the product promise;
+- presents one coherent ingest, verify, review, enrich, preserve and share
+  journey;
+- summarizes hashes, immutable lineage, backup and recovery through safe
+  aggregate evidence without exposing private values;
+- demonstrates roles, publication review gates and reduced public location
+  precision;
+- documents the modular-monolith boundary and distinct private storage zones;
+- presents desktop, mobile, keyboard and semantic-accessibility evidence;
+- restricts the fictional portfolio seeder to the local environment and an
+  explicit password;
+- rejects authenticated product writes when read-only demonstration mode is
+  explicitly enabled; and
+- de-emphasizes generic social-network expansion without deleting its bounded
+  architectural history.

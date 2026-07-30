@@ -22,6 +22,7 @@
     <flux:navlist.item icon="globe-alt" :href="route('admin.public-discovery')" :current="request()->routeIs('admin.public-discovery')" wire:navigate>{{ __('Public Discovery') }}</flux:navlist.item>
     <flux:navlist.item icon="user-group" :href="route('admin.community-operations')" :current="request()->routeIs('admin.community-operations')" wire:navigate>{{ __('Community Operations') }}</flux:navlist.item>
     <flux:navlist.item icon="lock-closed" :href="route('admin.secure-communication')" :current="request()->routeIs('admin.secure-communication')" wire:navigate>{{ __('Secure Communication') }}</flux:navlist.item>
+    <flux:navlist.item icon="presentation-chart-bar" :href="route('admin.portfolio-showcase')" :current="request()->routeIs('admin.portfolio-showcase')" wire:navigate>{{ __('Portfolio Showcase') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>
