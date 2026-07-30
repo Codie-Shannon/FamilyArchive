@@ -16,11 +16,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG03 - Build Groups 29-36
 - Completed and closed: SG04 - Build Groups 37-44
 - Completed and closed: SG05 - Build Groups 45-46
-- Current release metadata: v1.0.0 - Family Archive v1.0
-- Next screenshot group: SG06 - Post-v1 A
-- Next generated target: v1.1.0 - Advanced Media Intelligence
-- Current evidence state: SG05 screenshot evidence approved; real pilot,
-  production and custodian acceptance gates remain human work
+- Current screenshot group: SG06 - Post-v1 A
+- Current release: v1.1.0 - Advanced Media Intelligence
+- Current evidence state: implementation complete; screenshot evidence pending
 - Current media support: photos
 - Current access model: verified Owner-only archive and administration
 
@@ -74,7 +72,11 @@ The completed system can:
 - evaluate deterministic v1 readiness gates without granting human acceptance;
 - retain non-identifying pilot and accessibility feedback review state; and
 - record proposed and confirmed custodianship responsibilities without
-  bypassing normal access controls.
+  bypassing normal access controls;
+- compare validated perceptual fingerprints as review candidates;
+- retain alternate originals as separate immutable source records; and
+- preview metadata additions and conflicts without silently merging reviewed
+  facts.
 
 See [System Overview](docs/architecture/SYSTEM_OVERVIEW.md) for the current
 architecture and [Roadmap](docs/ROADMAP.md) for the official group sequence.

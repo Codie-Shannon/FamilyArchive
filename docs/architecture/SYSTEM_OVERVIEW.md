@@ -55,6 +55,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Integrity | No-overwrite transfer, observations, repair review and recovery evidence |
 | Release | Deterministic acceptance readiness and explicit human gates |
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
+| Intelligence | Perceptual similarity, alternate originals and metadata merge proposals |
 | Media | Shared media records, versions, statuses and enums |
 
 Future roadmap groups add deeper relationships, collections, restoration,
@@ -98,6 +99,10 @@ Implemented records include:
 - `ProcessingJob`
 - `RestorationCandidate`
 - `StorageProviderStatus`
+- `MediaPerceptualFingerprint`
+- `VisualSimilarityCandidate`
+- `AlternateMediaSource`
+- `MetadataMergeProposal`
 
 Planned records include concepts such as deeper relationships, collections,
 processing jobs, integrity manifests, notifications and expanded moderation
@@ -159,9 +164,9 @@ Groups 37–44 and is closed as v0.44.0 Integrity & Production with its seven-fi
 evidence pack approved. Screenshot Group 05 covers Build Groups 45–46 and is
 closed with its seven-file v1.0.0 Family Archive v1.0 screenshot evidence pack
 approved. Real pilot, production and custodian acceptance gates remain human
-work. Screenshot Group 06 is the next generated post-v1 evidence group and
-targets v1.1.0 Advanced Media Intelligence. The implemented foundation
-establishes:
+work. Screenshot Group 06 is implemented as the v1.1.0 Advanced Media
+Intelligence post-v1 boundary with screenshot evidence pending. The implemented
+foundation establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -180,7 +185,8 @@ establishes:
 15. versioned restoration and fail-closed provider configuration; and
 16. verified no-overwrite transfer, integrity observation and repair review;
     and
-17. deterministic acceptance readiness and explicit custodianship state.
+17. deterministic acceptance readiness and explicit custodianship state; and
+18. perceptual similarity review, alternate originals and merge previews.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
@@ -195,6 +201,10 @@ V1 Acceptance & Custodianship adds non-identifying pilot-feedback review,
 recorded deterministic gates and proposed or confirmed responsibility. It
 keeps family-pilot approval, production proof and custodian confirmation as
 explicit human work and does not infer them from release metadata.
+Advanced Media Intelligence adds deterministic similarity candidates,
+separate alternate-original provenance and conflict-aware metadata proposals.
+It never treats similarity as deletion authority or applies conflicting facts
+without human review.
 Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 

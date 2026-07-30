@@ -10,8 +10,8 @@ covers Build Groups 37–44 and is closed with approved v0.44.0 Integrity &
 Production evidence. Screenshot Group 05 covers Build Groups 45–46 and is
 closed with approved v1.0.0 Family Archive v1.0 screenshot evidence. Real
 pilot, production and custodian acceptance gates remain human work. Screenshot
-Group 06 is the next generated post-v1 evidence group and targets v1.1.0
-Advanced Media Intelligence.
+Group 06 is implemented as the generated v1.1.0 Advanced Media Intelligence
+post-v1 boundary with screenshot evidence pending.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -96,6 +96,17 @@ PDFs remain external artifacts and must not be committed.
 | 44 | Production Hosting and Security Hardening |
 | 45 | Family Pilot, Accessibility and Portfolio Case Study |
 | 46 | Family Archive v1.0 Acceptance and Custodianship |
+
+## Post-v1 Generated Releases
+
+| Screenshot group | Generated boundary | Version | Release |
+|---:|---|---:|---|
+| 06 | Post-v1 A | 1.1.0 | Advanced Media Intelligence |
+| 07 | Post-v1 B | 1.2.0 | Media & Cloud Import |
+| 08 | Post-v1 C | 1.3.0 | Public Discovery & Archive Maps |
+| 09 | Post-v1 D | 1.4.0 | Real-Time Family Community |
+| 10 | Post-v1 E | 1.5.0 | Secure & Federated Communication |
+| 11 | Post-v1 F | 1.6.0 | Portfolio Showcase |
 
 ## Group 13 Boundary
 
@@ -245,3 +256,20 @@ The release:
 - preserves authentication and authorization regardless of designation; and
 - does not fabricate participants, production infrastructure, family approval
   or custodian confirmation.
+
+## Screenshot Group 06 Boundary
+
+Screenshot Group 06 is the generated Post-v1 A boundary for v1.1.0 Advanced
+Media Intelligence.
+
+Implementation status: complete — three-file screenshot evidence pending.
+
+The release:
+
+- validates deterministic 64-bit perceptual fingerprints;
+- creates similarity candidates in pending review state;
+- keeps alternate originals as separate immutable file and provenance records;
+- previews blank-field additions separately from conflicting reviewed facts;
+- stores merge proposals without applying them automatically;
+- keeps the intelligence workspace inside the verified Owner boundary; and
+- never renders fingerprints, internal file identifiers, paths or hashes.

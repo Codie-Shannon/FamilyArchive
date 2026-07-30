@@ -15,6 +15,7 @@
     <flux:navlist.item icon="sparkles" :href="route('admin.restoration')" :current="request()->routeIs('admin.restoration')" wire:navigate>{{ __('Restoration Workspace') }}</flux:navlist.item>
     <flux:navlist.item icon="shield-check" :href="route('admin.operations')" :current="request()->routeIs('admin.operations')" wire:navigate>{{ __('Integrity Operations') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.release-acceptance')" :current="request()->routeIs('admin.release-acceptance')" wire:navigate>{{ __('v1.0 Acceptance') }}</flux:navlist.item>
+    <flux:navlist.item icon="sparkles" :href="route('admin.media-intelligence')" :current="request()->routeIs('admin.media-intelligence')" wire:navigate>{{ __('Media Intelligence') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
     <flux:navlist.item icon="check-badge" :href="route('admin.archive-promotions.index')" :current="request()->routeIs('admin.archive-promotions.*')" wire:navigate>{{ __('Archive Acceptance') }}</flux:navlist.item>
