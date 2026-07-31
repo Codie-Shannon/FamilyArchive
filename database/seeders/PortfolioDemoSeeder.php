@@ -14,8 +14,13 @@ final class PortfolioDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment('local')) {
-            throw new RuntimeException('Portfolio demo seeding is restricted to the local environment.');
+        $hostedDemoEnabled = app()->environment('production')
+            && (bool) config('portfolio_demo.enabled');
+
+        if (! app()->environment('local') && ! $hostedDemoEnabled) {
+            throw new RuntimeException(
+                'Portfolio demo seeding is restricted to local or explicitly enabled production demo environments.',
+            );
         }
 
         $password = (string) config('portfolio_demo.password');

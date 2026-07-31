@@ -20,9 +20,11 @@ product.
 
 ## Read-only Demonstration
 
-`PortfolioDemoSeeder` is restricted to the local application environment and
-requires an explicit, non-empty demonstration password. It uses only the
-fictional Aotearoa dataset.
+`PortfolioDemoSeeder` is restricted to the local application environment or
+an explicitly enabled production portfolio environment. Production seeding
+requires `PORTFOLIO_DEMO_MODE=true` and an explicit, non-empty demonstration
+password. The nested seed guard also refuses to run when non-demo media
+records exist. It uses only the fictional Aotearoa dataset.
 
 When `PORTFOLIO_DEMO_MODE=true`, the `demo.readonly` middleware rejects
 authenticated `POST`, `PUT`, `PATCH` and `DELETE` requests across the product
@@ -31,7 +33,7 @@ available.
 
 The demonstration mode must never:
 
-- connect to production storage;
+- write fictional seed files to production object storage;
 - reuse a production or personal password;
 - contain real family identities, images or locations;
 - render credentials, hashes or private object paths; or

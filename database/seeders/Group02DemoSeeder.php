@@ -25,8 +25,13 @@ class Group02DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment('local')) {
-            throw new RuntimeException('Group02DemoSeeder may run only in the local environment.');
+        $hostedDemoEnabled = app()->environment('production')
+            && (bool) config('portfolio_demo.enabled');
+
+        if (! app()->environment('local') && ! $hostedDemoEnabled) {
+            throw new RuntimeException(
+                'Group02DemoSeeder may run only in local or explicitly enabled production demo environments.',
+            );
         }
 
         $containsNonDemoData = MediaItem::query()

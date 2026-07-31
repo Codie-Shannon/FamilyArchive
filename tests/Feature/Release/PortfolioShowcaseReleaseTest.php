@@ -4,6 +4,7 @@ use App\Http\Middleware\PreventDemoWrites;
 use App\Models\User;
 use Database\Seeders\PortfolioDemoSeeder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -14,9 +15,24 @@ it('positions preservation as core and generic social expansion as deferred', fu
         ->and(config('portfolio_demo.dataset'))->toBe('fictional-aotearoa-family');
 });
 
-it('refuses to seed the portfolio dataset outside a local environment', function () {
+it('refuses to seed the portfolio dataset outside an explicitly enabled demo environment', function () {
     $this->seed(PortfolioDemoSeeder::class);
-})->throws(RuntimeException::class, 'restricted to the local environment');
+})->throws(RuntimeException::class, 'restricted to local or explicitly enabled production demo environments');
+
+it('permits the fictional dataset in an explicitly enabled production demo environment', function () {
+    app()->detectEnvironment(fn (): string => 'production');
+    config()->set('portfolio_demo.enabled', true);
+    config()->set('portfolio_demo.password', 'production-demo-test-password');
+
+    $this->artisan('db:seed', [
+        '--class' => PortfolioDemoSeeder::class,
+        '--force' => true,
+    ])->assertSuccessful();
+
+    $owner = User::query()->where('email', 'archive-owner@example.test')->firstOrFail();
+
+    expect(Hash::check('production-demo-test-password', $owner->password))->toBeTrue();
+});
 
 it('makes authenticated product writes read only in portfolio mode', function () {
     config()->set('portfolio_demo.enabled', true);
