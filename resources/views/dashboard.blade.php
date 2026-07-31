@@ -76,9 +76,9 @@
             </article>
             @if($user->role === 'owner')
                 <article class="rounded-2xl border border-amber-800 bg-amber-950/20 p-5">
-                    <p class="text-sm font-medium text-amber-300">Owner tools</p>
-                    <p class="mt-2 text-sm text-amber-100">Archive administration remains available while its command centre is prepared for SG17.</p>
-                    <a href="{{ route('admin.dashboard') }}" class="mt-4 inline-flex text-sm font-semibold text-amber-200">Manage archive →</a>
+                    <p class="text-sm font-medium text-amber-300">Owner command centre</p>
+                    <p class="mt-2 text-sm text-amber-100">Review work, family access and system health from one owner-only workspace.</p>
+                    <a href="{{ route('admin.dashboard') }}" class="mt-4 inline-flex text-sm font-semibold text-amber-200">Open command centre →</a>
                 </article>
             @endif
         </div>

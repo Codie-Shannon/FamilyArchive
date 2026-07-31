@@ -74,7 +74,7 @@ it('keeps owner tooling separate from the member navigation layer', function ():
 
     $this->actingAs($owner)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Owner tools')
-        ->assertSee('Manage archive')
-        ->assertSee('SG17');
+        ->assertSee('Owner command centre')
+        ->assertSee('Open command centre')
+        ->assertSee(route('admin.dashboard'), false);
 });

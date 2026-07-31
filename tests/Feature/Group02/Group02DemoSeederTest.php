@@ -7,7 +7,7 @@ use Database\Seeders\Group02DemoSeeder;
 
 it('refuses to seed outside the local environment', function (): void {
     expect(fn () => $this->seed(Group02DemoSeeder::class))
-        ->toThrow(RuntimeException::class, 'only in the local environment');
+        ->toThrow(RuntimeException::class, 'only in local or explicitly enabled production demo environments');
 });
 
 it('seeds a stable fictional relationship set idempotently in local', function (): void {

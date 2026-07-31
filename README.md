@@ -27,10 +27,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG14 - Wasabi Production Storage
 - Completed and closed: SG15 - Hosted Production
 - Completed and closed: SG16 - Unified Member Experience
-- Planned next: SG17 - Owner Command Centre
-- Current release: v2.1.0 - Unified Member Experience
-- Current evidence state: Screenshot Groups 01-16 approved and closed;
-  Screenshot Group 17 is planned
+- Completed and closed: SG17 - Owner Command Centre
+- Current release: v2.2.0 - Owner Command Centre
+- Current evidence state: Screenshot Groups 01-17 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants

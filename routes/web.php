@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CloudImportController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
+use App\Http\Controllers\Admin\OwnerCommandCentreController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\PortfolioShowcaseController;
 use App\Http\Controllers\Admin\ProductionReadinessController;
@@ -112,7 +113,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/archive/sources/{sourceCollection}', [SourceCollectionController::class, 'show'])->name('archive.sources.show');
         Route::post('/archive/sources/{sourceCollection}/scan-batches', [ScanBatchController::class, 'store'])->name('archive.sources.scan-batches.store');
     });
-    Route::view('/admin', 'admin.dashboard')->middleware('owner')->name('admin.dashboard');
+    Route::get('/admin', OwnerCommandCentreController::class)->middleware('owner')->name('admin.dashboard');
     Route::get('/admin/archive-schema', ArchiveSchemaController::class)->middleware('owner')->name('admin.archive-schema');
     Route::get('/admin/archive-storage', ArchiveStorageController::class)->middleware('owner')->name('admin.archive-storage');
     Route::middleware('owner')->prefix('admin')->name('admin.')->group(function (): void {

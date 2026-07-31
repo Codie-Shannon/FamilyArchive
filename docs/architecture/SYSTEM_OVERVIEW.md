@@ -53,6 +53,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
 | Providers | Provider-neutral private storage, Wasabi versioned no-overwrite writes, live protection verification and copy-first migration |
 | Operations | Redacted production readiness, database/cache health and live deployment verification |
+| Administration | Owner-only action queue and grouped access to established specialist workflows |
 | Integrity | No-overwrite transfer, observations, repair review and recovery evidence |
 | Release | Deterministic acceptance readiness and explicit human gates |
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
@@ -212,9 +213,10 @@ Restoration Automation, with its six-file evidence pack approved. Screenshot
 Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
 Hosted Production, with its four-file live evidence pack approved. Screenshot
-Groups 01-16 are closed. Screenshot Group 16 implements the v2.1.0 Unified
+Groups 01-17 are closed. Screenshot Group 16 implements the v2.1.0 Unified
 Member Experience with role-aware member navigation and approved evidence.
-Screenshot Group 17 is reserved for the Owner Command Centre. The implemented foundation
+Screenshot Group 17 implements the v2.2.0 Owner Command Centre with approved
+six-file evidence. The implemented foundation
 establishes:
 
 1. application foundation;
@@ -253,7 +255,9 @@ establishes:
     verification, least-privilege policy generation and copy-first migration;
     and
 26. hardened hosted responses, database/cache health, Owner-only readiness and
-    redacted live deployment verification.
+    redacted live deployment verification; and
+27. a consolidated Owner queue and grouped operational views that preserve
+    every specialist authorization boundary.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.

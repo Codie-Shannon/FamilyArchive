@@ -28,9 +28,10 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-16 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-17 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
-Group 17 will consolidate the Owner Command Centre.
+Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
+evidence pack.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -133,6 +134,26 @@ PDFs remain external artifacts and must not be committed.
 | 16 | Corrective member experience | 2.1.0 | Unified Member Experience |
 | 17 | Corrective owner experience | 2.2.0 | Owner Command Centre |
 
+## Screenshot Group 17 Boundary
+
+Screenshot Group 17 replaces the remaining permanent Owner tool list with one
+action-oriented command centre while preserving every specialist route and
+authorization policy.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+The release:
+
+- presents a single Owner destination in the application navigation;
+- summarizes pending access, intake, duplicate, restoration and repair work;
+- groups established workflows into Overview, Work queue, Family & access and
+  System & storage views;
+- keeps decisions inside their existing human-reviewed specialist workflows;
+- preserves verified-email, account-approval and Owner authorization gates;
+  and
+- reports operational counts without exposing credentials, storage locations
+  or private family content.
+
 ## Screenshot Group 16 Boundary
 
 Screenshot Group 16 turns the authenticated member surface into a small,
@@ -152,7 +173,7 @@ The release:
 - replaces the release-oriented dashboard with a member-focused overview; and
 - preserves verified-email, account-approval, branch and Owner boundaries.
 
-Screenshot Group 17 will replace the remaining Owner tool list with an
+Screenshot Group 17 replaces the remaining Owner tool list with an
 action-oriented command centre.
 
 ## Screenshot Group 15 Boundary

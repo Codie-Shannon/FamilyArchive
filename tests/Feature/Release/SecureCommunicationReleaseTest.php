@@ -222,7 +222,7 @@ it('scopes secure messages to the recipient and excludes sensitive envelope fiel
     $this->actingAs($recipient)
         ->get(route('secure-messages.index', ['view' => 'attachments']))
         ->assertOk()
-        ->assertSee('Attachment security')
+        ->assertSee('Attachment scan states')
         ->assertSee('Encrypted message state')
         ->assertSee('harbour-caption-card.png')
         ->assertDontSee('Direct-message consent')

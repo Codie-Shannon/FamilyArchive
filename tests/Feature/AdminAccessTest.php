@@ -47,9 +47,10 @@ it('allows the owner to access the admin area', function (): void {
         ->get(route('admin.dashboard'));
 
     $response->assertOk();
-    $response->assertSee('Family Archive');
-    $response->assertSee('Possible duplicates');
-    $response->assertSee('Integrity warnings');
+    $response->assertSee('Owner Command Centre');
+    $response->assertSee('Family & access', false);
+    $response->assertSee('Needs attention');
+    $response->assertSee('Archive safeguards');
 });
 
 it('loads the application home page', function (): void {
