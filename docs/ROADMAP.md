@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 14 screenshot groups.
+releases. The repository currently has 15 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -26,7 +26,9 @@ closed. Screenshot Group 13 is the corrective v1.8.0 Restoration Automation
 release. Its implementation and six-file evidence pack are approved and
 closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
-closed. Screenshot Groups 01-14 are closed.
+closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
+implementation is complete; live deployment evidence and manual approval are
+pending. Screenshot Groups 01-14 are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -125,6 +127,31 @@ PDFs remain external artifacts and must not be committed.
 | 12 | Corrective access | 1.7.0 | Accounts & Contributor Access |
 | 13 | Corrective restoration | 1.8.0 | Restoration Automation |
 | 14 | Corrective storage | 1.9.0 | Wasabi Production Storage |
+| 15 | Hosted production | 2.0.0 | Hosted Production |
+
+## Screenshot Group 15 Boundary
+
+Screenshot Group 15 takes the verified private Wasabi boundary into a real
+hosted Laravel production environment without weakening the preservation,
+privacy or human-review contracts.
+
+Implementation status: complete — live deployment and evidence pending.
+
+The release:
+
+- replaces the framework starter page with a preservation-first public product
+  entry point;
+- applies restrictive response headers and no-store handling for authenticated
+  responses;
+- makes the standard health endpoint verify both database and cache without
+  exposing connection details;
+- provides an Owner-only production-readiness view with redacted gates;
+- verifies the deployed HTTPS origin, health response, security headers and a
+  synthetic Wasabi write/readback/cleanup operation;
+- records only boolean operational proof, never hosts, account identifiers,
+  bucket names, object keys or credentials; and
+- fails closed until production configuration and live external checks are
+  genuinely satisfied.
 
 ## Group 13 Boundary
 

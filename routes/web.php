@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
 use App\Http\Controllers\Admin\PortfolioShowcaseController;
+use App\Http\Controllers\Admin\ProductionReadinessController;
 use App\Http\Controllers\Admin\RealtimeCommunityController;
 use App\Http\Controllers\Admin\ReleaseAcceptanceController;
 use App\Http\Controllers\Admin\RestorationCandidatePreviewController;
@@ -122,6 +123,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');
         Route::get('/portfolio-showcase', PortfolioShowcaseController::class)->name('portfolio-showcase');
+        Route::get('/production-readiness', ProductionReadinessController::class)->name('production-readiness');
         Route::get('/access', [AccountAccessController::class, 'index'])->name('access.index');
         Route::post('/access/invitations', [AccountAccessController::class, 'invite'])->name('access.invite');
         Route::patch('/access/users/{user}', [AccountAccessController::class, 'update'])->name('access.users.update');

@@ -27,6 +27,7 @@
     <flux:navlist.item icon="user-group" :href="route('admin.community-operations')" :current="request()->routeIs('admin.community-operations')" wire:navigate>{{ __('Community Operations') }}</flux:navlist.item>
     <flux:navlist.item icon="lock-closed" :href="route('admin.secure-communication')" :current="request()->routeIs('admin.secure-communication')" wire:navigate>{{ __('Secure Communication') }}</flux:navlist.item>
     <flux:navlist.item icon="presentation-chart-bar" :href="route('admin.portfolio-showcase')" :current="request()->routeIs('admin.portfolio-showcase')" wire:navigate>{{ __('Portfolio Showcase') }}</flux:navlist.item>
+    <flux:navlist.item icon="cloud" :href="route('admin.production-readiness')" :current="request()->routeIs('admin.production-readiness')" wire:navigate>{{ __('Production Readiness') }}</flux:navlist.item>
     <flux:navlist.item icon="key" :href="route('admin.access.index')" :current="request()->routeIs('admin.access.*')" wire:navigate>{{ __('Accounts & Access') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.photo-intake.index')" :current="request()->routeIs('admin.photo-intake.*')" wire:navigate>{{ __('Photo Intake') }}</flux:navlist.item>
     <flux:navlist.item icon="magnifying-glass" :href="route('admin.duplicate-candidates.index')" :current="request()->routeIs('admin.duplicate-candidates.*')" wire:navigate>{{ __('Duplicate Candidates') }}</flux:navlist.item>
@@ -42,7 +43,10 @@
   </flux:navlist.group>
  </flux:navlist>
  <flux:spacer />
- <flux:navlist variant="outline"><flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">{{ __('Repository') }}</flux:navlist.item><flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">{{ __('Documentation') }}</flux:navlist.item></flux:navlist>
+ <flux:navlist variant="outline">
+  <flux:navlist.item icon="globe-alt" :href="route('home')">{{ __('Public Home') }}</flux:navlist.item>
+  <flux:navlist.item icon="map" :href="route('public-discovery.map')">{{ __('Archive Map') }}</flux:navlist.item>
+ </flux:navlist>
  <x-desktop-user-menu />
 </flux:sidebar>
 <flux:header class="lg:hidden"><flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" /><flux:spacer /><x-dropdown-user-menu /></flux:header>

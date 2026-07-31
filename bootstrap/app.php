@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAccountIsApproved;
 use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\PreventDemoWrites;
+use App\Http\Middleware\ProductionSecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(ProductionSecurityHeaders::class);
+
         $middleware->alias([
             'demo.readonly' => PreventDemoWrites::class,
             'account.approved' => EnsureAccountIsApproved::class,

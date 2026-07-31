@@ -52,6 +52,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
 | Providers | Provider-neutral private storage, Wasabi versioned no-overwrite writes, live protection verification and copy-first migration |
+| Operations | Redacted production readiness, database/cache health and live deployment verification |
 | Integrity | No-overwrite transfer, observations, repair review and recovery evidence |
 | Release | Deterministic acceptance readiness and explicit human gates |
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
@@ -209,7 +210,9 @@ Group 12 is implemented as v1.7.0 Accounts & Contributor Access, with its
 six-file evidence pack approved. Screenshot Group 13 is implemented as v1.8.0
 Restoration Automation, with its six-file evidence pack approved. Screenshot
 Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
-live evidence pack approved. Screenshot Groups 01-14 are closed. The implemented foundation
+live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
+Hosted Production; live deployment evidence remains pending. Screenshot Groups
+01-14 are closed. The implemented foundation
 establishes:
 
 1. application foundation;
@@ -245,7 +248,10 @@ establishes:
 24. enforced invitations, verification, approval, branch filtering, original
     grants and resumable contributor intake; and
 25. private Wasabi prefixes, versioned no-overwrite writes, exact-version
-    verification, least-privilege policy generation and copy-first migration.
+    verification, least-privilege policy generation and copy-first migration;
+    and
+26. hardened hosted responses, database/cache health, Owner-only readiness and
+    redacted live deployment verification.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.

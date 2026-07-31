@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 14
+- Official screenshot groups: 15
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -25,8 +25,10 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG12 - Corrective Accounts & Contributor Access
 - Completed and closed: SG13 - Corrective Restoration Automation
 - Completed and closed: SG14 - Wasabi Production Storage
-- Current release: v1.9.0 - Wasabi Production Storage
-- Current evidence state: Screenshot Groups 01-14 approved and closed
+- Implementation complete, live evidence pending: SG15 - Hosted Production
+- Current release: v2.0.0 - Hosted Production
+- Current evidence state: Screenshot Groups 01-14 approved and closed;
+  Screenshot Group 15 awaits a real hosted deployment and manual validation
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -35,6 +37,9 @@ system and is not part of another product or student-work archive.
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes
+- Current hosting model: deployment-ready Laravel production with hardened
+  response headers, database/cache health checks and a safe live verification
+  command; no live-host claim is made until the external deployment passes
 
 The completed system can:
 
@@ -137,7 +142,14 @@ The completed system can:
 - generate a least-privilege application-user policy that denies application
   deletion of originals and manifests; and
 - plan or execute a copy-first, resumable Wasabi migration without deleting
-  local source objects.
+  local source objects;
+- expose a database-and-cache health endpoint without returning infrastructure
+  details;
+- apply restrictive browser security headers and disable caching on
+  authenticated pages;
+- evaluate production configuration through an Owner-only readiness view; and
+- record a redacted live deployment proof only after HTTPS, health, response
+  headers and isolated Wasabi verification all pass.
 
 ## Product Position
 
