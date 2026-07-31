@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 17 screenshot groups.
+releases. The repository currently plans 18 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -28,10 +28,11 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-17 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-18 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
 Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
-evidence pack.
+evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
+navigation boundary with an approved eight-file evidence pack.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -133,6 +134,26 @@ PDFs remain external artifacts and must not be committed.
 | 15 | Hosted production | 2.0.0 | Hosted Production |
 | 16 | Corrective member experience | 2.1.0 | Unified Member Experience |
 | 17 | Corrective owner experience | 2.2.0 | Owner Command Centre |
+| 18 | Corrective archive navigation | 2.3.0 | Archive Exploration |
+
+## Screenshot Group 18 Boundary
+
+Screenshot Group 18 gives members and Owners one stable, role-aware route
+through archive exploration without placing specialist research tools back in
+the permanent sidebar.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+The release:
+
+- presents the shared Explore Archive bar on Photos, map, reviewed places,
+  people, events, branches and search screens;
+- highlights the current workspace consistently;
+- keeps the public map available to signed-out visitors;
+- exposes only Photos and the map to approved members;
+- exposes reviewed places, people, events, branches and search only to the
+  Owner; and
+- preserves existing authentication, approval and authorization boundaries.
 
 ## Screenshot Group 17 Boundary
 
