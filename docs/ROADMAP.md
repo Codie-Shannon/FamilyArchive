@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 13 screenshot groups.
+releases. The repository currently has 14 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -24,7 +24,9 @@ Screenshot Group 12 is the corrective v1.7.0 Accounts & Contributor Access
 release. Its implementation and six-file evidence pack are approved and
 closed. Screenshot Group 13 is the corrective v1.8.0 Restoration Automation
 release. Its implementation and six-file evidence pack are approved and
-closed. Screenshot Groups 01-13 are closed.
+closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
+release. Its implementation and five-file live evidence pack are approved and
+closed. Screenshot Groups 01-14 are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -122,6 +124,7 @@ PDFs remain external artifacts and must not be committed.
 | 11 | Post-v1 F | 1.6.0 | Portfolio Showcase |
 | 12 | Corrective access | 1.7.0 | Accounts & Contributor Access |
 | 13 | Corrective restoration | 1.8.0 | Restoration Automation |
+| 14 | Corrective storage | 1.9.0 | Wasabi Production Storage |
 
 ## Group 13 Boundary
 
@@ -446,3 +449,29 @@ The release:
   derivative type; and
 - appends immutable processing history without rendering paths, hashes or
   credentials.
+
+## Screenshot Group 14 Boundary
+
+Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
+release.
+
+Implementation status: complete — live provider verification passed and the
+five-file evidence pack is approved and closed.
+
+The release:
+
+- preserves the four provider-neutral logical archive-disk identities while
+  switching their backing driver through one explicit configuration boundary;
+- isolates originals, derivatives, quarantine, manifests and synthetic health
+  checks under five private Wasabi prefixes;
+- uses conditional `If-None-Match: *` object creation, records the returned
+  provider version and verifies exact-version bytes and SHA-256 before success;
+- requires live proof of bucket access, versioning and Object Lock capability;
+- grants no application-user deletion permission for originals or manifests;
+- supports exact-version cleanup only for replaceable derivatives, quarantine
+  objects and isolated health checks;
+- generates a least-privilege application-user policy without committing the
+  production bucket or credentials;
+- provides dry-run-first, copy-only migration that never deletes local source
+  objects and verifies matching remote objects before resuming; and
+- renders only safe aggregate provider facts in the verified Owner boundary.

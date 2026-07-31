@@ -1,28 +1,28 @@
 # Development Process and Tooling
 
-FamilyArchive is a human-owned, AI-assisted software project.
+FamilyArchive is a maintainer-owned software project.
 
 The maintainer defines the product requirements, roadmap, architecture,
 preservation policy, privacy boundaries and acceptance criteria. The maintainer
-also reviews proposed changes, decides what enters the repository, runs the
-manual evidence process and remains responsible for the resulting software.
+reviews every change, decides what enters the repository, runs the manual
+evidence process and remains responsible for the resulting software.
 
-## AI-Assisted Engineering
+## Engineering Workflow
 
-OpenAI Codex and ChatGPT have been used as engineering copilots for:
+Development work uses repeatable repository tooling for:
 
-- implementation acceleration and repetitive scaffolding;
-- code review, debugging and alternative-design analysis;
-- test planning and validation suggestions;
+- implementation and refactoring;
+- code review and debugging;
+- automated and manual test planning;
 - static-analysis and compatibility diagnostics; and
-- organizing technical documentation.
+- technical documentation.
 
-Tool suggestions are treated as untrusted until they are inspected against the
-project requirements and verified by the repository's tests and evidence
-process. The tools do not approve archive decisions, define preservation
-policy, accept evidence or determine release closure.
+Changes are inspected against project requirements and verified by the
+repository's tests and evidence process before acceptance. Tool output never
+approves archive decisions, defines preservation policy, accepts evidence or
+determines release closure.
 
-## Human Ownership
+## Maintainer Ownership
 
 The maintainer retains responsibility for:
 

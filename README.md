@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 13
+- Official screenshot groups: 14
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -24,13 +24,17 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG11 - Post-v1 F
 - Completed and closed: SG12 - Corrective Accounts & Contributor Access
 - Completed and closed: SG13 - Corrective Restoration Automation
-- Current release: v1.8.0 - Restoration Automation
-- Current evidence state: Screenshot Groups 01-13 approved and closed
+- Completed and closed: SG14 - Wasabi Production Storage
+- Current release: v1.9.0 - Wasabi Production Storage
+- Current evidence state: Screenshot Groups 01-14 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
 - Current restoration model: uploader-controlled, integrity-verified,
   non-destructive candidates with explicit human review
+- Current storage model: private local mode by default, with a fail-closed
+  Wasabi production mode using isolated prefixes and versioned no-overwrite
+  writes
 
 The completed system can:
 
@@ -123,7 +127,17 @@ The completed system can:
 - retain perspective correction, damage reconstruction and upscaling as
   manual-only requests until a supported processor exists; and
 - append processing and review history while requiring human approval before a
-  restored derivative can become preferred.
+  restored derivative can become preferred;
+- switch the four logical archive disks between private local storage and one
+  private Wasabi bucket without changing persisted logical disk identities;
+- reserve remote objects atomically, require returned version identities and
+  verify byte counts and SHA-256 through exact-version readback;
+- verify bucket access, versioning and Object Lock capability with an isolated
+  synthetic health object while keeping provider identifiers private;
+- generate a least-privilege application-user policy that denies application
+  deletion of originals and manifests; and
+- plan or execute a copy-first, resumable Wasabi migration without deleting
+  local source objects.
 
 ## Product Position
 
@@ -192,7 +206,7 @@ The complete command includes formatting verification, static analysis and
 automated tests. See [Build and Evidence Process](docs/BUILD_AND_EVIDENCE.md)
 for the closure requirements used by each roadmap group and
 [Development Process and Tooling](docs/DEVELOPMENT_PROCESS.md) for the
-project's AI-assisted engineering disclosure and human-ownership boundary.
+project's engineering workflow and maintainer-ownership boundary.
 
 ## Portfolio Demonstration
 

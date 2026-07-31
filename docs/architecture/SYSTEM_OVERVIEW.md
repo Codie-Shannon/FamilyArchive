@@ -51,7 +51,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Communication | Moderated public threads, approved member posts and anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
-| Providers | Provider-neutral private storage configuration and safe readiness status |
+| Providers | Provider-neutral private storage, Wasabi versioned no-overwrite writes, live protection verification and copy-first migration |
 | Integrity | No-overwrite transfer, observations, repair review and recovery evidence |
 | Release | Deterministic acceptance readiness and explicit human gates |
 | Custodianship | Proposed, confirmed and revoked long-term responsibility |
@@ -208,7 +208,9 @@ Portfolio Showcase, with its seven-file evidence pack approved. Screenshot
 Group 12 is implemented as v1.7.0 Accounts & Contributor Access, with its
 six-file evidence pack approved. Screenshot Group 13 is implemented as v1.8.0
 Restoration Automation, with its six-file evidence pack approved. Screenshot
-Groups 01-13 are closed. The implemented foundation establishes:
+Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
+live evidence pack approved. Screenshot Groups 01-14 are closed. The implemented foundation
+establishes:
 
 1. application foundation;
 2. core archive schema;
@@ -241,7 +243,9 @@ Groups 01-13 are closed. The implemented foundation establishes:
 23. a preservation-first portfolio narrative with local read-only
     demonstration safeguards; and
 24. enforced invitations, verification, approval, branch filtering, original
-    grants and resumable contributor intake.
+    grants and resumable contributor intake; and
+25. private Wasabi prefixes, versioned no-overwrite writes, exact-version
+    verification, least-privilege policy generation and copy-first migration.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
