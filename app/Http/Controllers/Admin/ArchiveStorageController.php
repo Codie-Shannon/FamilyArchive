@@ -8,8 +8,12 @@ use App\Domain\Archive\Services\ArchiveStorageRegistry;
 use App\Domain\Archive\Services\StoragePathValidator;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaType;
+use App\Domain\Storage\Models\StorageProviderVerification;
+use App\Domain\Storage\Services\ArchiveProviderReadiness;
+use App\Domain\Storage\Services\WasabiArchiveMigrator;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 class ArchiveStorageController extends Controller
@@ -19,6 +23,8 @@ class ArchiveStorageController extends Controller
         ArchiveStoragePath $paths,
         ArchiveStorageRegistry $registry,
         StoragePathValidator $validator,
+        ArchiveProviderReadiness $providerReadiness,
+        WasabiArchiveMigrator $wasabiMigrator,
     ): View {
         $idExamples = collect(MediaType::cases())->map(fn (MediaType $type): array => [
             'type' => $type->value,
@@ -68,6 +74,10 @@ class ArchiveStorageController extends Controller
         })->all();
 
         $route = app('router')->getRoutes()->getByName('admin.archive-storage');
+        $provider = $providerReadiness->report();
+        $latestProviderVerification = Schema::hasTable('storage_provider_verifications')
+            ? StorageProviderVerification::query()->latest('checked_at')->first()
+            : null;
 
         return view('admin.archive-storage', [
             'disks' => $registry->contracts(),
@@ -77,6 +87,16 @@ class ArchiveStorageController extends Controller
             'plannedPaths' => $plannedPaths,
             'rejections' => $rejections,
             'routeMiddleware' => $route?->gatherMiddleware() ?? [],
+            'provider' => $provider,
+            'latestProviderVerification' => $latestProviderVerification,
+            'providerBoundaries' => [
+                ['label' => 'Originals', 'prefix' => 'archive/originals', 'rule' => 'Create + read; application deletion denied'],
+                ['label' => 'Derivatives', 'prefix' => 'archive/derivatives', 'rule' => 'Create + read; exact-version cleanup'],
+                ['label' => 'Quarantine', 'prefix' => 'archive/quarantine', 'rule' => 'Create + read; exact-version cleanup'],
+                ['label' => 'Manifests', 'prefix' => 'archive/manifests', 'rule' => 'Create + read; application deletion denied'],
+                ['label' => 'Health checks', 'prefix' => 'archive/health', 'rule' => 'Synthetic verification + exact-version cleanup'],
+            ],
+            'migrationPlan' => $wasabiMigrator->migrate(),
         ]);
     }
 }

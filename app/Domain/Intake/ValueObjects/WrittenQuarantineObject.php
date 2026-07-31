@@ -9,5 +9,6 @@ final readonly class WrittenQuarantineObject
         public int $bytesWritten,
         public int $storedBytes,
         public string $sha256,
+        public ?string $providerVersionId = null,
     ) {}
 }

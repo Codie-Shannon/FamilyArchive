@@ -17,7 +17,7 @@ it('allows an owner to inspect the read only storage contract', function (): voi
 
     $this->actingAs($owner)->get(route('admin.archive-storage'))
         ->assertOk()
-        ->assertSee('Archive Storage Foundation')
+        ->assertSee('Private Archive Storage')
         ->assertSee('archive_originals')
         ->assertSee('PH_000001')
         ->assertSee('photos/000/PH_000001.jpg')

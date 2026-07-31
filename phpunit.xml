@@ -19,6 +19,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="ARCHIVE_PROVIDER" value="local" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
@@ -31,6 +32,11 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="WASABI_ACCESS_KEY_ID" value="" force="true"/>
+        <env name="WASABI_BUCKET" value="" force="true"/>
+        <env name="WASABI_ENDPOINT" value="" force="true"/>
+        <env name="WASABI_REGION" value="" force="true"/>
+        <env name="WASABI_SECRET_ACCESS_KEY" value="" force="true"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>

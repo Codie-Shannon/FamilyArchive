@@ -1,5 +1,37 @@
 <?php
 
+$archiveProvider = env('ARCHIVE_PROVIDER', 'local');
+$wasabiKey = (string) env('WASABI_ACCESS_KEY_ID', '');
+$wasabiSecret = (string) env('WASABI_SECRET_ACCESS_KEY', '');
+$wasabiBase = [
+    'driver' => 's3',
+    'key' => $wasabiKey !== '' ? $wasabiKey : '__wasabi_not_configured__',
+    'secret' => $wasabiSecret !== '' ? $wasabiSecret : '__wasabi_not_configured__',
+    'region' => env('WASABI_REGION'),
+    'bucket' => env('WASABI_BUCKET'),
+    'endpoint' => env('WASABI_ENDPOINT'),
+    'use_path_style_endpoint' => env('WASABI_USE_PATH_STYLE_ENDPOINT', true),
+    'visibility' => 'private',
+    'throw' => true,
+    'report' => true,
+    'stream_reads' => true,
+];
+
+$archiveDisk = static function (string $localRoot, string $wasabiRoot) use ($archiveProvider, $wasabiBase): array {
+    if ($archiveProvider === 'wasabi') {
+        return [...$wasabiBase, 'root' => $wasabiRoot];
+    }
+
+    return [
+        'driver' => 'local',
+        'root' => $localRoot,
+        'visibility' => 'private',
+        'serve' => false,
+        'throw' => true,
+        'report' => true,
+    ];
+};
+
 return [
 
     /*
@@ -47,7 +79,15 @@ return [
             'report' => false,
         ],
 
-        'archive_originals' => [
+        'archive_originals' => $archiveDisk(storage_path('app/archive/originals'), 'archive/originals'),
+
+        'archive_derivatives' => $archiveDisk(storage_path('app/archive/derivatives'), 'archive/derivatives'),
+
+        'archive_quarantine' => $archiveDisk(storage_path('app/archive/quarantine'), 'archive/quarantine'),
+
+        'archive_manifests' => $archiveDisk(storage_path('app/archive/manifests'), 'archive/manifests'),
+
+        'archive_local_originals' => [
             'driver' => 'local',
             'root' => storage_path('app/archive/originals'),
             'visibility' => 'private',
@@ -56,7 +96,7 @@ return [
             'report' => true,
         ],
 
-        'archive_derivatives' => [
+        'archive_local_derivatives' => [
             'driver' => 'local',
             'root' => storage_path('app/archive/derivatives'),
             'visibility' => 'private',
@@ -65,7 +105,7 @@ return [
             'report' => true,
         ],
 
-        'archive_quarantine' => [
+        'archive_local_quarantine' => [
             'driver' => 'local',
             'root' => storage_path('app/archive/quarantine'),
             'visibility' => 'private',
@@ -74,7 +114,7 @@ return [
             'report' => true,
         ],
 
-        'archive_manifests' => [
+        'archive_local_manifests' => [
             'driver' => 'local',
             'root' => storage_path('app/archive/manifests'),
             'visibility' => 'private',
