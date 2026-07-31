@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 15 screenshot groups.
+releases. The repository currently plans 17 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -28,7 +28,9 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-15 are closed.
+Screenshot Groups 01-16 are closed. Screenshot Group 16 implements the v2.1.0
+Unified Member Experience with an approved seven-file evidence pack. Screenshot
+Group 17 will consolidate the Owner Command Centre.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -128,6 +130,30 @@ PDFs remain external artifacts and must not be committed.
 | 13 | Corrective restoration | 1.8.0 | Restoration Automation |
 | 14 | Corrective storage | 1.9.0 | Wasabi Production Storage |
 | 15 | Hosted production | 2.0.0 | Hosted Production |
+| 16 | Corrective member experience | 2.1.0 | Unified Member Experience |
+| 17 | Corrective owner experience | 2.2.0 | Owner Command Centre |
+
+## Screenshot Group 16 Boundary
+
+Screenshot Group 16 turns the authenticated member surface into a small,
+role-aware product navigation without removing established routes or access
+controls.
+
+Implementation status: complete — seven-file screenshot evidence approved.
+
+The release:
+
+- reduces viewer navigation to Home, Archive and Messages;
+- adds Contribute only for roles allowed to upload;
+- moves family activity into the Home journey instead of a permanent sidebar
+  destination;
+- moves map and entity exploration into Archive tabs;
+- relocates public-site access to the account menu;
+- replaces the release-oriented dashboard with a member-focused overview; and
+- preserves verified-email, account-approval, branch and Owner boundaries.
+
+Screenshot Group 17 will replace the remaining Owner tool list with an
+action-oriented command centre.
 
 ## Screenshot Group 15 Boundary
 

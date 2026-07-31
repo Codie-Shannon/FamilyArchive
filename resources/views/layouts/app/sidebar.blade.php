@@ -6,15 +6,16 @@
  <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
  <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate><x-app-logo /></a>
  <flux:navlist variant="outline">
-  <flux:navlist.group :heading="__('Platform')" class="grid">
-   <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-   <flux:navlist.item icon="chat-bubble-left-right" :href="route('community.index')" :current="request()->routeIs('community.*')" wire:navigate>{{ __('Family Community') }}</flux:navlist.item>
-   <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Secure Messages') }}</flux:navlist.item>
-   <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*', 'archive.originals.*')" wire:navigate>{{ __('Family Archive') }}</flux:navlist.item>
+  <flux:navlist.group :heading="__('Your archive')" class="grid">
+   <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard', 'community.*')" wire:navigate>{{ __('Home') }}</flux:navlist.item>
+   <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*', 'archive.originals.*')" wire:navigate>{{ __('Archive') }}</flux:navlist.item>
    @if(auth()->user()?->canContribute())
-    <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute Media') }}</flux:navlist.item>
+    <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute') }}</flux:navlist.item>
    @endif
-   @if(auth()->user()?->role === 'owner')
+   <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
+  </flux:navlist.group>
+  @if(auth()->user()?->role === 'owner')
+   <flux:navlist.group :heading="__('Owner tools')" class="grid">
     <flux:navlist.item icon="shield-check" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Archive Administration') }}</flux:navlist.item>
     <flux:navlist.item icon="circle-stack" :href="route('admin.archive-schema')" :current="request()->routeIs('admin.archive-schema')" wire:navigate>{{ __('Archive Schema') }}</flux:navlist.item>
     <flux:navlist.item icon="archive-box" :href="route('admin.archive-storage')" :current="request()->routeIs('admin.archive-storage')" wire:navigate>{{ __('Archive Storage') }}</flux:navlist.item>
@@ -39,14 +40,10 @@
     <flux:navlist.item icon="magnifying-glass" :href="route('archive.knowledge')" :current="request()->routeIs('archive.knowledge')" wire:navigate>{{ __('Archive Knowledge') }}</flux:navlist.item>
     <flux:navlist.item icon="circle-stack" :href="route('archive.sources.index')" :current="request()->routeIs('archive.sources.*')" wire:navigate>{{ __('Source Provenance') }}</flux:navlist.item>
     <flux:navlist.item icon="photo" :href="route('admin.viewing-derivatives.index')" :current="request()->routeIs('admin.viewing-derivatives.*')" wire:navigate>{{ __('Viewing Derivatives') }}</flux:navlist.item>
-   @endif
-  </flux:navlist.group>
+   </flux:navlist.group>
+  @endif
  </flux:navlist>
  <flux:spacer />
- <flux:navlist variant="outline">
-  <flux:navlist.item icon="globe-alt" :href="route('home')">{{ __('Public Home') }}</flux:navlist.item>
-  <flux:navlist.item icon="map" :href="route('public-discovery.map')">{{ __('Archive Map') }}</flux:navlist.item>
- </flux:navlist>
  <x-desktop-user-menu />
 </flux:sidebar>
 <flux:header class="lg:hidden"><flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" /><flux:spacer /><x-dropdown-user-menu /></flux:header>

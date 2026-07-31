@@ -2,12 +2,12 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-5">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Screenshot Group 09 · Post-v1 D</p>
-                <h1 class="mt-2 text-3xl font-semibold text-white">Family community</h1>
-                <p class="mt-2 max-w-3xl text-zinc-400">Membership-aware spaces for fictional family-history discussion, presence and moderated voice notes.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Home · Family activity</p>
+                <h1 class="mt-2 text-3xl font-semibold text-white">Family activity</h1>
+                <p class="mt-2 max-w-3xl text-zinc-400">Your family spaces, recent presence and approved voice notes in one place.</p>
             </div>
             <div class="rounded-xl border border-emerald-900 bg-emerald-950/30 px-5 py-3 text-sm text-emerald-100">
-                v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
+                <a href="{{ route('dashboard') }}" class="font-semibold">← Back to Home</a>
             </div>
         </header>
 

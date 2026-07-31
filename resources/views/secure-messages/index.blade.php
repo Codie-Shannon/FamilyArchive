@@ -2,17 +2,17 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-5">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Screenshot Group 10 · Post-v1 E</p>
-                <h1 class="mt-2 text-3xl font-semibold text-white">Secure messages</h1>
-                <p class="mt-2 max-w-3xl text-zinc-400">Consent-first public DMs with versioned encrypted envelopes and scanned attachments.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Private and consent-first</p>
+                <h1 class="mt-2 text-3xl font-semibold text-white">Messages</h1>
+                <p class="mt-2 max-w-3xl text-zinc-400">Review conversation requests and private attachments without exposing archive originals.</p>
             </div>
             <div class="space-y-3 text-right">
                 <div class="rounded-xl border border-emerald-900 bg-emerald-950/30 px-5 py-3 text-sm text-emerald-100">
-                    v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
+                    Your private inbox
                 </div>
                 <nav class="flex justify-end gap-2 text-sm">
-                    <a href="{{ route('secure-messages.index') }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'consent' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Consent overview</a>
-                    <a href="{{ route('secure-messages.index', ['view' => 'attachments']) }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'attachments' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Attachment security</a>
+                    <a href="{{ route('secure-messages.index') }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'consent' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Requests</a>
+                    <a href="{{ route('secure-messages.index', ['view' => 'attachments']) }}" class="rounded-lg border px-3 py-2 {{ $activeView === 'attachments' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-200' : 'border-zinc-700 text-zinc-400' }}">Attachments</a>
                 </nav>
             </div>
         </header>

@@ -37,6 +37,7 @@ use App\Http\Controllers\Archive\SourceCollectionController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\ContributorSubmissionController;
+use App\Http\Controllers\MemberHomeController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
 use App\Http\Controllers\SecureMessagingController;
@@ -58,7 +59,7 @@ Route::post('/conversations/messages', [PublicConversationController::class, 'me
     ->middleware(['auth', 'verified', 'demo.readonly', 'throttle:20,1'])
     ->name('public-chat.message');
 Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->group(function (): void {
-    Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::get('/dashboard', MemberHomeController::class)->name('dashboard');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
     Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
     Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');

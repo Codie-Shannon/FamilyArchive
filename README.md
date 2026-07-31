@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 15
+- Official screenshot groups: 17 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -26,8 +26,11 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG13 - Corrective Restoration Automation
 - Completed and closed: SG14 - Wasabi Production Storage
 - Completed and closed: SG15 - Hosted Production
-- Current release: v2.0.0 - Hosted Production
-- Current evidence state: Screenshot Groups 01-15 approved and closed
+- Completed and closed: SG16 - Unified Member Experience
+- Planned next: SG17 - Owner Command Centre
+- Current release: v2.1.0 - Unified Member Experience
+- Current evidence state: Screenshot Groups 01-16 approved and closed;
+  Screenshot Group 17 is planned
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
