@@ -27,8 +27,8 @@ release. Its implementation and six-file evidence pack are approved and
 closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
-implementation is complete; live deployment evidence and manual approval are
-pending. Screenshot Groups 01-14 are closed.
+implementation, live deployment evidence and manual approval are complete.
+Screenshot Groups 01-15 are closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -135,7 +135,8 @@ Screenshot Group 15 takes the verified private Wasabi boundary into a real
 hosted Laravel production environment without weakening the preservation,
 privacy or human-review contracts.
 
-Implementation status: complete — live deployment and evidence pending.
+Implementation status: complete — live deployment verified and evidence
+approved.
 
 The release:
 

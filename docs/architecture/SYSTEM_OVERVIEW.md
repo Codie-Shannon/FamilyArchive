@@ -211,8 +211,8 @@ six-file evidence pack approved. Screenshot Group 13 is implemented as v1.8.0
 Restoration Automation, with its six-file evidence pack approved. Screenshot
 Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
-Hosted Production; live deployment evidence remains pending. Screenshot Groups
-01-14 are closed. The implemented foundation
+Hosted Production, with its four-file live evidence pack approved. Screenshot
+Groups 01-15 are closed. The implemented foundation
 establishes:
 
 1. application foundation;

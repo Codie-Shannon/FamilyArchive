@@ -2,7 +2,7 @@
 
 Version: v2.0.0  
 Release: Hosted Production  
-Status: implementation complete — live evidence pending
+Status: approved and closed
 
 This pack proves the complete Family Archive application running on a real
 HTTPS production host with its private Wasabi boundary intact.
@@ -19,6 +19,6 @@ Required files:
 3. `03_v200_Production_Readiness.png`
 4. `04_v200_Validation.png`
 
-See the manual test pack for the capture sequence. Evidence remains pending
-until the user completes the live deployment, runs the validation script
-manually and approves all four screenshots.
+Screenshots 01-03 were captured from the verified live deployment. The user
+ran the validation script manually, captured screenshot 04 and approved all
+four screenshots.

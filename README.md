@@ -25,10 +25,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG12 - Corrective Accounts & Contributor Access
 - Completed and closed: SG13 - Corrective Restoration Automation
 - Completed and closed: SG14 - Wasabi Production Storage
-- Implementation complete, live evidence pending: SG15 - Hosted Production
+- Completed and closed: SG15 - Hosted Production
 - Current release: v2.0.0 - Hosted Production
-- Current evidence state: Screenshot Groups 01-14 approved and closed;
-  Screenshot Group 15 awaits a real hosted deployment and manual validation
+- Current evidence state: Screenshot Groups 01-15 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -37,9 +36,9 @@ system and is not part of another product or student-work archive.
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes
-- Current hosting model: deployment-ready Laravel production with hardened
-  response headers, database/cache health checks and a safe live verification
-  command; no live-host claim is made until the external deployment passes
+- Current hosting model: verified Laravel Cloud production at the branded HTTPS
+  origin, with hardened response headers, database/cache health checks and
+  passing application-owned live verification
 
 The completed system can:
 
