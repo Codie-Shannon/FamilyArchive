@@ -1,5 +1,13 @@
-<x-layouts.public-discovery title="Archive Map">
-    <main class="mx-auto max-w-7xl space-y-7 px-6 py-10">
+@php
+    $layout = auth()->user()?->account_state === 'approved'
+        ? 'layouts::app'
+        : 'layouts.public-discovery';
+@endphp
+
+<x-dynamic-component :component="$layout" title="Archive Map">
+    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
+        <x-archive-navigation />
+
         <header class="flex flex-wrap items-end justify-between gap-5">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Privacy-safe geography</p>
@@ -47,4 +55,4 @@
             The public map never exposes private archive coordinates, source records or unreviewed locations.
         </aside>
     </main>
-</x-layouts.public-discovery>
+</x-dynamic-component>

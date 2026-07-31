@@ -1,5 +1,7 @@
 <x-layouts::app title="Reviewed Locations">
-    <main class="mx-auto max-w-7xl space-y-6 p-6">
+    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
+        <x-archive-navigation />
+
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ config('release.status') }}</p>
@@ -7,6 +9,7 @@
                 <p class="mt-2 text-zinc-600 dark:text-zinc-300">Browse normalized places without exposing sensitive location precision.</p>
             </div>
             <div class="flex gap-3">
+                <a href="{{ route('public-discovery.map') }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold dark:border-zinc-600 dark:text-white">Public map</a>
                 <a href="{{ route('archive.events.index') }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold dark:border-zinc-600 dark:text-white">Events</a>
                 <a href="{{ route('archive.locations.create') }}" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black">Add reviewed location</a>
             </div>

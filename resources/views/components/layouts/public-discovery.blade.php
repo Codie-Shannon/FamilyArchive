@@ -22,7 +22,11 @@
                 <nav aria-label="Public discovery navigation" class="flex items-center gap-2 text-sm">
                     <a href="{{ route('public-discovery.index') }}" class="rounded-lg px-4 py-2 {{ request()->routeIs('public-discovery.index') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white' }}">Showcase</a>
                     <a href="{{ route('public-discovery.map') }}" class="rounded-lg px-4 py-2 {{ request()->routeIs('public-discovery.map') ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white' }}">Archive map</a>
-                    <a href="{{ route('login') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300">Private sign in</a>
+                    @if(auth()->user()?->account_state === 'approved')
+                        <a href="{{ route('archive.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300">Private archive</a>
+                    @else
+                        <a href="{{ route('login') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300">Private sign in</a>
+                    @endif
                 </nav>
             </div>
         </header>

@@ -1,15 +1,6 @@
 <x-layouts::app :title="__('Private Archive')">
-<div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-4 md:p-8">
-    <nav aria-label="Archive views" class="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-zinc-700 bg-zinc-900 p-1 text-sm">
-        <a href="{{ route('archive.index') }}" aria-current="page" class="whitespace-nowrap rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-zinc-950">Photos</a>
-        <a href="{{ route('public-discovery.map') }}" class="whitespace-nowrap rounded-lg px-4 py-2 font-medium text-zinc-300 hover:bg-zinc-800">Places & map</a>
-        @if(auth()->user()?->role === 'owner')
-            <a href="{{ route('archive.people.index') }}" class="whitespace-nowrap rounded-lg px-4 py-2 font-medium text-zinc-300 hover:bg-zinc-800">People</a>
-            <a href="{{ route('archive.events.index') }}" class="whitespace-nowrap rounded-lg px-4 py-2 font-medium text-zinc-300 hover:bg-zinc-800">Events</a>
-            <a href="{{ route('archive.branches.index') }}" class="whitespace-nowrap rounded-lg px-4 py-2 font-medium text-zinc-300 hover:bg-zinc-800">Branches</a>
-            <a href="{{ route('archive.knowledge') }}" class="whitespace-nowrap rounded-lg px-4 py-2 font-medium text-zinc-300 hover:bg-zinc-800">Search</a>
-        @endif
-    </nav>
+<div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
+    <x-archive-navigation />
     <header class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div><p class="text-sm font-medium text-emerald-300">Access-filtered family archive</p><h1 class="text-3xl font-semibold text-white">Photos</h1><p class="mt-2 max-w-2xl text-zinc-400">Browse preservation-safe copies allowed by your role and family branch. Originals require a separate active grant.</p></div>
         <div class="flex items-center gap-3">@if(auth()->user()?->role === 'owner')<a href="{{ route('archive.sources.index') }}" class="rounded-xl border border-zinc-700 px-4 py-3 text-sm text-emerald-300">Source provenance</a>@endif<div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100"><strong>{{ $photos->total() }}</strong> approved archive records</div></div>

@@ -1,8 +1,10 @@
 <x-layouts::app title="Archive Knowledge">
-    <main class="mx-auto max-w-7xl space-y-8 p-6">
+    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
+        <x-archive-navigation />
+
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 01 · Build Groups 13–20</p>
+                <p class="text-sm font-semibold text-emerald-300">Owner archive discovery</p>
                 <h1 class="text-3xl font-semibold text-white">Archive Knowledge</h1>
                 <p class="mt-2 text-zinc-400">Reviewed events, places, people, branches and curated discovery.</p>
             </div>

@@ -1,5 +1,7 @@
 <x-layouts::app title="Reviewed Events">
-    <main class="mx-auto max-w-7xl space-y-6 p-6">
+    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
+        <x-archive-navigation />
+
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ config('release.status') }}</p>

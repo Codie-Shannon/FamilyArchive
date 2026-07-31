@@ -57,14 +57,14 @@ it('keeps family activity reachable from home without a separate sidebar item', 
         ->assertSee('Back to Home');
 });
 
-it('presents archive exploration as tabs instead of permanent sidebar links', function (): void {
+it('presents archive exploration as a shared bar instead of permanent sidebar links', function (): void {
     $member = sg16Member();
 
     $this->actingAs($member)->get(route('archive.index'))
         ->assertOk()
-        ->assertSee('Archive views')
+        ->assertSee('Explore archive')
         ->assertSee('Photos')
-        ->assertSee('Places & map', false)
+        ->assertSee('Places & map')
         ->assertSee(route('public-discovery.map'), false)
         ->assertDontSee('People</a>', false);
 });
