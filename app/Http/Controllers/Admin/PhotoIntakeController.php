@@ -10,8 +10,11 @@ use App\Domain\Intake\Services\CreateAndRetainIncomingPhoto;
 use App\Domain\Processing\Models\ProcessingJob;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class PhotoIntakeController extends Controller
 {
@@ -50,6 +53,72 @@ final class PhotoIntakeController extends Controller
                 ->where('source_version_id', $sourceVersionId)
                 ->latest('id')
                 ->first(),
+        ]);
+    }
+
+    public function preview(IncomingUpload $incomingUpload): StreamedResponse
+    {
+        if (
+            ! $incomingUpload->source_file_retained
+            || ! is_string($incomingUpload->incoming_path)
+            || ! is_string($incomingUpload->sha256)
+            || ! array_key_exists($incomingUpload->mime_type, config('archive.photo_intake.mime_extensions', []))
+        ) {
+            abort(404);
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('archive_quarantine');
+        if (! $disk->exists($incomingUpload->incoming_path)) {
+            abort(404);
+        }
+
+        $verification = $disk->readStream($incomingUpload->incoming_path);
+        if (! is_resource($verification)) {
+            abort(404);
+        }
+
+        $hash = hash_init('sha256');
+        $bytes = 0;
+        try {
+            while (! feof($verification)) {
+                $chunk = fread($verification, 1024 * 1024);
+                if ($chunk === false) {
+                    abort(404);
+                }
+                $bytes += strlen($chunk);
+                hash_update($hash, $chunk);
+            }
+        } finally {
+            fclose($verification);
+        }
+
+        if (
+            $bytes !== $incomingUpload->file_size_bytes
+            || ! hash_equals(strtolower($incomingUpload->sha256), strtolower(hash_final($hash)))
+        ) {
+            abort(404);
+        }
+
+        $path = $incomingUpload->incoming_path;
+
+        return response()->stream(function () use ($disk, $path): void {
+            $stream = $disk->readStream($path);
+            if (! is_resource($stream)) {
+                return;
+            }
+
+            try {
+                fpassthru($stream);
+            } finally {
+                fclose($stream);
+            }
+        }, 200, [
+            'Content-Type' => $incomingUpload->mime_type,
+            'Content-Disposition' => 'inline',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 

@@ -63,5 +63,48 @@ it('keeps queue and detail read only and exposes retention integrity', function 
     $this->actingAs($owner)->post('/admin/photo-intake', ['photo' => group05Png()]);
     $upload = IncomingUpload::sole();
     $this->actingAs($owner)->get('/admin/incoming-uploads')->assertOk()->assertSee('Retained')->assertSee('verified')->assertDontSee('Download');
-    $this->actingAs($owner)->get('/admin/incoming-uploads/'.$upload->id)->assertOk()->assertSee($upload->sha256)->assertSee('retained=true')->assertSee('Not approved')->assertDontSee('Promote');
+    $this->actingAs($owner)->get('/admin/incoming-uploads/'.$upload->id)
+        ->assertOk()
+        ->assertSee($upload->sha256)
+        ->assertSee('retained=true')
+        ->assertSee('Not approved')
+        ->assertSee('Approval preview')
+        ->assertSee(route('admin.photo-intake.preview', $upload), false)
+        ->assertDontSee('Promote');
+});
+
+it('shows owners an integrity-verified inline preview before approval', function () {
+    $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
+    $viewer = User::factory()->create(['role' => 'viewer', 'email_verified_at' => now()]);
+    $photo = group05Png('approval-preview.png');
+    $expected = file_get_contents($photo->getRealPath());
+
+    $this->actingAs($owner)->post('/admin/photo-intake', ['photo' => $photo]);
+    $upload = IncomingUpload::sole();
+
+    $this->actingAs($owner)
+        ->get(route('admin.photo-intake.preview', $upload))
+        ->assertOk()
+        ->assertStreamed()
+        ->assertStreamedContent($expected)
+        ->assertHeader('Content-Type', 'image/png')
+        ->assertHeader('Content-Disposition', 'inline')
+        ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
+        ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+    $this->actingAs($viewer)
+        ->get(route('admin.photo-intake.preview', $upload))
+        ->assertForbidden();
+});
+
+it('fails closed when the retained preview no longer matches its verified facts', function () {
+    $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
+    $this->actingAs($owner)->post('/admin/photo-intake', ['photo' => group05Png('changed-preview.png')]);
+    $upload = IncomingUpload::sole();
+
+    Storage::disk('archive_quarantine')->put($upload->incoming_path, 'changed bytes');
+
+    $this->actingAs($owner)
+        ->get(route('admin.photo-intake.preview', $upload))
+        ->assertNotFound();
 });
