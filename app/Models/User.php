@@ -79,4 +79,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return in_array($this->role, ['owner', 'admin'], true);
     }
+
+    public function canAccessWorkHub(): bool
+    {
+        return in_array($this->role, ['owner', 'admin', 'trusted_contributor'], true);
+    }
 }

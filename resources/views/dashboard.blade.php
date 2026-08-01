@@ -86,9 +86,15 @@
             </article>
             @if($user->role === 'owner')
                 <article class="rounded-2xl border border-amber-800 bg-amber-950/20 p-5">
-                    <p class="text-sm font-medium text-amber-300">Owner command centre</p>
-                    <p class="mt-2 text-sm text-amber-100">Review work, family access and system health from one owner-only workspace.</p>
-                    <a href="{{ route('admin.dashboard') }}" class="mt-4 inline-flex text-sm font-semibold text-amber-200">Open command centre →</a>
+                    <p class="text-sm font-medium text-amber-300">Owner exceptions</p>
+                    <p class="mt-2 text-sm text-amber-100">Open one role-aware work hub for policy, original-access and preservation exceptions.</p>
+                    <a href="{{ route('work.index') }}" class="mt-4 inline-flex text-sm font-semibold text-amber-200">Open your work →</a>
+                </article>
+            @elseif($user->canAccessWorkHub())
+                <article class="rounded-2xl border border-emerald-800 bg-emerald-950/20 p-5">
+                    <p class="text-sm font-medium text-emerald-300">Your work</p>
+                    <p class="mt-2 text-sm text-emerald-100">Open one role-aware queue for the family and intake decisions assigned to you.</p>
+                    <a href="{{ route('work.index') }}" class="mt-4 inline-flex text-sm font-semibold text-emerald-200">Open your work →</a>
                 </article>
             @endif
         </div>

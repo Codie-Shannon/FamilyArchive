@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountIsApproved;
+use App\Http\Middleware\EnsureUserCanAccessWorkHub;
 use App\Http\Middleware\EnsureUserCanManageFamilyOperations;
 use App\Http\Middleware\EnsureUserCanManageTrustedIntake;
 use App\Http\Middleware\EnsureUserIsOwner;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'owner' => EnsureUserIsOwner::class,
             'family.operations' => EnsureUserCanManageFamilyOperations::class,
             'trusted.intake' => EnsureUserCanManageTrustedIntake::class,
+            'work.access' => EnsureUserCanAccessWorkHub::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

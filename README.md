@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 24 planned
+- Official screenshot groups: 25 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -35,8 +35,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG22 - Delegated Intake Completion
 - Completed and closed: SG23 - Unified Archive Experience
 - Completed and closed: SG24 - Delegated Family Operations
-- Current release: v2.9.0 - Delegated Family Operations
-- Current evidence state: Screenshot Groups 01-24 approved and closed
+- Completed and closed: SG25 - Role-Aware Workflow Polish
+- Current release: v3.0.0 - Role-Aware Workflow Polish
+- Current evidence state: Screenshot Groups 01-25 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants

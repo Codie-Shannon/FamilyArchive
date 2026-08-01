@@ -46,6 +46,7 @@ use App\Http\Controllers\MemberHomeController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
 use App\Http\Controllers\SecureMessagingController;
+use App\Http\Controllers\WorkHomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -69,6 +70,7 @@ Route::patch('/conversations/messages/{message}/report', [PublicConversationCont
     ->name('public-chat.report');
 Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->group(function (): void {
     Route::get('/dashboard', MemberHomeController::class)->name('dashboard');
+    Route::get('/work', WorkHomeController::class)->middleware('work.access')->name('work.index');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
     Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
     Route::patch('/secure-messages/requests/{thread}', [SecureMessagingController::class, 'consent'])

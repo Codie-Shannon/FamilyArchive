@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 24 screenshot groups.
+releases. The repository currently plans 25 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -48,6 +48,8 @@ approved and closed.
 Screenshot Group 24 implements the v2.9.0 Delegated Family Operations boundary.
 Its implementation and eight-file privacy-safe evidence pack are approved and
 closed.
+Screenshot Group 25 implements the v3.0.0 Role-Aware Workflow Polish boundary.
+Its implementation and six-file evidence pack are approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -156,6 +158,21 @@ PDFs remain external artifacts and must not be committed.
 | 22 | Corrective delegated intake completion | 2.7.0 | Delegated Intake Completion |
 | 23 | Corrective unified archive experience | 2.8.0 | Unified Archive Experience |
 | 24 | Corrective delegated family operations | 2.9.0 | Delegated Family Operations |
+| 25 | Role-aware workflow polish | 3.0.0 | Role-Aware Workflow Polish |
+
+## Screenshot Group 25 Boundary
+
+Screenshot Group 25 consolidates operational navigation into one role-aware
+Work hub. Trusted contributors see only their own intake batches,
+administrators see routine accounts, reported activity and shared intake, and
+Owners see elevated access, preservation and policy exceptions without being
+made a prerequisite for ordinary family activity.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+The specialist pages and authorization boundaries remain intact behind the
+hub. Approved members continue to browse, converse and decide their own message
+requests without receiving an operational queue.
 
 ## Screenshot Group 24 Boundary
 

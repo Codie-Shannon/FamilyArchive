@@ -1,6 +1,6 @@
 <x-layouts::app :title="__('Accounts & Access')">
 <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-4 md:p-8">
-    <header><p class="text-sm font-medium text-emerald-300">SG12 · enforced access control</p><h1 class="mt-1 text-3xl font-semibold text-white">Accounts, branches & original grants</h1><p class="mt-2 max-w-3xl text-zinc-400">Invitation-only membership, owner approval, scoped archive access and append-only access history.</p></header>
+    <header><p class="text-sm font-medium text-emerald-300">Policy and original-access control</p><h1 class="mt-1 text-3xl font-semibold text-white">Accounts, branches & original grants</h1><p class="mt-2 max-w-3xl text-zinc-400">Routine viewer and contributor decisions stay with administrators. Elevated roles, scoped original access and append-only access history remain here.</p></header>
     @if(session('status'))<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-100">{{ session('status') }}</div>@endif
     @if(session('invitation_url'))<div class="rounded-xl border border-cyan-700 bg-cyan-950/30 p-4 text-cyan-100"><strong>One-time invitation URL</strong><p class="mt-2 break-all font-mono text-xs">{{ session('invitation_url') }}</p></div>@endif
     @if($errors->any())<div class="rounded-xl border border-red-700 bg-red-950/30 p-4 text-red-100">{{ $errors->first() }}</div>@endif
@@ -48,7 +48,7 @@
     </section>
 
     <section id="contributor-moderation" class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
-        <div class="flex flex-wrap items-end justify-between gap-3"><div><p class="text-sm font-medium text-emerald-300">Quarantine → owner moderation → existing review pipeline</p><h2 class="mt-1 text-xl font-semibold text-white">Contributor submissions</h2></div><span class="rounded-full border border-zinc-700 px-3 py-1 text-sm text-zinc-300">{{ $submissions->count() }} recent files</span></div>
+        <div class="flex flex-wrap items-end justify-between gap-3"><div><p class="text-sm font-medium text-emerald-300">Retained source → delegated intake review → archive exceptions</p><h2 class="mt-1 text-xl font-semibold text-white">Contributor submissions</h2></div><span class="rounded-full border border-zinc-700 px-3 py-1 text-sm text-zinc-300">{{ $submissions->count() }} recent files</span></div>
         <div class="mt-5 grid gap-4 lg:grid-cols-2">
             @forelse($submissions as $submission)
             <form method="POST" action="{{ route('admin.contributor-submissions.review',$submission) }}" class="rounded-xl border border-zinc-700 bg-zinc-950/60 p-4">

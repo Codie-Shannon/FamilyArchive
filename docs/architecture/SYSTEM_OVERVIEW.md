@@ -238,6 +238,10 @@ Delegated Family Operations boundary. Routine membership, reported-content and
 communication decisions can be handled by archive administrators or their
 direct recipients, while elevated roles, original access and policy exceptions
 remain Owner-controlled; its eight-file evidence pack is approved and closed. The
+v3.0.0 Role-Aware Workflow Polish boundary consolidates operational entry points
+into one Work hub whose summaries and destinations are filtered by role. It does
+not merge specialist authorization boundaries or expose operational queues to
+ordinary members; its six-file Screenshot Group 25 evidence pack is approved and closed. The
 implemented foundation
 establishes:
 

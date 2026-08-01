@@ -6,7 +6,7 @@
             <p class="mt-2 text-sm text-zinc-400">{{ $invitation->name }} · {{ $invitation->email }}</p>
         </div>
         <div class="rounded-xl border border-amber-700/60 bg-amber-950/25 p-4 text-sm text-amber-100">
-            After accepting, verify your email. An owner must then approve your account before archive access begins.
+            After accepting, verify your email. An archive administrator reviews routine access; elevated roles remain an Owner decision.
         </div>
         <form method="POST" action="{{ route('invitation.accept', [$invitation->invitation_id, $token]) }}" class="space-y-4">
             @csrf
