@@ -29,6 +29,24 @@ final class GdPhotoDerivativeEncoder
 
     public function encode(string $sourceBytes, string $sourceMime, int $maxLongSide, int $quality): EncodedDerivative
     {
+        $originalLimit = ini_get('memory_limit');
+        $processingLimit = (string) config('archive.photo_derivatives.memory_limit', '512M');
+
+        if ($processingLimit !== '' && preg_match('/^(?:-1|\d+[KMG]?)$/i', $processingLimit)) {
+            ini_set('memory_limit', $processingLimit);
+        }
+
+        try {
+            return $this->encodeWithProcessingMemory($sourceBytes, $sourceMime, $maxLongSide, $quality);
+        } finally {
+            if ($originalLimit !== '') {
+                ini_set('memory_limit', $originalLimit);
+            }
+        }
+    }
+
+    private function encodeWithProcessingMemory(string $sourceBytes, string $sourceMime, int $maxLongSide, int $quality): EncodedDerivative
+    {
         $this->assertSupported();
 
         $sourceSize = strlen($sourceBytes);
@@ -100,10 +118,10 @@ final class GdPhotoDerivativeEncoder
                     throw new DerivativeGenerationException('The WebP derivative encoder failed.');
                 }
             } finally {
-                imagedestroy($canvas);
+                unset($canvas);
             }
         } finally {
-            imagedestroy($image);
+            unset($image);
         }
 
         $outputFacts = @getimagesizefromstring($bytes);
@@ -187,7 +205,7 @@ final class GdPhotoDerivativeEncoder
             throw new DerivativeGenerationException('The source orientation could not be applied.');
         }
 
-        imagedestroy($image);
+        unset($image);
 
         return $rotated;
     }

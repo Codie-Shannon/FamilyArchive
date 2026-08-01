@@ -21,15 +21,25 @@ use Illuminate\View\View;
 
 final class RestorationWorkspaceController extends Controller
 {
-    public function index(ArchiveProviderConfiguration $providers): View
+    public function index(Request $request, ArchiveProviderConfiguration $providers): View
     {
+        $candidateId = $request->integer('candidate') ?: null;
+        $jobs = ProcessingJob::query()
+            ->with(['mediaItem', 'sourceVersion', 'candidate.candidateVersion'])
+            ->when(
+                $candidateId !== null,
+                fn ($query) => $query->whereHas(
+                    'candidate',
+                    fn ($candidateQuery) => $candidateQuery->whereKey($candidateId),
+                ),
+            )
+            ->latest()
+            ->limit(20)
+            ->get();
+
         return view('admin.restoration', [
             'recipes' => DB::table('processing_recipes')->latest()->limit(20)->get(),
-            'jobs' => ProcessingJob::query()
-                ->with(['mediaItem', 'sourceVersion', 'candidate.candidateVersion'])
-                ->latest()
-                ->limit(20)
-                ->get(),
+            'jobs' => $jobs,
             'sources' => MediaFileVersion::query()
                 ->with('mediaItem')
                 ->where('version_type', MediaFileVersionType::Original)
@@ -41,6 +51,7 @@ final class RestorationWorkspaceController extends Controller
             'events' => ProcessingJobEvent::query()->with('actor')->latest('occurred_at')->limit(15)->get(),
             'provider' => $providers->status(),
             'wasabi' => $providers->status('wasabi'),
+            'focusedCandidateId' => $candidateId,
         ]);
     }
 

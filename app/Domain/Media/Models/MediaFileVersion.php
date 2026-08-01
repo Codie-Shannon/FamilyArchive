@@ -6,6 +6,7 @@ use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
+use App\Domain\Processing\Models\RestorationCandidate;
 use Database\Factories\MediaFileVersionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -98,6 +99,12 @@ class MediaFileVersion extends Model
     public function derivatives(): HasMany
     {
         return $this->hasMany(self::class, 'parent_version_id');
+    }
+
+    /** @return HasOne<RestorationCandidate, $this> */
+    public function restorationCandidate(): HasOne
+    {
+        return $this->hasOne(RestorationCandidate::class, 'candidate_version_id');
     }
 
     /** @return HasMany<DuplicateCandidate, $this> */

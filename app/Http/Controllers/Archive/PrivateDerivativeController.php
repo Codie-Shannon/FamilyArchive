@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Archive;
 
 use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
+use App\Domain\Derivatives\Services\ApprovedPhotoViewingSource;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaReviewStatus;
@@ -17,11 +18,16 @@ use Illuminate\Support\Facades\Storage;
 
 final class PrivateDerivativeController extends Controller
 {
-    public function __invoke(Request $request, MediaFileVersion $mediaFileVersion, ArchiveAccess $access): Response
-    {
+    public function __invoke(
+        Request $request,
+        MediaFileVersion $mediaFileVersion,
+        ArchiveAccess $access,
+        ApprovedPhotoViewingSource $sources,
+    ): Response {
         $mediaFileVersion->load(['mediaItem', 'parentVersion']);
         $parent = $mediaFileVersion->parentVersion;
         $item = $mediaFileVersion->mediaItem;
+        $viewingSource = $sources->resolve($item);
 
         if (
             ! in_array($mediaFileVersion->version_type, [MediaFileVersionType::WebDisplay, MediaFileVersionType::Thumbnail], true)
@@ -30,10 +36,10 @@ final class PrivateDerivativeController extends Controller
             || $mediaFileVersion->storage_disk !== 'archive_derivatives'
             || $mediaFileVersion->mime_type !== 'image/webp'
             || ! $parent instanceof MediaFileVersion
-            || $parent->version_type !== MediaFileVersionType::Original
             || $parent->generation_status !== GenerationStatus::Ready
             || ! $parent->is_preferred
-            || $item === null
+            || ! $viewingSource instanceof MediaFileVersion
+            || $viewingSource->id !== $parent->id
             || $item->media_type !== MediaType::Photo
             || $item->review_status !== MediaReviewStatus::Approved
             || ! $access->canView($request->user(), $item)

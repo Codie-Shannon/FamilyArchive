@@ -14,7 +14,7 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 13 · v1.8.0</p>
+                <p class="text-sm font-semibold text-emerald-300">Owner-controlled restoration</p>
                 <h1 class="mt-1 text-3xl font-semibold text-white">Non-destructive restoration automation</h1>
                 <p class="mt-2 max-w-3xl text-zinc-400">
                     Uploader choices become review candidates. Every operation reads a verified preferred original,
@@ -51,7 +51,8 @@
             </article>
         </section>
 
-        <section class="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
+        <section class="grid gap-6 {{ $focusedCandidateId ? '' : 'xl:grid-cols-[0.9fr_1.4fr]' }}">
+            @if(!$focusedCandidateId)
             <form method="POST" action="{{ route('admin.restoration.jobs.queue') }}" class="rounded-xl border border-zinc-700 bg-zinc-900 p-5">
                 @csrf
                 <div>
@@ -95,11 +96,17 @@
                     Queue separate candidate
                 </button>
             </form>
+            @endif
 
             <section class="space-y-4">
-                <div>
-                    <p class="text-xs uppercase tracking-wide text-zinc-500">Processing and review</p>
-                    <h2 class="mt-1 text-xl font-semibold text-white">Candidate queue</h2>
+                <div class="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-zinc-500">Processing and review</p>
+                        <h2 class="mt-1 text-xl font-semibold text-white">{{ $focusedCandidateId ? 'Focused candidate' : 'Candidate queue' }}</h2>
+                    </div>
+                    @if($focusedCandidateId)
+                        <a href="{{ route('admin.restoration') }}" class="text-sm font-semibold text-emerald-300">Show all candidates →</a>
+                    @endif
                 </div>
                 @forelse($jobs as $job)
                     @php

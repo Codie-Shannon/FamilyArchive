@@ -14,6 +14,16 @@
         </div>
     </header>
 
+    @if($focusedPhotoId)
+        <section class="flex flex-col gap-3 rounded-2xl border border-emerald-800 bg-emerald-950/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold text-emerald-200">Focused archive update</p>
+                <p class="mt-1 text-sm text-zinc-400">This private review link shows one approved photo that is available to your account.</p>
+            </div>
+            <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-emerald-300">Show all recent photos</a>
+        </section>
+    @endif
+
     <section aria-label="Member summary" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-5">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Archive</p>

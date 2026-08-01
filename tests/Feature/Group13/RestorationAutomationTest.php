@@ -1,5 +1,7 @@
 <?php
 
+use App\Domain\Browsing\Queries\ApprovedPhotoDetailQuery;
+use App\Domain\Browsing\Queries\ApprovedPhotoGalleryQuery;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -105,11 +107,37 @@ it('approves a candidate without replacing the preferred original', function () 
 
     app(RestorationReviewService::class)->decide($candidate, $owner, 'approved', 'Synthetic edges reviewed.');
 
+    $approvedVersion = $candidate->candidateVersion()->firstOrFail();
+    $item = MediaItem::query()->findOrFail($source->media_item_id);
+    $web = MediaFileVersion::query()
+        ->where('media_item_id', $source->media_item_id)
+        ->where('version_type', MediaFileVersionType::WebDisplay)
+        ->firstOrFail();
+    $thumbnail = MediaFileVersion::query()
+        ->where('media_item_id', $source->media_item_id)
+        ->where('version_type', MediaFileVersionType::Thumbnail)
+        ->firstOrFail();
+    $detail = app(ApprovedPhotoDetailQuery::class)->handle($owner, $item);
+    $gallery = app(ApprovedPhotoGalleryQuery::class)->handle($owner);
+
     expect($candidate->fresh()->review_state)->toBe('approved')
         ->and($candidate->candidateVersion?->fresh()->is_preferred)->toBeTrue()
         ->and($source->fresh()->only(['storage_disk', 'storage_path', 'sha256', 'is_preferred']))->toBe($originalFacts)
+        ->and($web->parent_version_id)->toBe($approvedVersion->id)
+        ->and($thumbnail->parent_version_id)->toBe($approvedVersion->id)
+        ->and($web->is_preferred)->toBeTrue()
+        ->and($thumbnail->is_preferred)->toBeTrue()
+        ->and($web->storage_path)->toContain(substr($approvedVersion->sha256, 0, 12))
+        ->and($detail?->webDisplayVersionId)->toBe($web->id)
+        ->and($detail?->lineageLabel)->toBe('derived from owner-approved restoration')
+        ->and($gallery->items()[0]->thumbnailVersionId)->toBe($thumbnail->id)
         ->and($candidate->job?->fresh()->state)->toBe('approved')
         ->and(ProcessingJobEvent::query()->latest('occurred_at')->value('event'))->toBe('candidate_approved');
+
+    $this->actingAs($owner)
+        ->get(route('archive.derivatives.preview', $web))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'image/webp');
 });
 
 it('fails closed when the immutable source bytes no longer match', function () {

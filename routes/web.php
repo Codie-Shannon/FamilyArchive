@@ -141,6 +141,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::post('/photo-intake', [PhotoIntakeController::class, 'store'])->name('photo-intake.store');
         Route::get('/incoming-uploads', [PhotoIntakeController::class, 'queue'])->name('photo-intake.queue');
         Route::get('/incoming-uploads/{incomingUpload}', [PhotoIntakeController::class, 'show'])->name('photo-intake.show');
+        Route::post('/incoming-uploads/{incomingUpload}/approve-and-process', [PhotoIntakeController::class, 'approveAndProcess'])->name('photo-intake.approve-and-process');
         Route::get('/duplicate-candidates', [DuplicateCandidateController::class, 'index'])->name('duplicate-candidates.index');
         Route::get('/duplicate-candidates/{candidate}', [DuplicateCandidateController::class, 'show'])->name('duplicate-candidates.show');
         Route::post('/duplicate-candidates/{candidate}/decision', [DuplicateCandidateController::class, 'resolve'])->name('duplicate-candidates.resolve');

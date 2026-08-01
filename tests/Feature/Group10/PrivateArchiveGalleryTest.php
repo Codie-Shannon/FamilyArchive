@@ -21,7 +21,7 @@ function group10Item(User $owner, string $archiveId = 'G10-001', MediaReviewStat
 }
 function group10Original(MediaItem $item): MediaFileVersion
 {
-    return MediaFileVersion::factory()->create(['media_item_id' => $item->id, 'version_type' => MediaFileVersionType::Original, 'generation_status' => GenerationStatus::Ready, 'is_preferred' => true]);
+    return MediaFileVersion::factory()->create(['media_item_id' => $item->id, 'version_type' => MediaFileVersionType::Original, 'storage_disk' => 'archive_originals', 'parent_version_id' => null, 'generation_status' => GenerationStatus::Ready, 'is_preferred' => true]);
 }
 function group10Derivative(MediaItem $item, MediaFileVersion $parent, MediaFileVersionType $type, string $bytes = 'demo-webp'): MediaFileVersion
 {

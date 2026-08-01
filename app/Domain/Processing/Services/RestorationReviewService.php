@@ -2,6 +2,7 @@
 
 namespace App\Domain\Processing\Services;
 
+use App\Domain\Derivatives\Actions\GeneratePhotoViewingDerivatives;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
 use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Processing\Models\ProcessingJob;
@@ -15,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 final class RestorationReviewService
 {
+    public function __construct(private GeneratePhotoViewingDerivatives $derivatives) {}
+
     public function decide(RestorationCandidate $candidate, User $reviewer, string $decision, string $note): void
     {
         if (! $reviewer->isArchiveAdministrator()) {
@@ -69,6 +72,20 @@ final class RestorationReviewService
 
             $this->verifyObject($source);
         }, 5);
+
+        if ($decision === 'approved') {
+            $approved = RestorationCandidate::query()
+                ->with('candidateVersion.mediaItem')
+                ->findOrFail($candidate->id);
+            $version = $approved->candidateVersion;
+            $item = $version?->mediaItem;
+
+            if (! $version instanceof MediaFileVersion || $item === null) {
+                throw new DerivativeGenerationException('The approved restoration has no archive item for viewing derivatives.');
+            }
+
+            $this->derivatives->handle($item, $reviewer);
+        }
     }
 
     private function verifyObject(MediaFileVersion $version): void

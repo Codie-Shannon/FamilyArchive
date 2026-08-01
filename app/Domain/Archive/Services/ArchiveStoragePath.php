@@ -23,8 +23,13 @@ class ArchiveStoragePath
     }
 
     /** @return array{disk: ArchiveStorageDisk, path: string} */
-    public function derivative(MediaFileVersionType $versionType, MediaType $mediaType, string $archiveId, string $extension): array
-    {
+    public function derivative(
+        MediaFileVersionType $versionType,
+        MediaType $mediaType,
+        string $archiveId,
+        string $extension,
+        ?string $variant = null,
+    ): array {
         if ($versionType === MediaFileVersionType::Original) {
             throw new InvalidArgumentException('Original paths must use the original path contract.');
         }
@@ -34,10 +39,16 @@ class ArchiveStoragePath
             throw new InvalidArgumentException("No derivative path segment is configured for {$versionType->value}.");
         }
 
+        if ($variant !== null && ! preg_match('/^[a-z0-9_-]+$/', $variant)) {
+            throw new InvalidArgumentException('Derivative variants may contain lowercase letters, numbers, underscores or hyphens only.');
+        }
+
+        $basename = $this->basePath($mediaType, $archiveId).($variant === null ? '' : '-'.$variant);
+
         return [
             'disk' => ArchiveStorageDisk::Derivatives,
             'path' => $this->validator->validateRelativePath(
-                $segment.'/'.$this->basePath($mediaType, $archiveId).'.'.$this->validator->normalizeExtension($extension),
+                $segment.'/'.$basename.'.'.$this->validator->normalizeExtension($extension),
             ),
         ];
     }

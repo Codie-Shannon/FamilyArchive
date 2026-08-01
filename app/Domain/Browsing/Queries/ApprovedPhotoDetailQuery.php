@@ -4,6 +4,7 @@ namespace App\Domain\Browsing\Queries;
 
 use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Browsing\ReadModels\ApprovedPhotoDetail;
+use App\Domain\Derivatives\Services\ApprovedPhotoViewingSource;
 use App\Domain\Media\Enums\DatePrecision;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -17,13 +18,16 @@ use App\Models\User;
 
 final class ApprovedPhotoDetailQuery
 {
-    public function __construct(private ArchiveAccess $access) {}
+    public function __construct(
+        private ArchiveAccess $access,
+        private ApprovedPhotoViewingSource $sources,
+    ) {}
 
     public function handle(User $user, MediaItem $mediaItem): ?ApprovedPhotoDetail
     {
         $item = MediaItem::query()
             ->with([
-                'fileVersions',
+                'fileVersions.restorationCandidate',
                 'provenanceLinks.sourceCollection',
                 'provenanceLinks.scanBatch',
             ])
@@ -41,8 +45,9 @@ final class ApprovedPhotoDetailQuery
             && $version->generation_status === GenerationStatus::Ready
             && $version->is_preferred
         );
-        $web = $this->eligibleDerivative($item, $original, MediaFileVersionType::WebDisplay);
-        $thumb = $this->eligibleDerivative($item, $original, MediaFileVersionType::Thumbnail);
+        $source = $this->sources->resolve($item);
+        $web = $this->eligibleDerivative($item, $source, MediaFileVersionType::WebDisplay);
+        $thumb = $this->eligibleDerivative($item, $source, MediaFileVersionType::Thumbnail);
         $webFailed = $item->fileVersions->contains(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::WebDisplay && $version->generation_status === GenerationStatus::Failed);
         $thumbFailed = $item->fileVersions->contains(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Thumbnail && $version->generation_status === GenerationStatus::Failed);
 
@@ -75,7 +80,12 @@ final class ApprovedPhotoDetailQuery
             webDisplayStatus: $web instanceof MediaFileVersion ? 'ready' : ($webFailed ? 'failed_derivative' : 'missing_derivative'),
             webDisplayVersionId: $web?->id,
             thumbnailStatus: $thumb instanceof MediaFileVersion ? 'ready' : ($thumbFailed ? 'failed_derivative' : 'missing_derivative'),
-            recipeLabel: 'photo-v1',
+            recipeLabel: is_array($web?->generation_recipe)
+                ? (string) ($web->generation_recipe['recipe_version'] ?? 'photo-v1')
+                : 'photo-v1',
+            lineageLabel: $source?->version_type === MediaFileVersionType::EditedFull
+                ? 'derived from owner-approved restoration'
+                : 'derived from verified preferred original',
         );
     }
 
@@ -131,16 +141,16 @@ final class ApprovedPhotoDetailQuery
         return $result;
     }
 
-    private function eligibleDerivative(MediaItem $item, ?MediaFileVersion $original, MediaFileVersionType $type): ?MediaFileVersion
+    private function eligibleDerivative(MediaItem $item, ?MediaFileVersion $source, MediaFileVersionType $type): ?MediaFileVersion
     {
-        if (! $original instanceof MediaFileVersion) {
+        if (! $source instanceof MediaFileVersion) {
             return null;
         }
 
         return $item->fileVersions->first(fn (MediaFileVersion $version): bool => $version->version_type === $type
             && $version->generation_status === GenerationStatus::Ready
             && $version->is_preferred
-            && $version->parent_version_id === $original->id
+            && $version->parent_version_id === $source->id
             && $version->storage_disk === 'archive_derivatives'
             && $version->mime_type === 'image/webp'
         );

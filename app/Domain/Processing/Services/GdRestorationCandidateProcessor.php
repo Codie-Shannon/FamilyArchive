@@ -65,11 +65,8 @@ final class GdRestorationCandidateProcessor
             }
 
             $preferences = $job->automation_preferences ?? [];
-            [$candidateBytes, $width, $height, $analysis, $applied] = $this->render(
-                $sourceBytes,
-                $source->mime_type,
-                $operations,
-                $preferences,
+            [$candidateBytes, $width, $height, $analysis, $applied] = $this->renderWithProcessingMemory(
+                $sourceBytes, $source->mime_type, $operations, $preferences,
             );
             $candidateId = (string) Str::uuid();
             $path = $this->paths->validateRelativePath(
@@ -212,7 +209,9 @@ final class GdRestorationCandidateProcessor
             }
 
             if (isset($operations['crop']) && ($preferences['crop_target'] ?? 'none') !== 'none') {
-                $bounds = $this->detectContentBounds($image);
+                $bounds = ($preferences['crop_target'] ?? 'none') === 'photo_edge'
+                    ? $this->detectPhotoEdgeBounds($image)
+                    : $this->detectContentBounds($image);
                 $analysis['crop'] = $bounds;
                 if ($bounds['confidence'] >= 0.45 && $bounds['applied']) {
                     $cropped = imagecrop($image, [
@@ -222,7 +221,6 @@ final class GdRestorationCandidateProcessor
                         'height' => $bounds['height'],
                     ]);
                     if ($cropped instanceof GdImage) {
-                        imagedestroy($image);
                         $image = $cropped;
                         $applied[] = 'auto_crop';
                     }
@@ -269,7 +267,33 @@ final class GdRestorationCandidateProcessor
 
             return [$candidateBytes, $width, $height, $analysis, $applied];
         } finally {
-            imagedestroy($image);
+            unset($image);
+        }
+    }
+
+    /**
+     * GD may hold several decoded canvases while rotating and cropping a camera-sized photo.
+     * The scoped limit is restored immediately after rendering and never changes the source bytes.
+     *
+     * @param  array<string, mixed>  $operations
+     * @param  array<string, mixed>  $preferences
+     * @return array{string, int, int, array<string, mixed>, list<string>}
+     */
+    private function renderWithProcessingMemory(string $bytes, string $mime, array $operations, array $preferences): array
+    {
+        $originalLimit = ini_get('memory_limit');
+        $processingLimit = (string) config('archive.restoration.memory_limit', '512M');
+
+        if ($processingLimit !== '' && preg_match('/^(?:-1|\d+[KMG]?)$/i', $processingLimit)) {
+            ini_set('memory_limit', $processingLimit);
+        }
+
+        try {
+            return $this->render($bytes, $mime, $operations, $preferences);
+        } finally {
+            if ($originalLimit !== '') {
+                ini_set('memory_limit', $originalLimit);
+            }
         }
     }
 
@@ -350,6 +374,93 @@ final class GdRestorationCandidateProcessor
         ];
     }
 
+    /**
+     * Finds the outer edge of a photographed dark frame before falling back to
+     * the general corner-background detector. This remains a review candidate:
+     * perspective correction is intentionally left for explicit human review.
+     *
+     * @return array{x: int, y: int, width: int, height: int, confidence: float, applied: bool}
+     */
+    private function detectPhotoEdgeBounds(GdImage $image): array
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $step = max(2, (int) ceil(max($width, $height) / 900));
+        $darkLimit = 82;
+        $rowScores = [];
+        $columnScores = [];
+
+        for ($y = 0; $y < $height; $y += $step) {
+            $dark = 0;
+            $samples = 0;
+            for ($x = 0; $x < $width; $x += $step) {
+                $color = imagecolorat($image, $x, $y);
+                $luma = (int) round(
+                    (0.2126 * (($color >> 16) & 0xFF))
+                    + (0.7152 * (($color >> 8) & 0xFF))
+                    + (0.0722 * ($color & 0xFF)),
+                );
+                $dark += $luma <= $darkLimit ? 1 : 0;
+                $samples++;
+            }
+            $rowScores[$y] = $dark / $samples;
+        }
+
+        for ($x = 0; $x < $width; $x += $step) {
+            $dark = 0;
+            $samples = 0;
+            for ($y = 0; $y < $height; $y += $step) {
+                $color = imagecolorat($image, $x, $y);
+                $luma = (int) round(
+                    (0.2126 * (($color >> 16) & 0xFF))
+                    + (0.7152 * (($color >> 8) & 0xFF))
+                    + (0.0722 * ($color & 0xFF)),
+                );
+                $dark += $luma <= $darkLimit ? 1 : 0;
+                $samples++;
+            }
+            $columnScores[$x] = $dark / $samples;
+        }
+
+        $strongRows = array_keys(array_filter($rowScores, static fn (float $score): bool => $score >= 0.48));
+        $strongColumns = array_keys(array_filter($columnScores, static fn (float $score): bool => $score >= 0.48));
+
+        if (count($strongRows) < 2 || count($strongColumns) < 2) {
+            return $this->detectContentBounds($image);
+        }
+
+        $top = min($strongRows);
+        $bottom = max($strongRows);
+        $left = min($strongColumns);
+        $right = max($strongColumns);
+        $cropWidth = $right - $left + $step;
+        $cropHeight = $bottom - $top + $step;
+        $areaRatio = ($cropWidth * $cropHeight) / ($width * $height);
+        $valid = $cropWidth >= (int) ($width * 0.45)
+            && $cropHeight >= (int) ($height * 0.45)
+            && $areaRatio >= 0.35
+            && $areaRatio <= 0.94;
+
+        if (! $valid) {
+            return $this->detectContentBounds($image);
+        }
+
+        $padding = max(2, $step * 2);
+        $left = max(0, $left - $padding);
+        $top = max(0, $top - $padding);
+        $right = min($width - 1, $right + $padding);
+        $bottom = min($height - 1, $bottom + $padding);
+
+        return [
+            'x' => $left,
+            'y' => $top,
+            'width' => $right - $left + 1,
+            'height' => $bottom - $top + 1,
+            'confidence' => 0.78,
+            'applied' => true,
+        ];
+    }
+
     /** @return array{degrees: float, confidence: float} */
     private function detectSkew(GdImage $image): array
     {
@@ -396,7 +507,16 @@ final class GdRestorationCandidateProcessor
 
     private function readOrientation(string $bytes, string $mime): int
     {
-        if (! in_array(strtolower($mime), ['image/jpeg', 'image/tiff'], true) || ! function_exists('exif_read_data')) {
+        if (! in_array(strtolower($mime), ['image/jpeg', 'image/tiff'], true)) {
+            return 1;
+        }
+        if (strtolower($mime) === 'image/jpeg') {
+            $parsed = $this->readJpegOrientation($bytes);
+            if ($parsed !== null) {
+                return $parsed;
+            }
+        }
+        if (! function_exists('exif_read_data')) {
             return 1;
         }
         $temporary = tempnam(sys_get_temp_dir(), 'fa-sg13-exif-');
@@ -410,10 +530,72 @@ final class GdRestorationCandidateProcessor
             $exif = @exif_read_data($temporary, 'IFD0', true, false);
             $orientation = is_array($exif) ? ($exif['IFD0']['Orientation'] ?? $exif['Orientation'] ?? 1) : 1;
 
+            $orientation = filter_var($orientation, FILTER_VALIDATE_INT);
+
             return is_int($orientation) && $orientation >= 1 && $orientation <= 8 ? $orientation : 1;
         } finally {
             @unlink($temporary);
         }
+    }
+
+    private function readJpegOrientation(string $bytes): ?int
+    {
+        $exif = strpos($bytes, "Exif\0\0");
+        if ($exif === false) {
+            return null;
+        }
+
+        $tiff = $exif + 6;
+        if (strlen($bytes) < $tiff + 8) {
+            return null;
+        }
+        $order = substr($bytes, $tiff, 2);
+        $littleEndian = $order === 'II';
+        if (! $littleEndian && $order !== 'MM') {
+            return null;
+        }
+
+        $short = static function (string $data, int $offset) use ($littleEndian): ?int {
+            if (strlen($data) < $offset + 2) {
+                return null;
+            }
+            $value = unpack($littleEndian ? 'v' : 'n', substr($data, $offset, 2));
+
+            return is_array($value) ? (int) $value[1] : null;
+        };
+        $long = static function (string $data, int $offset) use ($littleEndian): ?int {
+            if (strlen($data) < $offset + 4) {
+                return null;
+            }
+            $value = unpack($littleEndian ? 'V' : 'N', substr($data, $offset, 4));
+
+            return is_array($value) ? (int) $value[1] : null;
+        };
+
+        if ($short($bytes, $tiff + 2) !== 42) {
+            return null;
+        }
+        $ifdOffset = $long($bytes, $tiff + 4);
+        if ($ifdOffset === null) {
+            return null;
+        }
+        $ifd = $tiff + $ifdOffset;
+        $entryCount = $short($bytes, $ifd);
+        if ($entryCount === null || $entryCount > 512) {
+            return null;
+        }
+
+        for ($index = 0; $index < $entryCount; $index++) {
+            $entry = $ifd + 2 + ($index * 12);
+            if ($short($bytes, $entry) !== 0x0112) {
+                continue;
+            }
+            $orientation = $short($bytes, $entry + 8);
+
+            return $orientation !== null && $orientation >= 1 && $orientation <= 8 ? $orientation : null;
+        }
+
+        return null;
     }
 
     private function applyOrientation(GdImage $image, int $orientation): GdImage
@@ -446,7 +628,6 @@ final class GdRestorationCandidateProcessor
         if (! $rotated instanceof GdImage) {
             throw new DerivativeGenerationException('The candidate rotation failed.');
         }
-        imagedestroy($image);
 
         return $rotated;
     }

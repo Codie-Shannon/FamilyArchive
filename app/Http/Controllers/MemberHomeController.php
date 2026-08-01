@@ -16,7 +16,8 @@ final class MemberHomeController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $photos = $archive->handle($user, 4);
+        $focusedPhotoId = $request->integer('photo') ?: null;
+        $photos = $archive->handle($user, 4, $focusedPhotoId);
         $communitySpaces = DB::table('community_spaces')
             ->join('community_memberships', 'community_memberships.community_space_id', '=', 'community_spaces.id')
             ->where('community_memberships.user_id', $user->id)
@@ -31,6 +32,6 @@ final class MemberHomeController extends Controller
                 ->get()
             : collect();
 
-        return view('dashboard', compact('user', 'photos', 'communitySpaces', 'uploadSessions'));
+        return view('dashboard', compact('user', 'photos', 'communitySpaces', 'uploadSessions', 'focusedPhotoId'));
     }
 }

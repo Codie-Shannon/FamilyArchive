@@ -93,7 +93,8 @@ it('keeps archive knowledge private to a verified owner', function () {
         ->get('/archive/knowledge')
         ->assertOk()
         ->assertSee('Archive Knowledge')
-        ->assertSee('Build Groups 13–20');
+        ->assertSee('v'.config('release.version'))
+        ->assertSee((string) config('release.name'));
 });
 
 it('keeps release metadata aligned beyond the archive knowledge release', function () {

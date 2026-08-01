@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Derivatives\Actions\GeneratePhotoViewingDerivatives;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
+use App\Domain\Derivatives\Services\ApprovedPhotoViewingSource;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaReviewStatus;
@@ -35,21 +36,26 @@ final class ViewingDerivativeController extends Controller
         return view('admin.viewing-derivatives.index', compact('eligible'));
     }
 
-    public function show(MediaItem $mediaItem, GeneratePhotoViewingDerivatives $generator): View
-    {
-        $mediaItem->load(['fileVersions.parentVersion']);
+    public function show(
+        MediaItem $mediaItem,
+        GeneratePhotoViewingDerivatives $generator,
+        ApprovedPhotoViewingSource $sources,
+    ): View {
+        $mediaItem->load(['fileVersions.parentVersion', 'fileVersions.restorationCandidate']);
         $original = $mediaItem->fileVersions->first(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Original
             && $version->generation_status === GenerationStatus::Ready
             && $version->is_preferred
         );
+        $source = $sources->resolve($mediaItem);
 
-        $existing = $original instanceof MediaFileVersion
-            ? $generator->matchingExisting($mediaItem, $original)
+        $existing = $source instanceof MediaFileVersion
+            ? $generator->matchingExisting($mediaItem, $source)
             : [];
 
         return view('admin.viewing-derivatives.show', [
             'mediaItem' => $mediaItem,
             'original' => $original,
+            'source' => $source,
             'webDisplay' => $existing[MediaFileVersionType::WebDisplay->value] ?? null,
             'thumbnail' => $existing[MediaFileVersionType::Thumbnail->value] ?? null,
             'eligible' => $generator->isEligible($mediaItem),

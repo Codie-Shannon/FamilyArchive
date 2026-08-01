@@ -23,5 +23,6 @@ final readonly class ApprovedPhotoDetail
         public ?int $webDisplayVersionId,
         public string $thumbnailStatus,
         public string $recipeLabel,
+        public string $lineageLabel,
     ) {}
 }

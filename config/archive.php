@@ -19,6 +19,7 @@ return [
         MediaFileVersionType::VideoStream->value => 'video-stream', MediaFileVersionType::VideoPreview->value => 'video-preview', MediaFileVersionType::DocumentPreview->value => 'document-preview',
     ],
     'photo_derivatives' => [
+        'memory_limit' => env('ARCHIVE_PHOTO_DERIVATIVE_MEMORY_LIMIT', '512M'),
         'max_source_bytes' => 104857600,
         'max_source_pixels' => 80000000,
         'targets' => [
@@ -34,5 +35,8 @@ return [
         'mime_extensions' => [
             'image/jpeg' => ['jpg', 'jpeg'], 'image/png' => ['png'], 'image/webp' => ['webp'], 'image/tiff' => ['tif', 'tiff'],
         ],
+    ],
+    'restoration' => [
+        'memory_limit' => env('ARCHIVE_RESTORATION_MEMORY_LIMIT', '512M'),
     ],
 ];

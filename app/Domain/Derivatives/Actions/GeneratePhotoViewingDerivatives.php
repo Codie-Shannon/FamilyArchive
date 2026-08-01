@@ -6,6 +6,7 @@ use App\Domain\Archive\Enums\ArchiveStorageDisk;
 use App\Domain\Archive\Services\ArchiveStoragePath;
 use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
+use App\Domain\Derivatives\Services\ApprovedPhotoViewingSource;
 use App\Domain\Derivatives\Services\GdPhotoDerivativeEncoder;
 use App\Domain\Derivatives\Services\PhotoDerivativeRecipe;
 use App\Domain\Derivatives\ValueObjects\EncodedDerivative;
@@ -30,6 +31,7 @@ final class GeneratePhotoViewingDerivatives
         private PhotoDerivativeRecipe $recipe,
         private GdPhotoDerivativeEncoder $encoder,
         private NoOverwriteDerivativeWriter $writer,
+        private ApprovedPhotoViewingSource $sources,
     ) {}
 
     public function handle(MediaItem $mediaItem, User $actor): PhotoDerivativeGenerationResult
@@ -40,35 +42,32 @@ final class GeneratePhotoViewingDerivatives
 
         $this->encoder->assertSupported();
 
-        [$lockedItem, $original] = DB::transaction(function () use ($mediaItem): array {
+        [$lockedItem, $source] = DB::transaction(function () use ($mediaItem): array {
             $item = MediaItem::query()->lockForUpdate()->findOrFail($mediaItem->id);
             $this->assertEligibleItem($item);
 
-            $original = MediaFileVersion::query()
-                ->where('media_item_id', $item->id)
-                ->where('version_type', MediaFileVersionType::Original)
-                ->where('generation_status', GenerationStatus::Ready)
-                ->where('is_preferred', true)
-                ->lockForUpdate()
-                ->first();
+            $item->load('fileVersions.restorationCandidate');
+            $source = $this->sources->resolve($item);
 
-            if (! $original instanceof MediaFileVersion) {
-                throw new DerivativeGenerationException('A ready preferred original is required.');
+            if (! $source instanceof MediaFileVersion) {
+                throw new DerivativeGenerationException('A ready approved viewing source is required.');
             }
 
-            $this->assertEligibleOriginal($original);
+            $source = MediaFileVersion::query()->lockForUpdate()->findOrFail($source->id);
+            $source->load('restorationCandidate');
+            $this->assertEligibleSource($source);
 
-            return [$item, $original];
+            return [$item, $source];
         });
 
-        $sourceBytes = $this->readAndVerifyOriginal($original);
-        $existing = $this->matchingExisting($lockedItem, $original);
+        $sourceBytes = $this->readAndVerifySource($source);
+        $existing = $this->matchingExisting($lockedItem, $source);
 
         $web = $existing[MediaFileVersionType::WebDisplay->value] ?? null;
         $thumbnail = $existing[MediaFileVersionType::Thumbnail->value] ?? null;
 
         if ($web instanceof MediaFileVersion && $thumbnail instanceof MediaFileVersion) {
-            return new PhotoDerivativeGenerationResult($original, $web, $thumbnail, false, false);
+            return new PhotoDerivativeGenerationResult($source, $web, $thumbnail, false, false);
         }
 
         /** @var array<string, EncodedDerivative> $encoded */
@@ -84,7 +83,7 @@ final class GeneratePhotoViewingDerivatives
             $targetRecipe = $this->recipe->target($type);
             $encoded[$type->value] = $this->encoder->encode(
                 $sourceBytes,
-                $original->mime_type,
+                $source->mime_type,
                 $targetRecipe['max_long_side'],
                 $targetRecipe['quality'],
             );
@@ -93,10 +92,13 @@ final class GeneratePhotoViewingDerivatives
                 MediaType::Photo,
                 $lockedItem->archive_id,
                 'webp',
+                $source->version_type === MediaFileVersionType::EditedFull
+                    ? substr(strtolower($source->sha256), 0, 12)
+                    : null,
             );
         }
 
-        $this->readAndVerifyOriginal($original);
+        $this->readAndVerifySource($source);
 
         /** @var array<string, WrittenDerivativeObject> $written */
         $written = [];
@@ -114,17 +116,18 @@ final class GeneratePhotoViewingDerivatives
 
             $result = DB::transaction(function () use (
                 $lockedItem,
-                $original,
+                $source,
                 $existing,
                 $encoded,
                 $targets,
                 $written,
             ): PhotoDerivativeGenerationResult {
                 $item = MediaItem::query()->lockForUpdate()->findOrFail($lockedItem->id);
-                $source = MediaFileVersion::query()->lockForUpdate()->findOrFail($original->id);
+                $source = MediaFileVersion::query()->lockForUpdate()->findOrFail($source->id);
+                $source->load('restorationCandidate');
                 $this->assertEligibleItem($item);
-                $this->assertEligibleOriginal($source);
-                $this->readAndVerifyOriginal($source);
+                $this->assertEligibleSource($source);
+                $this->readAndVerifySource($source);
 
                 $versions = $existing;
                 $created = [];
@@ -138,6 +141,12 @@ final class GeneratePhotoViewingDerivatives
                     if ($concurrent instanceof MediaFileVersion) {
                         throw new DerivativeGenerationException('A matching derivative was generated concurrently.');
                     }
+
+                    MediaFileVersion::query()
+                        ->where('media_item_id', $item->id)
+                        ->where('version_type', $type)
+                        ->where('is_preferred', true)
+                        ->update(['is_preferred' => false]);
 
                     $versions[$typeValue] = MediaFileVersion::query()->create([
                         'media_item_id' => $item->id,
@@ -184,7 +193,7 @@ final class GeneratePhotoViewingDerivatives
             }, 5);
 
             $committed = true;
-            $this->readAndVerifyOriginal($original);
+            $this->readAndVerifySource($source);
 
             return $result;
         } catch (Throwable $exception) {
@@ -202,18 +211,14 @@ final class GeneratePhotoViewingDerivatives
     {
         try {
             $this->assertEligibleItem($mediaItem);
-            $original = $mediaItem->fileVersions
-                ->first(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Original
-                    && $version->generation_status === GenerationStatus::Ready
-                    && $version->is_preferred
-                );
+            $source = $this->sources->resolve($mediaItem);
 
-            if (! $original instanceof MediaFileVersion) {
+            if (! $source instanceof MediaFileVersion) {
                 return false;
             }
 
-            $this->assertEligibleOriginal($original);
-            $this->readAndVerifyOriginal($original);
+            $this->assertEligibleSource($source);
+            $this->readAndVerifySource($source);
 
             return true;
         } catch (DerivativeGenerationException) {
@@ -222,11 +227,11 @@ final class GeneratePhotoViewingDerivatives
     }
 
     /** @return array<string, MediaFileVersion> */
-    public function matchingExisting(MediaItem $item, MediaFileVersion $original): array
+    public function matchingExisting(MediaItem $item, MediaFileVersion $source): array
     {
         $matches = [];
         foreach ($this->recipe->types() as $type) {
-            $version = $this->findMatchingVersion($item, $original, $type);
+            $version = $this->findMatchingVersion($item, $source, $type);
             if ($version instanceof MediaFileVersion) {
                 $this->verifyDerivativeObject($version);
                 $matches[$type->value] = $version;
@@ -243,35 +248,40 @@ final class GeneratePhotoViewingDerivatives
         }
     }
 
-    private function assertEligibleOriginal(MediaFileVersion $original): void
+    private function assertEligibleSource(MediaFileVersion $source): void
     {
         if (
-            $original->version_type !== MediaFileVersionType::Original
-            || $original->storage_disk !== 'archive_originals'
-            || $original->generation_status !== GenerationStatus::Ready
-            || ! $original->is_preferred
-            || $original->parent_version_id !== null
-            || $original->file_size_bytes < 1
-            || ! preg_match('/^[a-f0-9]{64}$/', strtolower($original->sha256))
+            ! in_array($source->version_type, [MediaFileVersionType::Original, MediaFileVersionType::EditedFull], true)
+            || $source->generation_status !== GenerationStatus::Ready
+            || ! $source->is_preferred
+            || $source->file_size_bytes < 1
+            || ! preg_match('/^[a-f0-9]{64}$/', strtolower($source->sha256))
         ) {
-            throw new DerivativeGenerationException('The preferred original record is not eligible for derivative generation.');
+            throw new DerivativeGenerationException('The preferred viewing source is not eligible for derivative generation.');
+        }
+
+        if (
+            ! $this->sources->isPreferredOriginal($source)
+            && ! $this->sources->isApprovedRestoration($source)
+        ) {
+            throw new DerivativeGenerationException('Only a verified original or owner-approved restoration may be a viewing source.');
         }
     }
 
-    private function readAndVerifyOriginal(MediaFileVersion $original): string
+    private function readAndVerifySource(MediaFileVersion $source): string
     {
         /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk($original->storage_disk);
-        if (! $disk->exists($original->storage_path)) {
-            throw new DerivativeGenerationException('The approved original object does not exist.');
+        $disk = Storage::disk($source->storage_disk);
+        if (! $disk->exists($source->storage_path)) {
+            throw new DerivativeGenerationException('The approved viewing source object does not exist.');
         }
 
-        $bytes = $disk->get($original->storage_path);
+        $bytes = $disk->get($source->storage_path);
         if (
-            strlen($bytes) !== $original->file_size_bytes
-            || ! hash_equals(strtolower($original->sha256), hash('sha256', $bytes))
+            strlen($bytes) !== $source->file_size_bytes
+            || ! hash_equals(strtolower($source->sha256), hash('sha256', $bytes))
         ) {
-            throw new DerivativeGenerationException('The approved original no longer matches its database integrity facts.');
+            throw new DerivativeGenerationException('The approved viewing source no longer matches its database integrity facts.');
         }
 
         return $bytes;
