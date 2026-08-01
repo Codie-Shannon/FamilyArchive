@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 18 screenshot groups.
+releases. The repository currently plans 19 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -28,11 +28,13 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-18 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-19 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
 Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
 evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
-navigation boundary with an approved eight-file evidence pack.
+navigation boundary with an approved eight-file evidence pack. Screenshot
+Group 19 implements the v2.4.0 Verified Photo Workflow boundary with an
+approved seven-file evidence pack.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -135,6 +137,30 @@ PDFs remain external artifacts and must not be committed.
 | 16 | Corrective member experience | 2.1.0 | Unified Member Experience |
 | 17 | Corrective owner experience | 2.2.0 | Owner Command Centre |
 | 18 | Corrective archive navigation | 2.3.0 | Archive Exploration |
+| 19 | Corrective verified photo workflow | 2.4.0 | Verified Photo Workflow |
+
+## Screenshot Group 19 Boundary
+
+Screenshot Group 19 closes the end-to-end private photo path with a
+privacy-safe fictional evidence set. It proves the same workflow exercised by
+private local verification without committing private media or its storage
+details.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+The release:
+
+- retains contributor photo bytes and verified integrity facts in quarantine;
+- requires a verified Owner to accept an immutable original;
+- turns uploader-selected automation controls into a separate restoration
+  candidate;
+- keeps unrelated restoration records out of a focused candidate review;
+- requires explicit owner approval before the restored candidate becomes a
+  preferred viewing source;
+- generates private web-display and thumbnail derivatives from that approved
+  candidate with exact lineage; and
+- proves member-facing display without exposing storage paths, credentials or
+  real family evidence.
 
 ## Screenshot Group 18 Boundary
 

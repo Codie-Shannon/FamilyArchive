@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 18 planned
+- Official screenshot groups: 19 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -29,13 +29,17 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG16 - Unified Member Experience
 - Completed and closed: SG17 - Owner Command Centre
 - Completed and closed: SG18 - Archive Exploration
-- Current release: v2.3.0 - Archive Exploration
-- Current evidence state: Screenshot Groups 01-18 approved and closed
+- Completed and closed: SG19 - Verified Photo Workflow
+- Current release: v2.4.0 - Verified Photo Workflow
+- Current evidence state: Screenshot Groups 01-19 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
 - Current restoration model: uploader-controlled, integrity-verified,
   non-destructive candidates with explicit human review
+- Current verified photo workflow: retained contributor input, owner acceptance,
+  owner-approved restoration and private web/thumbnail derivatives with explicit
+  lineage
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

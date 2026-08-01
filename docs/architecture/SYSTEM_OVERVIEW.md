@@ -51,6 +51,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Communication | Moderated public threads, approved member posts and anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
+| Verified Photo Workflow | Retained contributor input, focused Owner review and approved-candidate viewing lineage |
 | Providers | Provider-neutral private storage, Wasabi versioned no-overwrite writes, live protection verification and copy-first migration |
 | Operations | Redacted production readiness, database/cache health and live deployment verification |
 | Administration | Owner-only action queue and grouped access to established specialist workflows |
@@ -213,12 +214,14 @@ Restoration Automation, with its six-file evidence pack approved. Screenshot
 Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
 Hosted Production, with its four-file live evidence pack approved. Screenshot
-Groups 01-18 are closed. Screenshot Group 16 implements the v2.1.0 Unified
+Groups 01-19 are closed. Screenshot Group 16 implements the v2.1.0 Unified
 Member Experience with role-aware member navigation and approved evidence.
 Screenshot Group 17 implements the v2.2.0 Owner Command Centre with approved
 six-file evidence. Screenshot Group 18 implements the v2.3.0 Archive
 Exploration boundary with shared, role-aware navigation across the archive
-research surfaces; its eight-file evidence pack is approved and closed. The implemented foundation
+research surfaces; its eight-file evidence pack is approved and closed.
+Screenshot Group 19 implements the v2.4.0 Verified Photo Workflow with an
+approved privacy-safe seven-file evidence pack. The implemented foundation
 establishes:
 
 1. application foundation;
