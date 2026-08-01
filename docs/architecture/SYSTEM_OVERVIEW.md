@@ -47,7 +47,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
 | High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
-| Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
+| Knowledge | Reviewed events, locations, people and family branches with one role-aware browsing and search policy |
 | Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
 | Communication | Immediate approved-member family posts, recipient-controlled private messaging and moderated anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
@@ -177,8 +177,12 @@ Public registration is disabled. An owner creates an expiring one-use
 invitation; an accepted account must verify its email and remain blocked until
 an owner records approval. Approved viewers and contributors see only
 family-visible records plus branch-visible records matching their reviewed
-branch. Admins and owners retain archive-wide visibility, while owner-only
-middleware protects account administration and preservation operations.
+branch. Admins and owners retain archive-wide visibility. Approved members use
+one shared archive journey across photos, reviewed places, people, events,
+branches and search. The knowledge access service applies the same privacy
+filter to indexes, details, counts and search before rendering. Owner-only
+middleware continues to protect account administration and preservation
+operations.
 
 Preferred originals never become public URLs. A non-administrator can receive
 an original only through a separately effective, unexpired and unrevoked
@@ -227,7 +231,9 @@ the v2.5.0 High-Volume Batch Intake boundary with an approved six-file evidence
 pack. Screenshot Group 21 implements the v2.6.0 Consolidated Intake Review
 boundary with an approved six-file evidence pack. Screenshot Group 22
 implements the v2.7.0 Delegated Intake Completion boundary with an approved
-seven-file evidence pack. The implemented foundation
+seven-file evidence pack. Screenshot Group 23 implements the v2.8.0 Unified
+Archive Experience boundary with role-aware discovery and its eight-file
+evidence pack approved and closed. The implemented foundation
 establishes:
 
 1. application foundation;

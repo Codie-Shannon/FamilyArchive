@@ -4,9 +4,9 @@
 
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Owner archive discovery</p>
+                <p class="text-sm font-semibold text-emerald-300">Reviewed family discovery</p>
                 <h1 class="text-3xl font-semibold text-white">Archive Knowledge</h1>
-                <p class="mt-2 text-zinc-400">Reviewed events, places, people, branches and curated discovery.</p>
+                <p class="mt-2 text-zinc-400">Search the parts of family history your account is permitted to see.</p>
             </div>
             <div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100">
                 v{{ \App\Support\Release::version() }} · {{ \App\Support\Release::name() }}
@@ -42,7 +42,7 @@
         </section>
 
         <aside class="rounded-xl border border-emerald-800 bg-emerald-950/20 p-5 text-sm text-emerald-100">
-            Living people, sensitive locations, private identities and unreviewed records are filtered before display. Search never exposes original paths, hashes or EXIF GPS.
+            Living people, sensitive locations, private identities and unreviewed records are filtered before display. Owners and archive administrators retain controlled curation access without making ordinary browsing an approval task.
         </aside>
     </main>
 </x-layouts::app>

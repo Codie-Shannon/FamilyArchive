@@ -1,5 +1,6 @@
 <x-layouts::app title="Reviewed Person">
     <main class="mx-auto max-w-6xl space-y-6 p-6">
+        <x-archive-navigation />
         @if(session('status'))<div class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-800">{{ session('status') }}</div>@endif
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -7,7 +8,7 @@
                 <h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">{{ $personPresenter->browseName($person) }}</h1>
                 <p class="mt-2 text-zinc-600 dark:text-zinc-300">{{ $personPresenter->lifeDates($person) }}</p>
             </div>
-            <a href="{{ route('archive.people.edit', $person) }}" class="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-black">Review person</a>
+            @if($canCurate)<a href="{{ route('archive.people.edit', $person) }}" class="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-black">Review person</a>@endif
         </header>
 
         @if($person->is_private)
@@ -18,7 +19,7 @@
             <article class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><p class="text-xs uppercase text-zinc-500">Name certainty</p><p class="mt-2 font-semibold">{{ $person->is_private ? 'Withheld' : str($person->name_certainty->value)->headline() }}</p></article>
             <article class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><p class="text-xs uppercase text-zinc-500">Alternate names</p><p class="mt-2 text-sm font-semibold">{{ $personPresenter->alternateNames($person) }}</p></article>
             <article class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><p class="text-xs uppercase text-zinc-500">Family branch</p>@if(!$person->is_private && $person->familyBranch)<a class="mt-2 block font-semibold" href="{{ route('archive.branches.show', $person->familyBranch) }}">{{ $branchPresenter->browseName($person->familyBranch) }}</a><p class="font-mono text-xs text-zinc-500">{{ $person->familyBranch->branch_id }}</p>@else<p class="mt-2 text-sm font-semibold">{{ $person->is_private ? 'Withheld' : 'No reviewed branch' }}</p>@endif</article>
-            <article class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><p class="text-xs uppercase text-zinc-500">Revision</p><p class="mt-2 font-semibold">{{ $person->metadata_revision }}</p><p class="text-xs text-zinc-500">{{ str($person->fact_confidence->value)->headline() }} confidence</p></article>
+            <article class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700"><p class="text-xs uppercase text-zinc-500">Reviewed status</p><p class="mt-2 font-semibold">Accepted</p><p class="text-xs text-zinc-500">{{ str($person->fact_confidence->value)->headline() }} confidence</p></article>
         </section>
 
         @if(!$person->is_private)
@@ -28,6 +29,7 @@
             </section>
         @endif
 
+        @if($canCurate)
         <section class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-700">
             <div class="flex items-center justify-between"><h2 class="text-xl font-semibold">Source provenance</h2><span class="text-xs text-zinc-500">{{ $person->provenanceLinks->count() }} reviewed links</span></div>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
@@ -69,6 +71,8 @@
             </div>
         </section>
 
-        <aside class="rounded-xl border border-sky-300 bg-sky-50 p-5 text-sm text-sky-950 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-100">Group 14 records identity evidence only. Relationships, person-media tagging and unknown-person resolution remain unavailable until their owning groups.</aside>
+        @else
+            <aside class="rounded-xl border border-emerald-800 bg-emerald-950/20 p-5 text-sm text-emerald-100">You are viewing accepted family knowledge. Evidence attachments and immutable revision history remain in the controlled curation workspace.</aside>
+        @endif
     </main>
 </x-layouts::app>

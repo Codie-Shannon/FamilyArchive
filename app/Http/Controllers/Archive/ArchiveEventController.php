@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Archive;
 
+use App\Domain\Access\Services\ArchiveAccess;
 use App\Domain\Knowledge\Actions\ReviewArchiveEvent;
 use App\Domain\Knowledge\Enums\KnowledgeReviewState;
 use App\Domain\Knowledge\Models\ArchiveEvent;
 use App\Domain\Knowledge\Models\ArchiveLocation;
 use App\Domain\Knowledge\Presenters\ArchiveEventDatePresenter;
 use App\Domain\Knowledge\Presenters\ArchiveLocationPresenter;
+use App\Domain\Knowledge\Services\ArchiveKnowledgeAccess;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Provenance\Models\SourceCollection;
@@ -16,16 +18,18 @@ use App\Http\Requests\Archive\SaveArchiveEventRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 final class ArchiveEventController extends Controller
 {
     public function index(
+        Request $request,
+        ArchiveKnowledgeAccess $access,
         ArchiveEventDatePresenter $datePresenter,
         ArchiveLocationPresenter $locationPresenter
     ): View {
         return view('archive.events.index', [
-            'events' => ArchiveEvent::query()
-                ->where('review_state', KnowledgeReviewState::Accepted)
+            'events' => $access->events(ArchiveEvent::query(), $request->user())
                 ->with('location')
                 ->withCount(['mediaItems', 'provenanceLinks'])
                 ->orderByDesc('date_year')
@@ -34,6 +38,7 @@ final class ArchiveEventController extends Controller
                 ->paginate(24),
             'datePresenter' => $datePresenter,
             'locationPresenter' => $locationPresenter,
+            'canCurate' => $request->user()->isArchiveAdministrator(),
         ]);
     }
 
@@ -59,40 +64,46 @@ final class ArchiveEventController extends Controller
     }
 
     public function show(
+        Request $request,
+        ArchiveKnowledgeAccess $access,
+        ArchiveAccess $archiveAccess,
         ArchiveEvent $archiveEvent,
         ArchiveEventDatePresenter $datePresenter,
         ArchiveLocationPresenter $locationPresenter
     ): View {
-        $this->abortUnlessAccepted($archiveEvent);
+        abort_unless($access->canViewEvent($archiveEvent, $request->user()), 404);
+        $canCurate = $request->user()->isArchiveAdministrator();
         $archiveEvent->load([
             'location',
-            'provenanceLinks' => fn ($query) => $query
-                ->with(['sourceCollection', 'scanBatch'])
-                ->orderBy('id'),
-            'mediaItems' => fn ($query) => $query
-                ->where('review_status', MediaReviewStatus::Approved)
-                ->whereNotNull('approved_at')
-                ->orderBy('archive_id'),
-            'revisions' => fn ($query) => $query
-                ->with('actor:id,name')
-                ->latest('revision_number'),
+            'mediaItems' => fn ($query) => $query->where('review_status', MediaReviewStatus::Approved)->whereNotNull('approved_at')->orderBy('archive_id'),
         ]);
+        $archiveEvent->setRelation('mediaItems', $archiveEvent->mediaItems
+            ->filter(fn (MediaItem $media) => $archiveAccess->canView($request->user(), $media))
+            ->values());
+
+        if ($canCurate) {
+            $archiveEvent->load([
+                'provenanceLinks' => fn ($query) => $query->with(['sourceCollection', 'scanBatch'])->orderBy('id'),
+                'revisions' => fn ($query) => $query->with('actor:id,name')->latest('revision_number'),
+            ]);
+        }
 
         return view('archive.events.show', [
             'event' => $archiveEvent,
             'datePresenter' => $datePresenter,
             'locationPresenter' => $locationPresenter,
-            'sources' => SourceCollection::query()
+            'canCurate' => $canCurate,
+            'sources' => $canCurate ? SourceCollection::query()
                 ->with('scanBatches')
                 ->orderBy('name')
-                ->get(),
-            'availableMedia' => MediaItem::query()
+                ->get() : collect(),
+            'availableMedia' => $canCurate ? MediaItem::query()
                 ->select(['id', 'archive_id', 'title'])
                 ->where('review_status', MediaReviewStatus::Approved)
                 ->whereNotNull('approved_at')
                 ->whereDoesntHave('events', fn ($query) => $query->whereKey($archiveEvent->id))
                 ->orderBy('archive_id')
-                ->get(),
+                ->get() : collect(),
         ]);
     }
 

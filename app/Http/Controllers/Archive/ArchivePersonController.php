@@ -8,23 +8,25 @@ use App\Domain\Knowledge\Models\ArchivePerson;
 use App\Domain\Knowledge\Models\FamilyBranch;
 use App\Domain\Knowledge\Presenters\ArchivePersonPresenter;
 use App\Domain\Knowledge\Presenters\FamilyBranchPresenter;
+use App\Domain\Knowledge\Services\ArchiveKnowledgeAccess;
 use App\Domain\Provenance\Models\SourceCollection;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Archive\SaveArchivePersonRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 final class ArchivePersonController extends Controller
 {
     public function index(
+        Request $request,
+        ArchiveKnowledgeAccess $access,
         ArchivePersonPresenter $personPresenter,
         FamilyBranchPresenter $branchPresenter
     ): View {
         return view('archive.people.index', [
-            'people' => ArchivePerson::query()
-                ->where('review_state', KnowledgeReviewState::Accepted)
-                ->where('identity_state', 'confirmed')
+            'people' => $access->people(ArchivePerson::query(), $request->user())
                 ->with('familyBranch')
                 ->withCount('provenanceLinks')
                 ->orderBy('is_private')
@@ -32,6 +34,7 @@ final class ArchivePersonController extends Controller
                 ->paginate(24),
             'personPresenter' => $personPresenter,
             'branchPresenter' => $branchPresenter,
+            'canCurate' => $request->user()->isArchiveAdministrator(),
         ]);
     }
 
@@ -54,31 +57,33 @@ final class ArchivePersonController extends Controller
     }
 
     public function show(
+        Request $request,
+        ArchiveKnowledgeAccess $access,
         ArchivePerson $archivePerson,
         ArchivePersonPresenter $personPresenter,
         FamilyBranchPresenter $branchPresenter
     ): View {
-        $this->abortUnlessAccepted($archivePerson);
-        $archivePerson->load([
-            'familyBranch.revisions' => fn ($query) => $query
-                ->with('actor:id,name')
-                ->latest('revision_number'),
-            'provenanceLinks' => fn ($query) => $query
-                ->with(['sourceCollection', 'scanBatch'])
-                ->orderBy('id'),
-            'revisions' => fn ($query) => $query
-                ->with('actor:id,name')
-                ->latest('revision_number'),
-        ]);
+        abort_unless($access->canViewPerson($archivePerson, $request->user()), 404);
+        $canCurate = $request->user()->isArchiveAdministrator();
+        $archivePerson->load('familyBranch');
+
+        if ($canCurate) {
+            $archivePerson->load([
+                'familyBranch.revisions' => fn ($query) => $query->with('actor:id,name')->latest('revision_number'),
+                'provenanceLinks' => fn ($query) => $query->with(['sourceCollection', 'scanBatch'])->orderBy('id'),
+                'revisions' => fn ($query) => $query->with('actor:id,name')->latest('revision_number'),
+            ]);
+        }
 
         return view('archive.people.show', [
             'person' => $archivePerson,
             'personPresenter' => $personPresenter,
             'branchPresenter' => $branchPresenter,
-            'sources' => SourceCollection::query()
+            'canCurate' => $canCurate,
+            'sources' => $canCurate ? SourceCollection::query()
                 ->with('scanBatches')
                 ->orderBy('name')
-                ->get(),
+                ->get() : collect(),
         ]);
     }
 

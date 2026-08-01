@@ -65,8 +65,11 @@ it('presents archive exploration as a shared bar instead of permanent sidebar li
         ->assertSee('Explore archive')
         ->assertSee('Photos')
         ->assertSee('Places & map')
-        ->assertSee(route('public-discovery.map'), false)
-        ->assertDontSee('People</a>', false);
+        ->assertSee(route('archive.locations.index'), false)
+        ->assertSee('People</a>', false)
+        ->assertSee('Events</a>', false)
+        ->assertSee('Branches</a>', false)
+        ->assertSee('Search</a>', false);
 });
 
 it('keeps owner tooling separate from the member navigation layer', function (): void {

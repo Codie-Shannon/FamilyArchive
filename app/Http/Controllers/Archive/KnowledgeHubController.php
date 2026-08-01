@@ -14,9 +14,10 @@ final class KnowledgeHubController extends Controller
         $query = (string) $request->string('q');
 
         return view('archive.knowledge', [
-            'counts' => $explorer->counts(),
+            'counts' => $explorer->counts($request->user()),
             'query' => $query,
-            'results' => $explorer->search($query),
+            'results' => $explorer->search($query, $request->user()),
+            'canCurate' => $request->user()->isArchiveAdministrator(),
         ]);
     }
 }

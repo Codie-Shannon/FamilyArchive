@@ -8,7 +8,7 @@
  <flux:navlist variant="outline">
   <flux:navlist.group :heading="__('Your archive')" class="grid">
    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard', 'community.*')" wire:navigate>{{ __('Home') }}</flux:navlist.item>
-   <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*', 'archive.originals.*')" wire:navigate>{{ __('Archive') }}</flux:navlist.item>
+   <flux:navlist.item icon="photo" :href="route('archive.index')" :current="request()->routeIs('archive.index', 'archive.photos.*', 'archive.derivatives.*', 'archive.originals.*', 'archive.knowledge', 'archive.events.*', 'archive.locations.*', 'archive.people.*', 'archive.branches.*')" wire:navigate>{{ __('Archive') }}</flux:navlist.item>
    @if(auth()->user()?->canContribute())
     <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute') }}</flux:navlist.item>
    @endif
@@ -19,7 +19,7 @@
   </flux:navlist.group>
   @if(auth()->user()?->role === 'owner')
    <flux:navlist.group :heading="__('Owner')" class="grid">
-    <flux:navlist.item icon="squares-2x2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.*', 'archive.knowledge', 'archive.events.*', 'archive.locations.*', 'archive.people.*', 'archive.branches.*', 'archive.sources.*')" wire:navigate>{{ __('Command Centre') }}</flux:navlist.item>
+    <flux:navlist.item icon="squares-2x2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.*', 'archive.sources.*')" wire:navigate>{{ __('Command Centre') }}</flux:navlist.item>
    </flux:navlist.group>
   @endif
  </flux:navlist>

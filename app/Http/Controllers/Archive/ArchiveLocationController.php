@@ -6,18 +6,19 @@ use App\Domain\Knowledge\Actions\ReviewArchiveLocation;
 use App\Domain\Knowledge\Enums\KnowledgeReviewState;
 use App\Domain\Knowledge\Models\ArchiveLocation;
 use App\Domain\Knowledge\Presenters\ArchiveLocationPresenter;
+use App\Domain\Knowledge\Services\ArchiveKnowledgeAccess;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Archive\SaveArchiveLocationRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 final class ArchiveLocationController extends Controller
 {
-    public function index(ArchiveLocationPresenter $presenter): View
+    public function index(Request $request, ArchiveKnowledgeAccess $access, ArchiveLocationPresenter $presenter): View
     {
         return view('archive.locations.index', [
-            'locations' => ArchiveLocation::query()
-                ->where('review_state', KnowledgeReviewState::Accepted)
+            'locations' => $access->locations(ArchiveLocation::query(), $request->user())
                 ->withCount([
                     'events' => fn ($query) => $query
                         ->where('review_state', KnowledgeReviewState::Accepted),
@@ -25,6 +26,7 @@ final class ArchiveLocationController extends Controller
                 ->orderBy('label')
                 ->paginate(24),
             'presenter' => $presenter,
+            'canCurate' => $request->user()->isArchiveAdministrator(),
         ]);
     }
 
@@ -48,22 +50,23 @@ final class ArchiveLocationController extends Controller
     }
 
     public function show(
+        Request $request,
+        ArchiveKnowledgeAccess $access,
         ArchiveLocation $archiveLocation,
         ArchiveLocationPresenter $presenter
     ): View {
-        $this->abortUnlessAccepted($archiveLocation);
-        $archiveLocation->load([
-            'events' => fn ($query) => $query
-                ->where('review_state', KnowledgeReviewState::Accepted)
-                ->orderBy('name'),
-            'revisions' => fn ($query) => $query
-                ->with('actor:id,name')
-                ->latest('revision_number'),
-        ]);
+        abort_unless($access->canViewLocation($archiveLocation, $request->user()), 404);
+        $canCurate = $request->user()->isArchiveAdministrator();
+        $archiveLocation->load(['events' => fn ($query) => $access->events($query, $request->user())->orderBy('name')]);
+
+        if ($canCurate) {
+            $archiveLocation->load(['revisions' => fn ($query) => $query->with('actor:id,name')->latest('revision_number')]);
+        }
 
         return view('archive.locations.show', [
             'location' => $archiveLocation,
             'presenter' => $presenter,
+            'canCurate' => $canCurate,
         ]);
     }
 

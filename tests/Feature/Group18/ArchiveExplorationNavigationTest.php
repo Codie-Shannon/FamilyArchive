@@ -12,7 +12,7 @@ function explorationUser(array $attributes = []): User
     ]);
 }
 
-it('shows members only the archive sections they may access', function (): void {
+it('shows approved members every safe archive exploration route', function (): void {
     $member = explorationUser();
 
     $this->actingAs($member)
@@ -20,13 +20,17 @@ it('shows members only the archive sections they may access', function (): void 
         ->assertOk()
         ->assertSee('aria-label="Explore archive"', false)
         ->assertSee(route('archive.index'), false)
-        ->assertSee(route('public-discovery.map'), false)
+        ->assertSee(route('archive.locations.index'), false)
+        ->assertSee(route('archive.people.index'), false)
+        ->assertSee(route('archive.events.index'), false)
+        ->assertSee(route('archive.branches.index'), false)
+        ->assertSee(route('archive.knowledge'), false)
         ->assertSee('Photos')
         ->assertSee('Places &amp; map', false)
-        ->assertDontSee('People</a>', false)
-        ->assertDontSee('Events</a>', false)
-        ->assertDontSee('Branches</a>', false)
-        ->assertDontSee('Search</a>', false);
+        ->assertSee('People</a>', false)
+        ->assertSee('Events</a>', false)
+        ->assertSee('Branches</a>', false)
+        ->assertSee('Search</a>', false);
 });
 
 it('keeps the public map navigation safe for signed-out visitors', function (): void {

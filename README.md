@@ -33,8 +33,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG20 - High-Volume Batch Intake
 - Completed and closed: SG21 - Consolidated Intake Review
 - Completed and closed: SG22 - Delegated Intake Completion
-- Current release: v2.7.0 - Delegated Intake Completion
-- Current evidence state: Screenshot Groups 01-22 approved and closed
+- Completed and closed: SG23 - Unified Archive Experience
+- Current release: v2.8.0 - Unified Archive Experience
+- Current evidence state: Screenshot Groups 01-23 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -46,6 +47,10 @@ system and is not part of another product or student-work archive.
 - Current trusted-intake workflow: trusted contributors review their own
   batches, administrators cover ordinary contributors and Owners oversee policy
   exceptions through one checkpointed batch workspace
+- Current archive-discovery model: approved members move between photos,
+  reviewed places, people, events, branches and permission-aware search through
+  one shared navigation surface, while private, living, sensitive and
+  unreviewed facts are filtered before display
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

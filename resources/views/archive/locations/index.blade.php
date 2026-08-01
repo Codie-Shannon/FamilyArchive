@@ -11,7 +11,7 @@
             <div class="flex gap-3">
                 <a href="{{ route('public-discovery.map') }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold dark:border-zinc-600 dark:text-white">Public map</a>
                 <a href="{{ route('archive.events.index') }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold dark:border-zinc-600 dark:text-white">Events</a>
-                <a href="{{ route('archive.locations.create') }}" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black">Add reviewed location</a>
+                @if($canCurate)<a href="{{ route('archive.locations.create') }}" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black">Add reviewed location</a>@endif
             </div>
         </header>
 

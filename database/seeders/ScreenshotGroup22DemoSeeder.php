@@ -175,7 +175,12 @@ final class ScreenshotGroup22DemoSeeder extends Seeder
 
     private function color(GdImage $image, int $red, int $green, int $blue): int
     {
-        $color = imagecolorallocate($image, min(255, $red), min(255, $green), min(255, $blue));
+        $color = imagecolorallocate(
+            $image,
+            max(0, min(255, $red)),
+            max(0, min(255, $green)),
+            max(0, min(255, $blue)),
+        );
         if ($color === false) {
             throw new RuntimeException('Unable to allocate an SG22 fictional image colour.');
         }

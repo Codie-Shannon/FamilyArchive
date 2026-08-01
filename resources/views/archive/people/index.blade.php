@@ -10,7 +10,7 @@
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('archive.branches.index') }}" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold dark:border-zinc-600 dark:text-white">Family branches</a>
-                <a href="{{ route('archive.people.create') }}" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black">Add reviewed person</a>
+                @if($canCurate)<a href="{{ route('archive.people.create') }}" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black">Add reviewed person</a>@endif
             </div>
         </header>
 
@@ -30,7 +30,12 @@
                     @else
                         <p class="mt-3 text-sm text-zinc-500">No reviewed branch</p>
                     @endif
-                    <p class="mt-4 text-xs text-zinc-500">{{ str($person->name_certainty->value)->headline() }} name · {{ $person->provenance_links_count }} sources</p>
+                    <p class="mt-4 text-xs text-zinc-500">
+                        {{ str($person->name_certainty->value)->headline() }} name
+                        @if ($canCurate)
+                            · {{ $person->provenance_links_count }} sources
+                        @endif
+                    </p>
                 </a>
             @empty
                 <div class="rounded-xl border border-dashed border-zinc-300 p-8 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300 md:col-span-2 xl:col-span-3">

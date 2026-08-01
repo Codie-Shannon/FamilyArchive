@@ -42,6 +42,9 @@ Intake Review boundary. Its implementation and six-file privacy-safe evidence
 pack are approved and closed. Screenshot Group 22 implements the v2.7.0
 Delegated Intake Completion boundary. Its implementation and seven-file
 privacy-safe evidence pack are approved and closed.
+Screenshot Group 23 implements the v2.8.0 Unified Archive Experience boundary.
+Its role-aware archive browsing implementation and eight-file evidence pack are
+approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -148,6 +151,23 @@ PDFs remain external artifacts and must not be committed.
 | 20 | Corrective high-volume intake | 2.5.0 | High-Volume Batch Intake |
 | 21 | Corrective trusted intake review | 2.6.0 | Consolidated Intake Review |
 | 22 | Corrective delegated intake completion | 2.7.0 | Delegated Intake Completion |
+| 23 | Corrective unified archive experience | 2.8.0 | Unified Archive Experience |
+
+## Screenshot Group 23 Boundary
+
+Screenshot Group 23 turns reviewed archive knowledge into one coherent member
+journey across photos, places, people, events, branches and search.
+
+Implementation status: complete — eight-file screenshot evidence approved and
+closed.
+
+Approved members can browse reviewed non-sensitive knowledge without entering
+Owner-only curation pages. The same access service filters indexes, details,
+counts and search before rendering. Living people, private identities,
+sensitive branches, protected location precision and events that would reveal
+protected places remain outside ordinary member discovery. Owners and archive
+administrators retain complete reviewed visibility and explicit curation
+controls.
 
 ## Screenshot Group 22 Boundary
 

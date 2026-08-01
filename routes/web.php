@@ -70,6 +70,15 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
     Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
     Route::get('/archive/originals/{mediaFileVersion}', OriginalMediaController::class)->name('archive.originals.show');
+    Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
+    Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');
+    Route::get('/archive/events/{archiveEvent}', [ArchiveEventController::class, 'show'])->whereNumber('archiveEvent')->name('archive.events.show');
+    Route::get('/archive/locations', [ArchiveLocationController::class, 'index'])->name('archive.locations.index');
+    Route::get('/archive/locations/{archiveLocation}', [ArchiveLocationController::class, 'show'])->whereNumber('archiveLocation')->name('archive.locations.show');
+    Route::get('/archive/people', [ArchivePersonController::class, 'index'])->name('archive.people.index');
+    Route::get('/archive/people/{archivePerson}', [ArchivePersonController::class, 'show'])->whereNumber('archivePerson')->name('archive.people.show');
+    Route::get('/archive/family-branches', [FamilyBranchController::class, 'index'])->name('archive.branches.index');
+    Route::get('/archive/family-branches/{familyBranch}', [FamilyBranchController::class, 'show'])->whereNumber('familyBranch')->name('archive.branches.show');
     Route::get('/contribute', [ContributorSubmissionController::class, 'index'])->name('contributor.index');
     Route::post('/contribute/sessions', [ContributorSubmissionController::class, 'start'])->name('contributor.sessions.start');
     Route::get('/contribute/sessions/{session}', [ContributorSubmissionController::class, 'show'])->name('contributor.sessions.show');
@@ -83,32 +92,23 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
     });
     Route::middleware('owner')->group(function (): void {
-        Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
-        Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');
         Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');
         Route::post('/archive/events', [ArchiveEventController::class, 'store'])->name('archive.events.store');
-        Route::get('/archive/events/{archiveEvent}', [ArchiveEventController::class, 'show'])->name('archive.events.show');
         Route::get('/archive/events/{archiveEvent}/edit', [ArchiveEventController::class, 'edit'])->name('archive.events.edit');
         Route::patch('/archive/events/{archiveEvent}', [ArchiveEventController::class, 'update'])->name('archive.events.update');
         Route::post('/archive/events/{archiveEvent}/provenance', [EventProvenanceController::class, 'store'])->name('archive.events.provenance.store');
         Route::post('/archive/events/{archiveEvent}/media', [EventMediaController::class, 'store'])->name('archive.events.media.store');
-        Route::get('/archive/locations', [ArchiveLocationController::class, 'index'])->name('archive.locations.index');
         Route::get('/archive/locations/create', [ArchiveLocationController::class, 'create'])->name('archive.locations.create');
         Route::post('/archive/locations', [ArchiveLocationController::class, 'store'])->name('archive.locations.store');
-        Route::get('/archive/locations/{archiveLocation}', [ArchiveLocationController::class, 'show'])->name('archive.locations.show');
         Route::get('/archive/locations/{archiveLocation}/edit', [ArchiveLocationController::class, 'edit'])->name('archive.locations.edit');
         Route::patch('/archive/locations/{archiveLocation}', [ArchiveLocationController::class, 'update'])->name('archive.locations.update');
-        Route::get('/archive/people', [ArchivePersonController::class, 'index'])->name('archive.people.index');
         Route::get('/archive/people/create', [ArchivePersonController::class, 'create'])->name('archive.people.create');
         Route::post('/archive/people', [ArchivePersonController::class, 'store'])->name('archive.people.store');
-        Route::get('/archive/people/{archivePerson}', [ArchivePersonController::class, 'show'])->name('archive.people.show');
         Route::get('/archive/people/{archivePerson}/edit', [ArchivePersonController::class, 'edit'])->name('archive.people.edit');
         Route::patch('/archive/people/{archivePerson}', [ArchivePersonController::class, 'update'])->name('archive.people.update');
         Route::post('/archive/people/{archivePerson}/provenance', [PersonProvenanceController::class, 'store'])->name('archive.people.provenance.store');
-        Route::get('/archive/family-branches', [FamilyBranchController::class, 'index'])->name('archive.branches.index');
         Route::get('/archive/family-branches/create', [FamilyBranchController::class, 'create'])->name('archive.branches.create');
         Route::post('/archive/family-branches', [FamilyBranchController::class, 'store'])->name('archive.branches.store');
-        Route::get('/archive/family-branches/{familyBranch}', [FamilyBranchController::class, 'show'])->name('archive.branches.show');
         Route::get('/archive/family-branches/{familyBranch}/edit', [FamilyBranchController::class, 'edit'])->name('archive.branches.edit');
         Route::patch('/archive/family-branches/{familyBranch}', [FamilyBranchController::class, 'update'])->name('archive.branches.update');
         Route::post('/archive/family-branches/{familyBranch}/provenance', [FamilyBranchProvenanceController::class, 'store'])->name('archive.branches.provenance.store');
@@ -167,6 +167,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::post('/viewing-derivatives/{mediaItem}', [ViewingDerivativeController::class, 'store'])->name('viewing-derivatives.store');
     });
 });
+
 if (file_exists(__DIR__.'/settings.php')) {
     require __DIR__.'/settings.php';
 }
