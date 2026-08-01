@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 21 planned
+- Official screenshot groups: 24 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -31,20 +31,21 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG18 - Archive Exploration
 - Completed and closed: SG19 - Verified Photo Workflow
 - Completed and closed: SG20 - High-Volume Batch Intake
-- In validation: SG21 - Consolidated Intake Review
-- Current release: v2.6.0 - Consolidated Intake Review
-- Current evidence state: Screenshot Groups 01-21 approved and closed
+- Completed and closed: SG21 - Consolidated Intake Review
+- Completed and closed: SG22 - Delegated Intake Completion
+- Current release: v2.7.0 - Delegated Intake Completion
+- Current evidence state: Screenshot Groups 01-22 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
 - Current restoration model: uploader-controlled, integrity-verified,
   non-destructive candidates with explicit human review
-- Current verified photo workflow: retained contributor input, owner acceptance,
-  immediate original-versus-edit review, owner-approved restoration and private
-  web/thumbnail derivatives with explicit lineage
-- Current trusted-intake workflow: owner, administrator and trusted-contributor
-  batches use one exception-first workspace for verified original-versus-edit
-  comparison, attention filtering and checkpointed bulk decisions
+- Current verified photo workflow: retained contributor input, delegated human
+  acceptance, immediate original-versus-edit review, approved restoration and
+  private web/thumbnail derivatives with explicit lineage
+- Current trusted-intake workflow: trusted contributors review their own
+  batches, administrators cover ordinary contributors and Owners oversee policy
+  exceptions through one checkpointed batch workspace
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

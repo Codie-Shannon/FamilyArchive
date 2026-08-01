@@ -49,10 +49,10 @@ derivative, review, access and recovery boundaries are implemented.
 | High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
 | Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
 | Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
-| Communication | Moderated public threads, approved member posts and anonymous contact intake |
+| Communication | Immediate approved-member family posts, recipient-controlled private messaging and moderated anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
-| Verified Photo Workflow | Retained contributor input, focused Owner review and approved-candidate viewing lineage |
+| Verified Photo Workflow | Retained contributor input, delegated batch review and approved-candidate viewing lineage |
 | Providers | Provider-neutral private storage, Wasabi versioned no-overwrite writes, live protection verification and copy-first migration |
 | Operations | Redacted production readiness, database/cache health and live deployment verification |
 | Administration | Owner-only action queue and grouped access to established specialist workflows |
@@ -148,7 +148,7 @@ Owner or approved contributor upload
   -> private quarantine retention
   -> SHA-256 and byte verification
   -> exact-duplicate candidate detection
-  -> manual duplicate review
+  -> trusted contributor or administrator batch review
   -> verified original promotion
   -> private derivative generation
   -> approved archive browsing
@@ -225,7 +225,9 @@ Screenshot Group 19 implements the v2.4.0 Verified Photo Workflow with an
 approved privacy-safe seven-file evidence pack. Screenshot Group 20 implements
 the v2.5.0 High-Volume Batch Intake boundary with an approved six-file evidence
 pack. Screenshot Group 21 implements the v2.6.0 Consolidated Intake Review
-boundary with an approved six-file evidence pack. The implemented foundation
+boundary with an approved six-file evidence pack. Screenshot Group 22
+implements the v2.7.0 Delegated Intake Completion boundary with an approved
+seven-file evidence pack. The implemented foundation
 establishes:
 
 1. application foundation;

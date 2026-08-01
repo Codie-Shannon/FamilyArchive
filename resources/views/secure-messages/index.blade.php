@@ -24,6 +24,7 @@
                     <div>
                         <p class="text-sm font-semibold text-emerald-300">Anonymous public identities</p>
                         <h2 class="mt-1 text-xl font-semibold text-white">Direct-message consent</h2>
+                        <p class="mt-2 text-sm text-zinc-400">The recipient decides who may contact them. Routine private conversations do not require owner approval.</p>
                     </div>
                     <span class="text-sm text-zinc-500">{{ $threads->count() }} requests</span>
                 </div>

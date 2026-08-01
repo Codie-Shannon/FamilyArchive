@@ -16,6 +16,7 @@ final class BatchReviewController extends Controller
         $user = $request->user();
         $query = DB::table('cloud_import_sessions')
             ->where('provider', 'manual_export')
+            ->whereIn('state', ['paused', 'complete'])
             ->latest('created_at');
         if (! $user->isArchiveAdministrator()) {
             $query->where('user_id', $user->id);
@@ -28,7 +29,10 @@ final class BatchReviewController extends Controller
             return $session;
         });
 
-        return view('intake.index', ['sessions' => $sessions]);
+        return view('intake.index', [
+            'sessions' => $sessions,
+            'reviewRole' => $user->role === 'owner' ? 'Policy owner' : ($user->role === 'admin' ? 'Archive administrator' : 'Trusted contributor'),
+        ]);
     }
 
     public function show(Request $request, string $sessionId, TrustedBatchReview $reviews): View

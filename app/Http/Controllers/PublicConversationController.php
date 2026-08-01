@@ -45,7 +45,7 @@ final class PublicConversationController extends Controller
         $author = $request->user();
         $communication->post($author, (int) $data['thread_id'], $data['body']);
 
-        return back()->with('status', 'Message posted for moderated public display.');
+        return back()->with('status', 'Message posted to the family conversation.');
     }
 
     public function anonymous(Request $request, FamilyCommunication $communication): RedirectResponse

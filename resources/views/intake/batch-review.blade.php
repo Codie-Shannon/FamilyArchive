@@ -2,7 +2,11 @@
 <main class="mx-auto w-full max-w-[1600px] space-y-5 p-4 md:space-y-6 md:p-8">
     <header class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div><a href="{{ route('intake.index') }}" class="text-sm font-semibold text-emerald-300">← Intake & Review</a><p class="mt-4 text-sm font-semibold text-zinc-400">{{ $manifest['source_label'] ?? 'Private photo batch' }}</p><h1 class="mt-1 text-3xl font-semibold text-white">Review batch</h1><p class="mt-2 max-w-3xl text-zinc-400">Compare the retained original with the suggested edit, handle exceptions first and apply decisions in bulk.</p></div>
-        <form method="POST" action="{{ route('intake.batches.prepare', $session->session_id) }}" class="w-full sm:w-auto">@csrf<button class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-zinc-950 sm:w-auto">Prepare next 25 previews</button></form>
+        @if($session->state === 'complete')
+            <form method="POST" action="{{ route('intake.batches.prepare', $session->session_id) }}" class="w-full sm:w-auto">@csrf<button class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-zinc-950 sm:w-auto">Prepare next 25 previews</button></form>
+        @else
+            <div class="rounded-xl border border-amber-800 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">Upload still open · finish it before review</div>
+        @endif
     </header>
 
     @if(session('status'))<div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</div>@endif

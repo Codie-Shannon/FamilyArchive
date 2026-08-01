@@ -29,12 +29,14 @@ final class OwnerCommandCentreController extends Controller
                 ->whereNull('revoked_at')
                 ->where('expires_at', '>', now())
                 ->count(),
-            'submissions' => DB::table('contributor_submissions')
-                ->whereIn('status', ['pending', 'retained', 'possible_duplicate', 'needs_info'])
+            'intake_batches' => DB::table('cloud_import_sessions')
+                ->where('provider', 'manual_export')
+                ->whereIn('review_state', ['not_ready', 'preparing', 'ready', 'needs_attention'])
                 ->count(),
-            'uploads' => DB::table('incoming_uploads')
-                ->whereNotIn('review_status', ['approved', 'rejected'])
-                ->count(),
+            'intake_exceptions' => (int) DB::table('cloud_import_sessions')
+                ->where('provider', 'manual_export')
+                ->whereIn('review_state', ['preparing', 'ready', 'needs_attention'])
+                ->sum('attention_count'),
             'duplicates' => DB::table('duplicate_candidates')
                 ->where('review_state', 'pending_review')
                 ->count(),

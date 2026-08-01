@@ -6,7 +6,7 @@
             <h1 class="mt-1 text-3xl font-semibold text-white">Intake & Review</h1>
             <p class="mt-2 max-w-3xl text-zinc-400">Import a batch, inspect automatic suggestions and finish the batch from one review workspace. Originals remain immutable throughout.</p>
         </div>
-        <div class="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">Owner · Admin · Trusted contributor</div>
+        <div class="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">Signed in as {{ $reviewRole }}</div>
     </header>
 
     <section class="grid grid-cols-3 gap-2 sm:gap-4">
@@ -16,13 +16,13 @@
     </section>
 
     <section class="rounded-2xl border border-zinc-700 bg-zinc-900 p-5 md:p-6">
-        <div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-semibold text-white">Photo batches</h2><p class="mt-1 text-sm text-zinc-400">Resume at the last checkpoint without reopening completed files.</p></div><span class="text-xs uppercase tracking-wide text-emerald-300">Exception-first review</span></div>
+        <div class="flex flex-wrap items-end justify-between gap-3"><div><h2 class="text-xl font-semibold text-white">Photo batches</h2><p class="mt-1 text-sm text-zinc-400">Trusted contributors finish their own batches. Administrators handle routine delegated review; the owner is needed only for policy exceptions.</p></div><span class="text-xs uppercase tracking-wide text-emerald-300">Exception-first review</span></div>
         <div class="mt-5 space-y-3">
             @forelse($sessions as $session)
                 @php($progress = $session->imported_count > 0 ? (int) round(($session->reviewed_count / $session->imported_count) * 100) : 0)
                 <a href="{{ route('intake.batches.show', $session->session_id) }}" class="block rounded-xl border border-zinc-700 bg-zinc-950 p-5 transition hover:border-emerald-700">
                     <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div class="min-w-0"><p class="text-xs font-semibold uppercase tracking-wide text-emerald-300">{{ str($session->review_state)->replace('_', ' ') }}</p><h3 class="mt-1 truncate text-lg font-semibold text-white">{{ $session->manifest['source_label'] ?? 'Private photo batch' }}</h3><p class="mt-1 text-xs text-zinc-500">{{ number_format($session->imported_count) }} retained · {{ number_format($session->reviewed_count) }} reviewed · {{ number_format($session->attention_count) }} need attention</p></div>
+                        <div class="min-w-0"><p class="text-xs font-semibold uppercase tracking-wide text-emerald-300">{{ str($session->review_state)->replace('_', ' ') }}</p><h3 class="mt-1 truncate text-lg font-semibold text-white">{{ $session->manifest['source_label'] ?? 'Private photo batch' }}</h3><p class="mt-1 text-xs text-zinc-500">{{ number_format($session->imported_count) }} retained · {{ number_format($session->reviewed_count) }} reviewed · {{ number_format($session->attention_count) }} need attention · {{ ($session->manifest['ingest_channel'] ?? '') === 'browser_upload' ? 'browser upload' : 'directory import' }}</p></div>
                         <strong class="text-2xl text-white">{{ $progress }}%</strong>
                     </div>
                     <div class="mt-4 h-2 overflow-hidden rounded-full bg-zinc-800"><div class="h-full bg-emerald-500" style="width: {{ min(100, $progress) }}%"></div></div>

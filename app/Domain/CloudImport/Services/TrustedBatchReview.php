@@ -49,6 +49,9 @@ final class TrustedBatchReview
     public function prepare(string $sessionId, User $actor, int $limit = 25): array
     {
         $session = $this->session($sessionId, $actor);
+        if (data_get($session, 'state') !== 'complete') {
+            throw ValidationException::withMessages(['batch' => 'Finish the upload batch before preparing review previews.']);
+        }
         $items = DB::table('cloud_import_items')
             ->where('cloud_import_session_id', $this->integer($session, 'id'))
             ->where('state', 'retained')
@@ -187,6 +190,7 @@ final class TrustedBatchReview
                 }
                 $this->setMediaState($mediaItem, MediaReviewStatus::Approved, $actor);
                 $this->reviews->decide($candidate, $actor, 'approved', 'Suggested edit selected during trusted batch review.');
+                $this->derivatives->handle($mediaItem->fresh(), $actor);
             } else {
                 $this->setMediaState($mediaItem, MediaReviewStatus::Approved, $actor);
                 if ($candidate instanceof RestorationCandidate && $candidate->review_state === 'pending') {
@@ -202,6 +206,25 @@ final class TrustedBatchReview
             'reviewed_at' => now(),
             'updated_at' => now(),
         ]);
+
+        DB::table('contributor_submissions')
+            ->where('incoming_upload_id', $upload->id)
+            ->update([
+                'status' => match ($decision) {
+                    'suggested_edit', 'original' => 'accepted',
+                    'hold' => 'needs_info',
+                    default => 'rejected',
+                },
+                'reviewed_by' => $actor->id,
+                'reviewer_note' => match ($decision) {
+                    'suggested_edit' => 'Suggested edit accepted in batch review.',
+                    'original' => 'Original accepted in batch review.',
+                    'hold' => 'Held for more information in batch review.',
+                    default => 'Rejected in batch review.',
+                },
+                'reviewed_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     private function setMediaState(MediaItem $item, MediaReviewStatus $status, ?User $actor): void

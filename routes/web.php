@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::post('/contribute/sessions', [ContributorSubmissionController::class, 'start'])->name('contributor.sessions.start');
     Route::get('/contribute/sessions/{session}', [ContributorSubmissionController::class, 'show'])->name('contributor.sessions.show');
     Route::post('/contribute/sessions/{session}/photos', [ContributorSubmissionController::class, 'upload'])->name('contributor.sessions.upload');
+    Route::post('/contribute/sessions/{session}/finish', [ContributorSubmissionController::class, 'finish'])->name('contributor.sessions.finish');
     Route::middleware('trusted.intake')->prefix('intake')->name('intake.')->group(function (): void {
         Route::get('/', [BatchReviewController::class, 'index'])->name('index');
         Route::get('/batches/{sessionId}', [BatchReviewController::class, 'show'])->name('batches.show');

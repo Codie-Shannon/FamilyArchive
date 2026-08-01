@@ -8,8 +8,8 @@
         ];
         $queueCards = [
             ['label' => 'Accounts awaiting approval', 'value' => $queue['accounts'], 'route' => route('admin.access.index'), 'detail' => 'Confirm identity, role and family connection.'],
-            ['label' => 'Contributor submissions', 'value' => $queue['submissions'], 'route' => route('admin.access.index').'#contributor-submissions', 'detail' => 'Review retained uploads and requests for information.'],
-            ['label' => 'Incoming media review', 'value' => $queue['uploads'], 'route' => route('admin.photo-intake.queue'), 'detail' => 'Inspect retained sources before archive acceptance.'],
+            ['label' => 'Intake batches', 'value' => $queue['intake_batches'], 'route' => route('intake.index'), 'detail' => 'Administrators and trusted contributors clear routine photo review.'],
+            ['label' => 'Intake exceptions', 'value' => $queue['intake_exceptions'], 'route' => route('intake.index'), 'detail' => 'Escalate only uncertain crops, duplicates and failed processing.'],
             ['label' => 'Possible duplicates', 'value' => $queue['duplicates'], 'route' => route('admin.duplicate-candidates.index'), 'detail' => 'Make a human decision without removing source bytes.'],
             ['label' => 'Restoration candidates', 'value' => $queue['restoration'], 'route' => route('admin.restoration'), 'detail' => 'Compare candidate versions and approve explicitly.'],
             ['label' => 'Open repair cases', 'value' => $queue['repairs'], 'route' => route('admin.operations'), 'detail' => 'Resolve integrity exceptions through controlled repair.'],
@@ -70,8 +70,8 @@
                     </div>
                     <div class="mt-5 grid gap-3 sm:grid-cols-3">
                         <div class="rounded-xl bg-zinc-950 p-4"><p class="text-2xl font-semibold text-white">{{ $queue['accounts'] }}</p><p class="mt-1 text-sm text-zinc-400">account decisions</p></div>
-                        <div class="rounded-xl bg-zinc-950 p-4"><p class="text-2xl font-semibold text-white">{{ $queue['submissions'] }}</p><p class="mt-1 text-sm text-zinc-400">contributor reviews</p></div>
-                        <div class="rounded-xl bg-zinc-950 p-4"><p class="text-2xl font-semibold text-white">{{ $queue['uploads'] }}</p><p class="mt-1 text-sm text-zinc-400">intake reviews</p></div>
+                        <div class="rounded-xl bg-zinc-950 p-4"><p class="text-2xl font-semibold text-white">{{ $queue['intake_batches'] }}</p><p class="mt-1 text-sm text-zinc-400">delegated batches</p></div>
+                        <div class="rounded-xl bg-zinc-950 p-4"><p class="text-2xl font-semibold text-white">{{ $queue['intake_exceptions'] }}</p><p class="mt-1 text-sm text-zinc-400">intake exceptions</p></div>
                     </div>
                 </article>
                 <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
@@ -87,8 +87,8 @@
         @elseif($section === 'queue')
             <section>
                 <p class="text-sm font-medium text-emerald-400">Action-oriented review</p>
-                <h2 class="mt-1 text-2xl font-semibold text-white">Owner work queue</h2>
-                <p class="mt-2 text-sm text-zinc-400">Each card opens the existing specialist workflow; no preservation or approval boundary is bypassed.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-white">Owner exception queue</h2>
+                <p class="mt-2 text-sm text-zinc-400">Routine review stays delegated. This queue keeps policy, identity and preservation exceptions visible without making the owner a bottleneck.</p>
                 <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     @foreach($queueCards as $card)
                         <a href="{{ $card['route'] }}" class="rounded-2xl border {{ $card['value'] > 0 ? 'border-amber-800 bg-amber-950/20' : 'border-zinc-700 bg-zinc-900' }} p-5">
@@ -142,7 +142,7 @@
                     <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
                         <h3 class="text-xl font-semibold text-white">Intake & preservation</h3>
                         <p class="mt-2 text-sm text-zinc-400">Retained intake, duplicate review, archive acceptance and private derivatives.</p>
-                        <div class="mt-5 flex flex-wrap gap-3"><a href="{{ route('admin.photo-intake.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Intake</a><a href="{{ route('admin.archive-promotions.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Acceptance</a><a href="{{ route('admin.viewing-derivatives.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Derivatives</a></div>
+                        <div class="mt-5 flex flex-wrap gap-3"><a href="{{ route('intake.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Intake & review</a><a href="{{ route('admin.archive-promotions.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Exceptions</a><a href="{{ route('admin.viewing-derivatives.index') }}" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Derivatives</a></div>
                     </article>
                     <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
                         <h3 class="text-xl font-semibold text-white">Restoration & intelligence</h3>

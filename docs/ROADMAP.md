@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 21 screenshot groups.
+releases. The repository currently plans 24 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -39,7 +39,9 @@ Screenshot Group 20 implements the v2.5.0 High-Volume Batch Intake boundary.
 Its resumable implementation and six-file privacy-safe evidence pack are
 approved and closed. Screenshot Group 21 implements the v2.6.0 Consolidated
 Intake Review boundary. Its implementation and six-file privacy-safe evidence
-pack are approved and closed.
+pack are approved and closed. Screenshot Group 22 implements the v2.7.0
+Delegated Intake Completion boundary. Its implementation and seven-file
+privacy-safe evidence pack are approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -145,6 +147,23 @@ PDFs remain external artifacts and must not be committed.
 | 19 | Corrective verified photo workflow | 2.4.0 | Verified Photo Workflow |
 | 20 | Corrective high-volume intake | 2.5.0 | High-Volume Batch Intake |
 | 21 | Corrective trusted intake review | 2.6.0 | Consolidated Intake Review |
+| 22 | Corrective delegated intake completion | 2.7.0 | Delegated Intake Completion |
+
+## Screenshot Group 22 Boundary
+
+Screenshot Group 22 connects browser uploads to the consolidated intake
+workspace and removes routine item-by-item Owner approval from trusted intake.
+
+Implementation status: complete — seven-file screenshot evidence approved and
+closed.
+
+Trusted contributors can finish and review their own browser batches,
+administrators can review batches from ordinary contributors, and Owners see
+batch and exception summaries rather than every retained item. Recommended
+automation presets keep advanced controls optional, originals remain immutable,
+and explicit original-versus-edit decisions remain auditable. Ordinary family
+conversation posts are visible immediately; private-message access remains a
+recipient consent decision.
 
 ## Screenshot Group 21 Boundary
 
