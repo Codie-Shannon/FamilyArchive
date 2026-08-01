@@ -46,6 +46,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Browsing | Approved private gallery and detail read models |
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
+| High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
 | Knowledge | Reviewed events, locations, people, family branches and provenance-aware browsing |
 | Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
 | Communication | Moderated public threads, approved member posts and anonymous contact intake |
@@ -221,7 +222,9 @@ six-file evidence. Screenshot Group 18 implements the v2.3.0 Archive
 Exploration boundary with shared, role-aware navigation across the archive
 research surfaces; its eight-file evidence pack is approved and closed.
 Screenshot Group 19 implements the v2.4.0 Verified Photo Workflow with an
-approved privacy-safe seven-file evidence pack. The implemented foundation
+approved privacy-safe seven-file evidence pack. Screenshot Group 20 implements
+the v2.5.0 High-Volume Batch Intake boundary with an approved six-file evidence
+pack. The implemented foundation
 establishes:
 
 1. application foundation;
@@ -262,7 +265,9 @@ establishes:
 26. hardened hosted responses, database/cache health, Owner-only readiness and
     redacted live deployment verification; and
 27. a consolidated Owner queue and grouped operational views that preserve
-    every specialist authorization boundary.
+    every specialist authorization boundary; and
+28. a path-safe inventory and resumable checkpoint pipeline for high-volume
+    photo intake without automatic archive promotion.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.

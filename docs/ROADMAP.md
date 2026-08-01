@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 19 screenshot groups.
+releases. The repository currently plans 20 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -35,6 +35,9 @@ evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
 navigation boundary with an approved eight-file evidence pack. Screenshot
 Group 19 implements the v2.4.0 Verified Photo Workflow boundary with an
 approved seven-file evidence pack.
+Screenshot Group 20 implements the v2.5.0 High-Volume Batch Intake boundary.
+Its resumable implementation and six-file privacy-safe evidence pack are
+approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -138,6 +141,21 @@ PDFs remain external artifacts and must not be committed.
 | 17 | Corrective owner experience | 2.2.0 | Owner Command Centre |
 | 18 | Corrective archive navigation | 2.3.0 | Archive Exploration |
 | 19 | Corrective verified photo workflow | 2.4.0 | Verified Photo Workflow |
+| 20 | Corrective high-volume intake | 2.5.0 | High-Volume Batch Intake |
+
+## Screenshot Group 20 Boundary
+
+Screenshot Group 20 replaces impractical ten-file browser requests with a
+resumable local batch pipeline suitable for an archive containing 30,000
+photos.
+
+Implementation status: complete — six-file screenshot evidence approved and
+closed.
+
+The release inventories up to 100,000 supported photos, stores no local source
+paths, processes bounded checkpoints of at most 1,000 files, resumes without
+repeating retained work, stops on inventory drift, isolates failed items and
+preserves human duplicate, restoration and archive-approval decisions.
 
 ## Screenshot Group 19 Boundary
 

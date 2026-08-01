@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 19 planned
+- Official screenshot groups: 20 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -30,8 +30,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG17 - Owner Command Centre
 - Completed and closed: SG18 - Archive Exploration
 - Completed and closed: SG19 - Verified Photo Workflow
-- Current release: v2.4.0 - Verified Photo Workflow
-- Current evidence state: Screenshot Groups 01-19 approved and closed
+- Completed and closed: SG20 - High-Volume Batch Intake
+- Current release: v2.5.0 - High-Volume Batch Intake
+- Current evidence state: Screenshot Groups 01-20 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -155,7 +156,12 @@ The completed system can:
   authenticated pages;
 - evaluate production configuration through an Owner-only readiness view; and
 - record a redacted live deployment proof only after HTTPS, health, response
-  headers and isolated Wasabi verification all pass.
+  headers and isolated Wasabi verification all pass;
+- inventory up to 100,000 local photos without persisting their source paths;
+- process high-volume intake through bounded, resumable quarantine checkpoints;
+  and
+- isolate per-file failures and stop on inventory drift without repeating
+  retained work or bypassing human archive approval.
 
 ## Product Position
 
