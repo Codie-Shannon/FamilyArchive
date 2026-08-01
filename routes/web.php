@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\CloudImportController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
+use App\Http\Controllers\Admin\HighVolumeBatchController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
 use App\Http\Controllers\Admin\OwnerCommandCentreController;
@@ -121,6 +122,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/operations', OperationsController::class)->name('operations');
         Route::get('/media-intelligence', MediaIntelligenceController::class)->name('media-intelligence');
         Route::get('/cloud-imports', CloudImportController::class)->name('cloud-imports');
+        Route::get('/batch-imports', HighVolumeBatchController::class)->name('batch-imports');
         Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');
