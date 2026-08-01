@@ -155,7 +155,9 @@ closed.
 The release inventories up to 100,000 supported photos, stores no local source
 paths, processes bounded checkpoints of at most 1,000 files, resumes without
 repeating retained work, stops on inventory drift, isolates failed items and
-preserves human duplicate, restoration and archive-approval decisions.
+preserves human duplicate, restoration and archive-approval decisions. Newly
+retained batch photos request a separate photo-edge crop, auto-rotation and
+deskew candidate while the camera original remains unchanged.
 
 ## Screenshot Group 19 Boundary
 

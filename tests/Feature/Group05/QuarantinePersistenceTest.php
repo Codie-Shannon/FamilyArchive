@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Intake\Enums\IncomingReviewStatus;
 use App\Domain\Intake\Exceptions\QuarantinePersistenceException;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Intake\Services\CreateIncomingPhotoRecord;
@@ -68,9 +69,21 @@ it('keeps queue and detail read only and exposes retention integrity', function 
         ->assertSee($upload->sha256)
         ->assertSee('retained=true')
         ->assertSee('Not approved')
-        ->assertSee('Approval preview')
+        ->assertSee('Original source — uncropped')
         ->assertSee(route('admin.photo-intake.preview', $upload), false)
         ->assertDontSee('Promote');
+});
+
+it('keeps retired and approved records out of the active incoming queue', function () {
+    $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
+    $this->actingAs($owner)->post('/admin/photo-intake', ['photo' => group05Png('retired.png')]);
+    $upload = IncomingUpload::sole();
+    $upload->update(['review_status' => IncomingReviewStatus::Rejected]);
+
+    $this->actingAs($owner)
+        ->get('/admin/incoming-uploads')
+        ->assertOk()
+        ->assertDontSee($upload->upload_id);
 });
 
 it('shows owners an integrity-verified inline preview before approval', function () {

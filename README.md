@@ -158,7 +158,8 @@ The completed system can:
 - record a redacted live deployment proof only after HTTPS, health, response
   headers and isolated Wasabi verification all pass;
 - inventory up to 100,000 local photos without persisting their source paths;
-- process high-volume intake through bounded, resumable quarantine checkpoints;
+- process high-volume intake through bounded, resumable quarantine checkpoints
+  that request separate photo-edge crop, auto-rotation and deskew candidates;
   and
 - isolate per-file failures and stop on inventory drift without repeating
   retained work or bypassing human archive approval.

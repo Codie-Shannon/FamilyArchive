@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Access\Models\ContributorSubmission;
 use App\Domain\Intake\Actions\ApproveIncomingPhotoForRestoration;
+use App\Domain\Intake\Enums\IncomingReviewStatus;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Intake\Presenters\IncomingUploadPresenter;
 use App\Domain\Intake\Services\CreateAndRetainIncomingPhoto;
@@ -33,7 +34,12 @@ final class PhotoIntakeController extends Controller
 
     public function queue(IncomingUploadPresenter $presenter): View
     {
-        $rows = IncomingUpload::query()->latest('submitted_at')->limit(50)->get()->map(fn (IncomingUpload $upload) => $presenter->present($upload));
+        $rows = IncomingUpload::query()
+            ->whereNotIn('review_status', [IncomingReviewStatus::Approved, IncomingReviewStatus::Rejected])
+            ->latest('submitted_at')
+            ->limit(50)
+            ->get()
+            ->map(fn (IncomingUpload $upload) => $presenter->present($upload));
 
         return view('admin.photo-intake.queue', ['rows' => $rows]);
     }

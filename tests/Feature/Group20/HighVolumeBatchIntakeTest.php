@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Access\Models\ContributorSubmission;
 use App\Domain\CloudImport\Services\HighVolumePhotoBatch;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -34,8 +35,15 @@ it('inventories and resumes a large photo batch through bounded checkpoints', fu
         expect($first)->toMatchArray(['state' => 'paused', 'retained_count' => 2, 'failed_count' => 0, 'remaining_count' => 1]);
 
         $second = app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 2);
+        $submissions = ContributorSubmission::query()->where('status', 'retained')->get();
         expect($second)->toMatchArray(['state' => 'complete', 'retained_count' => 3, 'failed_count' => 0, 'remaining_count' => 0])
-            ->and(DB::table('contributor_submissions')->where('status', 'retained')->count())->toBe(3)
+            ->and($submissions)->toHaveCount(3)
+            ->and($submissions->every(fn (ContributorSubmission $submission): bool => $submission->automation_preferences === [
+                'automation_mode' => 'candidates',
+                'crop_target' => 'photo_edge',
+                'auto_rotate' => true,
+                'deskew' => true,
+            ]))->toBeTrue()
             ->and(Storage::disk('archive_quarantine')->allFiles())->toHaveCount(3);
     } finally {
         File::deleteDirectory($directory);

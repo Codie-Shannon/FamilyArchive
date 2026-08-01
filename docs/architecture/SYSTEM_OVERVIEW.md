@@ -267,7 +267,8 @@ establishes:
 27. a consolidated Owner queue and grouped operational views that preserve
     every specialist authorization boundary; and
 28. a path-safe inventory and resumable checkpoint pipeline for high-volume
-    photo intake without automatic archive promotion.
+    photo intake that requests separate smart-crop, rotation and deskew
+    candidates without automatic archive promotion.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.

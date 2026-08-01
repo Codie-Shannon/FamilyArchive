@@ -90,7 +90,12 @@ final class HighVolumePhotoBatch
                     'submission_id' => 'SUB-'.Str::upper(Str::random(12)), 'user_id' => $owner->id,
                     'incoming_upload_id' => $upload->id, 'status' => 'retained', 'original_name' => $upload->original_filename,
                     'source_context' => 'High-volume batch '.$sessionId, 'proposed_metadata' => ['batch_session_id' => $sessionId],
-                    'automation_preferences' => ['automation_mode' => 'suggestions'],
+                    'automation_preferences' => [
+                        'automation_mode' => 'candidates',
+                        'crop_target' => 'photo_edge',
+                        'auto_rotate' => true,
+                        'deskew' => true,
+                    ],
                 ]);
                 DB::table('cloud_import_items')->where('id', $item->id)->update([
                     'incoming_upload_id' => $upload->id, 'state' => 'retained', 'attempt_count' => (int) $item->attempt_count + 1,
