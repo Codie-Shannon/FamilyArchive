@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property array<string, mixed>|null $analysis
+ * @property string $review_state
+ */
 #[Fillable([
     'candidate_id',
     'processing_job_id',

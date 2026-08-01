@@ -14,7 +14,7 @@ final class RestorationCandidatePreviewController extends Controller
 {
     public function __invoke(Request $request, RestorationCandidate $candidate, string $side): Response
     {
-        abort_unless($request->user()?->isArchiveAdministrator(), 403);
+        abort_unless($request->user()?->canManageTrustedIntake(), 403);
         abort_unless(in_array($side, ['source', 'candidate'], true), 404);
 
         $version = $side === 'source' ? $candidate->sourceVersion : $candidate->candidateVersion;

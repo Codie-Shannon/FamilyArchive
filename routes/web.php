@@ -39,6 +39,8 @@ use App\Http\Controllers\Archive\SourceCollectionController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\ContributorSubmissionController;
+use App\Http\Controllers\Intake\BatchItemPreviewController;
+use App\Http\Controllers\Intake\BatchReviewController;
 use App\Http\Controllers\MemberHomeController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
@@ -72,6 +74,13 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::post('/contribute/sessions', [ContributorSubmissionController::class, 'start'])->name('contributor.sessions.start');
     Route::get('/contribute/sessions/{session}', [ContributorSubmissionController::class, 'show'])->name('contributor.sessions.show');
     Route::post('/contribute/sessions/{session}/photos', [ContributorSubmissionController::class, 'upload'])->name('contributor.sessions.upload');
+    Route::middleware('trusted.intake')->prefix('intake')->name('intake.')->group(function (): void {
+        Route::get('/', [BatchReviewController::class, 'index'])->name('index');
+        Route::get('/batches/{sessionId}', [BatchReviewController::class, 'show'])->name('batches.show');
+        Route::post('/batches/{sessionId}/prepare', [BatchReviewController::class, 'prepare'])->name('batches.prepare');
+        Route::patch('/batches/{sessionId}/review', [BatchReviewController::class, 'decide'])->name('batches.review');
+        Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
+    });
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
         Route::get('/archive/events', [ArchiveEventController::class, 'index'])->name('archive.events.index');

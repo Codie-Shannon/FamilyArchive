@@ -12,6 +12,9 @@
    @if(auth()->user()?->canContribute())
     <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute') }}</flux:navlist.item>
    @endif
+   @if(auth()->user()?->canManageTrustedIntake())
+    <flux:navlist.item icon="rectangle-stack" :href="route('intake.index')" :current="request()->routeIs('intake.*')" wire:navigate>{{ __('Intake & Review') }}</flux:navlist.item>
+   @endif
    <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
   </flux:navlist.group>
   @if(auth()->user()?->role === 'owner')

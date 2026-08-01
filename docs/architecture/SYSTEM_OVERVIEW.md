@@ -224,7 +224,8 @@ research surfaces; its eight-file evidence pack is approved and closed.
 Screenshot Group 19 implements the v2.4.0 Verified Photo Workflow with an
 approved privacy-safe seven-file evidence pack. Screenshot Group 20 implements
 the v2.5.0 High-Volume Batch Intake boundary with an approved six-file evidence
-pack. The implemented foundation
+pack. Screenshot Group 21 implements the v2.6.0 Consolidated Intake Review
+boundary with an approved six-file evidence pack. The implemented foundation
 establishes:
 
 1. application foundation;
@@ -268,7 +269,9 @@ establishes:
     every specialist authorization boundary; and
 28. a path-safe inventory and resumable checkpoint pipeline for high-volume
     photo intake that requests separate smart-crop, rotation and deskew
-    candidates without automatic archive promotion.
+    candidates without automatic archive promotion; and
+29. an exception-first trusted-intake workspace that compares verified
+    originals with reversible suggestions and commits bounded bulk decisions.
 
 Owner photo acceptance is a two-step decision: first preserve the verified
 source as the immutable original, then immediately compare that original with

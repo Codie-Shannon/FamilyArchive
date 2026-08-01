@@ -20,8 +20,8 @@ final class RestorationReviewService
 
     public function decide(RestorationCandidate $candidate, User $reviewer, string $decision, string $note): void
     {
-        if (! $reviewer->isArchiveAdministrator()) {
-            abort(403, 'Archive administrator access is required.');
+        if (! $reviewer->canManageTrustedIntake()) {
+            abort(403, 'Trusted intake access is required.');
         }
         if (! in_array($decision, ['approved', 'rejected'], true)) {
             throw ValidationException::withMessages(['decision' => 'Choose approve or reject.']);

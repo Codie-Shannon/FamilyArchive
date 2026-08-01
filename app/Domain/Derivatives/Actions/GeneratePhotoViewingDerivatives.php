@@ -36,8 +36,8 @@ final class GeneratePhotoViewingDerivatives
 
     public function handle(MediaItem $mediaItem, User $actor): PhotoDerivativeGenerationResult
     {
-        if ($actor->role !== 'owner' || $actor->email_verified_at === null) {
-            throw new DerivativeGenerationException('Only a verified Owner may generate viewing derivatives.');
+        if (! $actor->canManageTrustedIntake() || $actor->email_verified_at === null) {
+            throw new DerivativeGenerationException('Only a verified trusted-intake account may generate viewing derivatives.');
         }
 
         $this->encoder->assertSupported();

@@ -26,8 +26,8 @@ final class ApproveIncomingPhotoForRestoration
 
     public function handle(IncomingUpload $upload, User $actor): IncomingPhotoAutomationResult
     {
-        if ($actor->role !== 'owner' || $actor->email_verified_at === null) {
-            abort(403, 'A verified Owner is required.');
+        if (! $actor->canManageTrustedIntake() || $actor->email_verified_at === null) {
+            abort(403, 'A verified trusted-intake account is required.');
         }
 
         $promotion = ArchivePromotion::query()

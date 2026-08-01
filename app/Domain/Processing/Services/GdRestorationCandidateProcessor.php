@@ -30,8 +30,8 @@ final class GdRestorationCandidateProcessor
 
     public function process(ProcessingJob $job, User $actor): RestorationCandidate
     {
-        if (! $actor->isArchiveAdministrator()) {
-            abort(403, 'Archive administrator access is required.');
+        if (! $actor->canManageTrustedIntake()) {
+            abort(403, 'Trusted intake access is required.');
         }
         if ($job->state !== 'queued') {
             throw new DerivativeGenerationException('Only a queued restoration job can be processed.');

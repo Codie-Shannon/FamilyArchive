@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 20 screenshot groups.
+releases. The repository currently plans 21 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -37,7 +37,9 @@ Group 19 implements the v2.4.0 Verified Photo Workflow boundary with an
 approved seven-file evidence pack.
 Screenshot Group 20 implements the v2.5.0 High-Volume Batch Intake boundary.
 Its resumable implementation and six-file privacy-safe evidence pack are
-approved and closed.
+approved and closed. Screenshot Group 21 implements the v2.6.0 Consolidated
+Intake Review boundary. Its implementation and six-file privacy-safe evidence
+pack are approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -142,6 +144,22 @@ PDFs remain external artifacts and must not be committed.
 | 18 | Corrective archive navigation | 2.3.0 | Archive Exploration |
 | 19 | Corrective verified photo workflow | 2.4.0 | Verified Photo Workflow |
 | 20 | Corrective high-volume intake | 2.5.0 | High-Volume Batch Intake |
+| 21 | Corrective trusted intake review | 2.6.0 | Consolidated Intake Review |
+
+## Screenshot Group 21 Boundary
+
+Screenshot Group 21 turns trusted high-volume intake into one coherent batch
+journey instead of sending reviewers through a separate page for every file.
+
+Implementation status: complete — six-file screenshot evidence approved and
+closed.
+
+Owners, administrators and trusted contributors can prepare reversible edits,
+compare them beside integrity-verified originals, filter exceptions and apply
+original, suggested-edit, hold or reject decisions to visible selections.
+Regular contributors keep the stricter submission boundary. Failed decisions
+are isolated, completed work remains resumable and no batch choice overwrites
+the retained original.
 
 ## Screenshot Group 20 Boundary
 

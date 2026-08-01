@@ -20,8 +20,8 @@ final class HighVolumePhotoBatch
     /** @return array{session_id:string,selected_count:int,total_bytes:int,inventory_sha256:string} */
     public function plan(User $owner, string $directory, int $chunkSize = 500): array
     {
-        if (! $owner->isArchiveAdministrator()) {
-            throw new RuntimeException('An archive administrator is required to plan a high-volume batch.');
+        if (! $owner->canManageTrustedIntake()) {
+            throw new RuntimeException('A trusted intake account is required to plan a high-volume batch.');
         }
         if ($chunkSize < 25 || $chunkSize > 1000) {
             throw new RuntimeException('The checkpoint chunk size must be between 25 and 1000.');
@@ -41,7 +41,8 @@ final class HighVolumePhotoBatch
                 'source_manifest' => json_encode([
                     'source_label' => basename(rtrim(str_replace('\\', '/', $directory), '/')),
                     'inventory_sha256' => $inventory['sha256'], 'selected_count' => count($inventory['files']),
-                    'total_bytes' => $inventory['total_bytes'], 'paths_persisted' => false, 'approval_mode' => 'human_review',
+                    'total_bytes' => $inventory['total_bytes'], 'paths_persisted' => false,
+                    'approval_mode' => 'exception_first_batch_review', 'trust_level' => 'trusted_intake',
                 ], JSON_THROW_ON_ERROR),
                 'created_at' => now(), 'updated_at' => now(),
             ]);

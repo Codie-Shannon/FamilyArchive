@@ -15,8 +15,8 @@ final class ImportHighVolumePhotoBatchCommand extends Command
     public function handle(HighVolumePhotoBatch $batches): int
     {
         $owner = User::query()->where('email', $this->argument('owner'))->first();
-        if (! $owner instanceof User || ! $owner->isArchiveAdministrator()) {
-            $this->error('The supplied account is not an archive administrator.');
+        if (! $owner instanceof User || ! $owner->canManageTrustedIntake()) {
+            $this->error('The supplied account does not have trusted intake access.');
 
             return self::FAILURE;
         }

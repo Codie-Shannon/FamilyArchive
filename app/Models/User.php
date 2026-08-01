@@ -69,4 +69,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return in_array($this->role, ['owner', 'admin', 'contributor', 'trusted_contributor'], true);
     }
+
+    public function canManageTrustedIntake(): bool
+    {
+        return in_array($this->role, ['owner', 'admin', 'trusted_contributor'], true);
+    }
 }

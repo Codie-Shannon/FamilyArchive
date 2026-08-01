@@ -44,8 +44,8 @@ final class PromoteIncomingPhoto
 
     public function handle(IncomingUpload $upload, User $actor): ArchivePromotion
     {
-        if ($actor->role !== 'owner' || $actor->email_verified_at === null) {
-            throw new ArchivePromotionException('Only a verified Owner may promote an archive original.');
+        if (! $actor->canManageTrustedIntake() || $actor->email_verified_at === null) {
+            throw new ArchivePromotionException('Only a verified trusted-intake account may promote an archive original.');
         }
 
         $existing = ArchivePromotion::query()
