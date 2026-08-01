@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Communication\Services\FamilyCommunication;
+use App\Domain\Operations\Services\DelegatedFamilyOperations;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ final class PublicConversationController extends Controller
                 ->join('users', 'users.id', '=', 'conversation_messages.author_id')
                 ->where('conversation_messages.moderation_state', 'visible')
                 ->select([
+                    'conversation_messages.id',
+                    'conversation_messages.author_id',
                     'conversation_messages.conversation_thread_id',
                     'conversation_messages.body',
                     'conversation_messages.created_at',
@@ -64,5 +67,12 @@ final class PublicConversationController extends Controller
         );
 
         return back()->with('status', 'Anonymous message entered moderation. No archive access was granted.');
+    }
+
+    public function report(Request $request, int $message, DelegatedFamilyOperations $operations): RedirectResponse
+    {
+        $operations->reportConversation($request->user(), $message);
+
+        return back()->with('status', 'Message reported for administrator review.');
     }
 }

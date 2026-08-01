@@ -1,5 +1,6 @@
 <x-layouts::app title="Secure Messages">
     <main class="mx-auto max-w-7xl space-y-7 p-6">
+        @if(session('status'))<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-100">{{ session('status') }}</div>@endif
         <header class="flex flex-wrap items-end justify-between gap-5">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-300">Private and consent-first</p>
@@ -38,6 +39,13 @@
                             <p class="mt-2 text-sm text-zinc-500">
                                 {{ $thread['state'] === 'pending' ? 'No message content is available until you explicitly consent.' : 'Consent state recorded without revealing a real identity.' }}
                             </p>
+                            @if($thread['state'] === 'pending')
+                                <form method="POST" action="{{ route('secure-messages.consent', $thread['internal_id']) }}" class="mt-4 flex flex-wrap gap-2">
+                                    @csrf @method('PATCH')
+                                    <button name="decision" value="accept" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Accept request</button>
+                                    <button name="decision" value="block" class="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300">Block</button>
+                                </form>
+                            @endif
                         </div>
                     @empty
                         <p class="rounded-lg border border-dashed border-zinc-700 p-5 text-zinc-400">No public DM requests.</p>

@@ -233,7 +233,12 @@ boundary with an approved six-file evidence pack. Screenshot Group 22
 implements the v2.7.0 Delegated Intake Completion boundary with an approved
 seven-file evidence pack. Screenshot Group 23 implements the v2.8.0 Unified
 Archive Experience boundary with role-aware discovery and its eight-file
-evidence pack approved and closed. The implemented foundation
+evidence pack approved and closed. Screenshot Group 24 implements the v2.9.0
+Delegated Family Operations boundary. Routine membership, reported-content and
+communication decisions can be handled by archive administrators or their
+direct recipients, while elevated roles, original access and policy exceptions
+remain Owner-controlled; its eight-file evidence pack is approved and closed. The
+implemented foundation
 establishes:
 
 1. application foundation;
@@ -280,6 +285,8 @@ establishes:
     candidates without automatic archive promotion; and
 29. an exception-first trusted-intake workspace that compares verified
     originals with reversible suggestions and commits bounded bulk decisions.
+30. delegated routine family operations that keep privileged access and
+    original-file decisions inside the Owner exception boundary.
 
 Owner photo acceptance is a two-step decision: first preserve the verified
 source as the immutable original, then immediately compare that original with

@@ -34,8 +34,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG21 - Consolidated Intake Review
 - Completed and closed: SG22 - Delegated Intake Completion
 - Completed and closed: SG23 - Unified Archive Experience
-- Current release: v2.8.0 - Unified Archive Experience
-- Current evidence state: Screenshot Groups 01-23 approved and closed
+- Completed and closed: SG24 - Delegated Family Operations
+- Current release: v2.9.0 - Delegated Family Operations
+- Current evidence state: Screenshot Groups 01-24 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -51,6 +52,10 @@ system and is not part of another product or student-work archive.
   reviewed places, people, events, branches and permission-aware search through
   one shared navigation surface, while private, living, sensitive and
   unreviewed facts are filtered before display
+- Current family-operations model: administrators decide routine viewer and
+  contributor accounts, resolve reported posts and ordinary communication
+  queues, while recipients decide their own private-message requests and the
+  Owner retains elevated-role, original-access and policy exceptions
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

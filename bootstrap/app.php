@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountIsApproved;
+use App\Http\Middleware\EnsureUserCanManageFamilyOperations;
 use App\Http\Middleware\EnsureUserCanManageTrustedIntake;
 use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\PreventDemoWrites;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'demo.readonly' => PreventDemoWrites::class,
             'account.approved' => EnsureAccountIsApproved::class,
             'owner' => EnsureUserIsOwner::class,
+            'family.operations' => EnsureUserCanManageFamilyOperations::class,
             'trusted.intake' => EnsureUserCanManageTrustedIntake::class,
         ]);
     })

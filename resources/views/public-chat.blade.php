@@ -61,6 +61,14 @@
                             <div class="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
                                 <p class="text-sm font-semibold text-zinc-200">{{ $message->author_name }}</p>
                                 <p class="mt-1 text-zinc-300">{{ $message->body }}</p>
+                                @auth
+                                    @if((int) auth()->id() !== (int) $message->author_id)
+                                    <form method="POST" action="{{ route('public-chat.report', $message->id) }}" class="mt-3">
+                                        @csrf @method('PATCH')
+                                        <button class="text-xs font-semibold text-zinc-500 hover:text-amber-300">Report for review</button>
+                                    </form>
+                                    @endif
+                                @endauth
                             </div>
                         @empty
                             <p class="text-sm text-zinc-500">No approved posts yet.</p>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ArchiveSchemaController;
 use App\Http\Controllers\Admin\ArchiveStorageController;
 use App\Http\Controllers\Admin\CloudImportController;
 use App\Http\Controllers\Admin\DuplicateCandidateController;
+use App\Http\Controllers\Admin\FamilyOperationsController;
 use App\Http\Controllers\Admin\HighVolumeBatchController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
 use App\Http\Controllers\Admin\OperationsController;
@@ -62,10 +63,17 @@ Route::middleware('guest')->group(function (): void {
 Route::post('/conversations/messages', [PublicConversationController::class, 'message'])
     ->middleware(['auth', 'verified', 'demo.readonly', 'throttle:20,1'])
     ->name('public-chat.message');
+Route::patch('/conversations/messages/{message}/report', [PublicConversationController::class, 'report'])
+    ->middleware(['auth', 'verified', 'account.approved', 'demo.readonly', 'throttle:10,1'])
+    ->whereNumber('message')
+    ->name('public-chat.report');
 Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->group(function (): void {
     Route::get('/dashboard', MemberHomeController::class)->name('dashboard');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
     Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
+    Route::patch('/secure-messages/requests/{thread}', [SecureMessagingController::class, 'consent'])
+        ->whereNumber('thread')
+        ->name('secure-messages.consent');
     Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
     Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
     Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
@@ -127,6 +135,13 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::get('/admin', OwnerCommandCentreController::class)->middleware('owner')->name('admin.dashboard');
     Route::get('/admin/archive-schema', ArchiveSchemaController::class)->middleware('owner')->name('admin.archive-schema');
     Route::get('/admin/archive-storage', ArchiveStorageController::class)->middleware('owner')->name('admin.archive-storage');
+    Route::middleware('family.operations')->prefix('admin')->name('admin.')->group(function (): void {
+        Route::get('/family-operations', [FamilyOperationsController::class, 'index'])->name('family-operations.index');
+        Route::patch('/family-operations/accounts/{user}', [FamilyOperationsController::class, 'account'])->name('family-operations.accounts');
+        Route::patch('/family-operations/voice/{message}', [FamilyOperationsController::class, 'voice'])->whereNumber('message')->name('family-operations.voice');
+        Route::patch('/family-operations/conversations/{message}', [FamilyOperationsController::class, 'conversation'])->whereNumber('message')->name('family-operations.conversations');
+        Route::patch('/family-operations/anonymous/{message}', [FamilyOperationsController::class, 'anonymous'])->whereNumber('message')->name('family-operations.anonymous');
+    });
     Route::middleware('owner')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('/photo-intake', [PhotoIntakeController::class, 'index'])->name('photo-intake.index');
         Route::get('/operations', OperationsController::class)->name('operations');

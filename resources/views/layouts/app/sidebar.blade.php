@@ -17,6 +17,11 @@
    @endif
    <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
   </flux:navlist.group>
+  @if(auth()->user()?->canManageFamilyOperations())
+   <flux:navlist.group :heading="__('Administration')" class="grid">
+    <flux:navlist.item icon="user-group" :href="route('admin.family-operations.index')" :current="request()->routeIs('admin.family-operations.*')" wire:navigate>{{ __('Family Operations') }}</flux:navlist.item>
+   </flux:navlist.group>
+  @endif
   @if(auth()->user()?->role === 'owner')
    <flux:navlist.group :heading="__('Owner')" class="grid">
     <flux:navlist.item icon="squares-2x2" :href="route('admin.dashboard')" :current="request()->routeIs('admin.*', 'archive.sources.*')" wire:navigate>{{ __('Command Centre') }}</flux:navlist.item>

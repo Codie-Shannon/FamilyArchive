@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Operations\Services\DelegatedFamilyOperations;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class SecureMessagingController extends Controller
@@ -25,6 +29,16 @@ final class SecureMessagingController extends Controller
             'protocolVersion' => (int) config('communication_bridges.end_to_end_encryption.protocol_version'),
             'activeView' => request()->string('view')->toString() === 'attachments' ? 'attachments' : 'consent',
         ]);
+    }
+
+    public function consent(Request $request, int $thread, DelegatedFamilyOperations $operations): RedirectResponse
+    {
+        $validated = $request->validate([
+            'decision' => ['required', Rule::in(['accept', 'block'])],
+        ]);
+        $operations->decideDirectMessage($request->user(), $thread, $validated['decision']);
+
+        return back()->with('status', 'Your message-request decision was recorded.');
     }
 
     /** @return Collection<int, array{internal_id: int, alias_name: string, state: string}> */

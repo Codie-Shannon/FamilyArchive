@@ -23,7 +23,10 @@ final class OwnerCommandCentreController extends Controller
             : 'overview';
 
         $queue = [
-            'accounts' => User::query()->where('account_state', 'pending')->count(),
+            'accounts' => User::query()
+                ->where('account_state', 'pending')
+                ->whereIn('role', ['trusted_contributor', 'admin', 'owner'])
+                ->count(),
             'invitations' => DB::table('user_invitations')
                 ->whereNull('accepted_at')
                 ->whereNull('revoked_at')

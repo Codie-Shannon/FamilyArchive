@@ -45,6 +45,9 @@ privacy-safe evidence pack are approved and closed.
 Screenshot Group 23 implements the v2.8.0 Unified Archive Experience boundary.
 Its role-aware archive browsing implementation and eight-file evidence pack are
 approved and closed.
+Screenshot Group 24 implements the v2.9.0 Delegated Family Operations boundary.
+Its implementation and eight-file privacy-safe evidence pack are approved and
+closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -152,6 +155,24 @@ PDFs remain external artifacts and must not be committed.
 | 21 | Corrective trusted intake review | 2.6.0 | Consolidated Intake Review |
 | 22 | Corrective delegated intake completion | 2.7.0 | Delegated Intake Completion |
 | 23 | Corrective unified archive experience | 2.8.0 | Unified Archive Experience |
+| 24 | Corrective delegated family operations | 2.9.0 | Delegated Family Operations |
+
+## Screenshot Group 24 Boundary
+
+Screenshot Group 24 removes routine Owner bottlenecks from family membership,
+conversation and communication operations without weakening high-risk access
+boundaries.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+Archive administrators can approve or reject routine viewer and contributor
+accounts, resolve reported family posts, review voice-message exceptions and
+triage anonymous contact. Ordinary family conversation is visible immediately,
+and each recipient accepts or blocks their own private-message requests.
+Trusted-contributor, administrator and Owner role grants remain Owner
+exceptions, as do original-file access and policy changes. The Owner command
+centre therefore reports elevated exceptions instead of every ordinary family
+decision.
 
 ## Screenshot Group 23 Boundary
 
