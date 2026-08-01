@@ -2,7 +2,7 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 06 · Post-v1 A</p>
+                <p class="text-sm font-semibold text-emerald-300">Human-reviewed media intelligence</p>
                 <h1 class="mt-1 text-3xl font-semibold text-white">Advanced media intelligence</h1>
                 <p class="mt-2 text-zinc-400">Visual similarity, alternate originals and provenance-aware merge previews.</p>
             </div>

@@ -2,7 +2,7 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 08 · Post-v1 C</p>
+                <p class="text-sm font-semibold text-emerald-300">Privacy-safe public discovery</p>
                 <h1 class="mt-1 text-3xl font-semibold text-white">Public discovery review</h1>
                 <p class="mt-2 text-zinc-400">Approve showcase stories, social cards and privacy-safe map points before publication.</p>
             </div>

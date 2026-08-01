@@ -7,7 +7,7 @@
     <main class="mx-auto max-w-5xl space-y-7 p-6 sm:p-10">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 02 · Build Groups 21–28</p>
+                <p class="text-sm font-semibold text-emerald-300">Family conversation</p>
                 <h1 class="mt-1 text-3xl font-semibold text-white">Family conversations</h1>
                 <p class="mt-2 max-w-2xl text-zinc-400">Moderated public discussion is separated from private archive knowledge.</p>
             </div>

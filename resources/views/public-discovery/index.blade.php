@@ -2,7 +2,7 @@
     <main class="mx-auto max-w-7xl space-y-9 px-6 py-10">
         <header class="grid gap-6 rounded-3xl border border-emerald-950 bg-gradient-to-br from-emerald-950/60 to-zinc-900 p-8 lg:grid-cols-[1.4fr_0.6fr]">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Screenshot Group 08 · Post-v1 C</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Public family stories</p>
                 <h1 class="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-white">Stories approved for everyone</h1>
                 <p class="mt-4 max-w-2xl text-lg leading-8 text-zinc-300">A deliberately small public window into the archive. Every story is reviewed, approved and separable from private family records.</p>
                 <div class="mt-6 flex flex-wrap gap-3">

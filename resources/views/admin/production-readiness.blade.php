@@ -2,7 +2,7 @@
     <main class="mx-auto max-w-7xl space-y-7 p-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-300">Screenshot Group 15 · Hosted Production</p>
+                <p class="text-sm font-semibold text-emerald-300">Production operations</p>
                 <h1 class="mt-1 text-3xl font-semibold text-white">Production readiness</h1>
                 <p class="mt-2 max-w-3xl text-zinc-400">
                     Verify the live HTTPS boundary, durable application state, private archive storage and hardened responses without exposing infrastructure identifiers.
