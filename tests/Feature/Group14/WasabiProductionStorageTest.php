@@ -133,6 +133,38 @@ it('writes only when absent and verifies the exact returned version', function (
     fclose($duplicate);
 });
 
+it('writes and verifies a fresh non-seekable remote source stream', function (): void {
+    $gateway = group14Gateway();
+    $writer = new WasabiVerifiedObjectWriter($gateway);
+    $sockets = stream_socket_pair(STREAM_PF_INET, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+
+    expect($sockets)->not->toBeFalse();
+    [$producer, $source] = $sockets;
+    $bytes = 'immutable bytes from a non-seekable remote stream';
+
+    try {
+        fwrite($producer, $bytes);
+        stream_socket_shutdown($producer, STREAM_SHUT_WR);
+
+        expect(stream_get_meta_data($source)['seekable'])->toBeFalse();
+
+        $written = $writer->write(
+            'archive/originals',
+            'aa/bb/non-seekable.bin',
+            $source,
+            strlen($bytes),
+            hash('sha256', $bytes),
+        );
+
+        expect($written->bytes)->toBe(strlen($bytes))
+            ->and($written->sha256)->toBe(hash('sha256', $bytes))
+            ->and($gateway->objectExists('archive/originals', 'aa/bb/non-seekable.bin'))->toBeTrue();
+    } finally {
+        fclose($source);
+        fclose($producer);
+    }
+});
+
 it('records a safe live verification without provider identifiers', function (): void {
     configureGroup14Wasabi();
     $gateway = group14Gateway();

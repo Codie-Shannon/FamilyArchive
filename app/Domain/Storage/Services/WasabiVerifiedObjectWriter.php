@@ -39,7 +39,7 @@ final class WasabiVerifiedObjectWriter
         $bytes = 0;
 
         try {
-            rewind($source);
+            $this->rewindIfSeekable($source);
             while (! feof($source)) {
                 $chunk = fread($source, 1024 * 1024);
                 if ($chunk === false) {
@@ -101,6 +101,20 @@ final class WasabiVerifiedObjectWriter
             return new VerifiedWasabiObject($relativePath, $bytes, $sourceSha256, $versionId);
         } finally {
             fclose($spool);
+        }
+    }
+
+    /**
+     * Fresh remote read streams may not support seeking. Seekable streams are
+     * reset to preserve the writer's existing whole-object behaviour.
+     *
+     * @param  resource  $source
+     */
+    private function rewindIfSeekable($source): void
+    {
+        $metadata = stream_get_meta_data($source);
+        if ($metadata['seekable'] && ! rewind($source)) {
+            throw new WasabiProviderException('The source stream could not be rewound.');
         }
     }
 
