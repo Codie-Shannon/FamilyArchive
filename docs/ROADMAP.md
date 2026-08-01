@@ -174,6 +174,8 @@ The release:
 - requires a verified Owner to accept an immutable original;
 - turns uploader-selected automation controls into a separate restoration
   candidate;
+- takes the Owner directly from source acceptance to an original-versus-edit
+  comparison before any candidate can become the viewing version;
 - keeps unrelated restoration records out of a focused candidate review;
 - requires explicit owner approval before the restored candidate becomes a
   preferred viewing source;

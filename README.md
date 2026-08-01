@@ -39,8 +39,8 @@ system and is not part of another product or student-work archive.
 - Current restoration model: uploader-controlled, integrity-verified,
   non-destructive candidates with explicit human review
 - Current verified photo workflow: retained contributor input, owner acceptance,
-  owner-approved restoration and private web/thumbnail derivatives with explicit
-  lineage
+  immediate original-versus-edit review, owner-approved restoration and private
+  web/thumbnail derivatives with explicit lineage
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

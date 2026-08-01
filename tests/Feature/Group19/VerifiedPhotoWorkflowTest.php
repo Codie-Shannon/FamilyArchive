@@ -1,11 +1,11 @@
 <?php
 
 use App\Domain\Access\Models\ContributorSubmission;
-use App\Domain\Intake\Actions\ApproveIncomingPhotoForRestoration;
 use App\Domain\Intake\Enums\DuplicateStatus;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Models\MediaFileVersion;
+use App\Domain\Processing\Models\ProcessingJob;
 use App\Domain\Processing\Services\RestorationReviewService;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
@@ -60,10 +60,35 @@ it('carries a retained contributor photo through owner approval to private resto
     ]);
     $retainedBefore = Storage::disk('archive_quarantine')->get($path);
 
-    $result = app(ApproveIncomingPhotoForRestoration::class)->handle($upload, $owner);
-    $candidate = $result->candidate;
+    $this->actingAs($owner)
+        ->get(route('admin.photo-intake.show', $upload))
+        ->assertOk()
+        ->assertSee('Step 1 of 2')
+        ->assertSee('Accept original and generate edit preview');
 
-    expect($result->state)->toBe('candidate_ready')
+    $response = $this->actingAs($owner)
+        ->post(route('admin.photo-intake.approve-and-process', $upload));
+    $promotion = $upload->fresh()->archivePromotion;
+    $job = ProcessingJob::query()
+        ->with('candidate.candidateVersion')
+        ->where('source_version_id', $promotion?->original_media_file_version_id)
+        ->sole();
+    $candidate = $job->candidate;
+
+    $response->assertRedirect(route('admin.restoration', ['candidate' => $candidate?->id]));
+    $this->actingAs($owner)
+        ->get(route('admin.restoration', ['candidate' => $candidate?->id]))
+        ->assertOk()
+        ->assertSee('Step 2 of 2')
+        ->assertSee('Original vs suggested edit')
+        ->assertSee('Original — preserved unchanged')
+        ->assertSee('Suggested edit — approve or reject')
+        ->assertSee('Approve suggested edit')
+        ->assertSee('Reject suggested edit')
+        ->assertSee(route('admin.restoration.candidates.preview', [$candidate, 'source']), false)
+        ->assertSee(route('admin.restoration.candidates.preview', [$candidate, 'candidate']), false);
+
+    expect($job->state)->toBe('candidate_ready')
         ->and($candidate)->not->toBeNull()
         ->and($candidate?->review_state)->toBe('pending')
         ->and($candidate?->candidateVersion?->version_type)->toBe(MediaFileVersionType::EditedFull)
@@ -77,7 +102,7 @@ it('carries a retained contributor photo through owner approval to private resto
         'Approved fictional restoration after source comparison.',
     );
 
-    $item = $result->promotion?->mediaItem;
+    $item = $promotion?->mediaItem;
     $approved = $candidate?->candidateVersion?->fresh();
     $web = MediaFileVersion::query()
         ->where('media_item_id', $item?->id)
@@ -95,7 +120,7 @@ it('carries a retained contributor photo through owner approval to private resto
         ->and($web->is_preferred)->toBeTrue()
         ->and($thumbnail->is_preferred)->toBeTrue()
         ->and(Storage::disk('archive_quarantine')->get($path))->toBe($retainedBefore)
-        ->and(Storage::disk('archive_originals')->exists($result->promotion?->target_path))->toBeTrue()
+        ->and(Storage::disk('archive_originals')->exists($promotion?->target_path))->toBeTrue()
         ->and(Storage::disk('archive_derivatives')->exists($web->storage_path))->toBeTrue()
         ->and(Storage::disk('archive_derivatives')->exists($thumbnail->storage_path))->toBeTrue();
 

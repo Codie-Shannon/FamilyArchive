@@ -12,11 +12,14 @@
 <p class="mt-5 text-emerald-200">The immutable original is approved and retained. {{ $processingJob?->candidate ? 'A separate candidate is ready for human review.' : 'No candidate has been generated.' }}</p>
 <a href="{{ route('admin.restoration', $processingJob?->candidate ? ['candidate' => $processingJob->candidate->id] : []) }}" class="mt-4 inline-flex rounded-lg bg-white px-4 py-2 font-semibold text-zinc-950">Open restoration review</a>
 @else
-<p class="mt-5 text-amber-200">Not approved until the owner action completes. The action below first runs exact duplicate detection, then verifies and preserves the original before creating any derivative.</p>
+<div class="mt-5 rounded-lg border border-amber-800 bg-amber-950/20 p-4 text-amber-100">
+<p class="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Step 1 of 2 · Accept the source</p>
+<p class="mt-2">Not approved until this step completes. Verify the uncropped source, preserve it as the immutable original, then generate a separate edit preview. You will be taken directly to a side-by-side comparison before the edit can become the viewing version.</p>
+</div>
 @if($submission)
 <div class="mt-4 rounded-lg border border-zinc-700 bg-zinc-950 p-4 text-sm"><p class="font-semibold text-white">Uploader automation controls</p><p class="mt-2 text-zinc-400">Mode: {{ data_get($submission->automation_preferences, 'automation_mode', 'suggestions') }} · Crop: {{ data_get($submission->automation_preferences, 'crop_target', 'none') }} · Auto-rotate: {{ data_get($submission->automation_preferences, 'auto_rotate', false) ? 'on' : 'off' }} · Deskew: {{ data_get($submission->automation_preferences, 'deskew', false) ? 'on' : 'off' }}</p></div>
 @endif
-<form method="POST" action="{{ route('admin.photo-intake.approve-and-process', $upload['id']) }}" class="mt-5">@csrf<button type="submit" class="rounded-lg bg-emerald-400 px-5 py-3 font-semibold text-zinc-950">Accept original and create review candidate</button></form>
+<form method="POST" action="{{ route('admin.photo-intake.approve-and-process', $upload['id']) }}" class="mt-5">@csrf<button type="submit" class="rounded-lg bg-emerald-400 px-5 py-3 font-semibold text-zinc-950">Accept original and generate edit preview</button></form>
 @endif
 </section>
 </div></x-layouts::app>

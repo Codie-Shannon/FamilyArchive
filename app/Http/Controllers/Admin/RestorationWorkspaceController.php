@@ -123,6 +123,10 @@ final class RestorationWorkspaceController extends Controller
             $validated['review_note'],
         );
 
-        return back()->with('status', 'Restoration candidate review recorded.');
+        $status = $validated['decision'] === 'approved'
+            ? 'Suggested edit approved as the preferred viewing version. The original remains unchanged.'
+            : 'Suggested edit rejected. The original remains unchanged.';
+
+        return back()->with('status', $status);
     }
 }

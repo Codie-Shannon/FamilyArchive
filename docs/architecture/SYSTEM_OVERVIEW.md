@@ -270,6 +270,11 @@ establishes:
     photo intake that requests separate smart-crop, rotation and deskew
     candidates without automatic archive promotion.
 
+Owner photo acceptance is a two-step decision: first preserve the verified
+source as the immutable original, then immediately compare that original with
+the generated edit. Only the second explicit decision may change the preferred
+viewing version; it never changes the original.
+
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
 Family Access & Conversation adds account approval facts, contributor intake

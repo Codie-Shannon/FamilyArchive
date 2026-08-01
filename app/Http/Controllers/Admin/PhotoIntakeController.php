@@ -145,7 +145,11 @@ final class PhotoIntakeController extends Controller
                 ->with('status', 'The verified original was accepted. Candidate automation is disabled for this submission.');
         }
 
-        return redirect()->route('admin.restoration')
-            ->with('status', 'The verified original was preserved and a separate restoration candidate is ready for review.');
+        if ($result->candidate === null) {
+            abort(409, 'The original was accepted, but its edit preview is unavailable.');
+        }
+
+        return redirect()->route('admin.restoration', ['candidate' => $result->candidate->id])
+            ->with('status', 'Original accepted. Compare it with the generated edit before choosing the viewing version.');
     }
 }
