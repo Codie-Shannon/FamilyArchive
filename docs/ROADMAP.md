@@ -1,8 +1,8 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 30 completed screenshot groups and one
-implemented group awaiting evidence approval.
+releases. The repository currently has 31 completed and approved screenshot
+groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -65,8 +65,7 @@ Screenshot Group 30 implements the v3.5.0 Everyday Family Experience boundary.
 Its implementation and eight-file screenshot evidence pack are approved and
 closed.
 Screenshot Group 31 implements the v3.6.0 Embedded Family Messaging boundary.
-Its implementation is complete and its screenshot evidence is awaiting manual
-approval.
+Its implementation and screenshot evidence are approved and closed.
 
 ## Screenshot Group 29 Boundary
 
