@@ -5,6 +5,8 @@ namespace App\Domain\Processing\Services;
 use App\Domain\Archive\Services\StoragePathValidator;
 use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
+use App\Domain\Duplicates\Enums\DuplicateMatchMethod;
+use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -230,12 +232,45 @@ final class ManualRestorationEditor
     private function originalSourceForItem(object $item): ?MediaFileVersion
     {
         $upload = IncomingUpload::query()->find((int) data_get($item, 'incoming_upload_id'));
-        if (! $upload instanceof IncomingUpload || $upload->media_item_id === null) {
+        if (! $upload instanceof IncomingUpload) {
             return null;
         }
 
+        if ($upload->media_item_id !== null) {
+            return $this->preferredOriginalForMediaItem($upload->media_item_id);
+        }
+
+        $duplicate = DuplicateCandidate::query()
+            ->with(['matchedMediaFileVersion', 'matchedIncomingUpload'])
+            ->where('incoming_upload_id', $upload->id)
+            ->where('match_method', DuplicateMatchMethod::ExactSha256)
+            ->latest('id')
+            ->first();
+        if (! $duplicate instanceof DuplicateCandidate
+            || ! hash_equals($upload->sha256, (string) $duplicate->matched_sha256)) {
+            return null;
+        }
+
+        $matchedVersion = $duplicate->matchedMediaFileVersion;
+        if ($matchedVersion instanceof MediaFileVersion
+            && hash_equals($upload->sha256, $matchedVersion->sha256)) {
+            return $matchedVersion;
+        }
+
+        $matchedUpload = $duplicate->matchedIncomingUpload;
+        if (! $matchedUpload instanceof IncomingUpload
+            || $matchedUpload->media_item_id === null
+            || ! hash_equals($upload->sha256, $matchedUpload->sha256)) {
+            return null;
+        }
+
+        return $this->preferredOriginalForMediaItem($matchedUpload->media_item_id);
+    }
+
+    private function preferredOriginalForMediaItem(int $mediaItemId): ?MediaFileVersion
+    {
         return MediaFileVersion::query()
-            ->where('media_item_id', $upload->media_item_id)
+            ->where('media_item_id', $mediaItemId)
             ->where('version_type', MediaFileVersionType::Original)
             ->where('is_preferred', true)
             ->first();

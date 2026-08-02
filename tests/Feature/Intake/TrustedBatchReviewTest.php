@@ -2,6 +2,7 @@
 
 use App\Domain\CloudImport\Services\HighVolumePhotoBatch;
 use App\Domain\CloudImport\Services\TrustedBatchReview;
+use App\Domain\Duplicates\Models\DuplicateCandidate;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Processing\Models\RestorationCandidate;
@@ -239,6 +240,86 @@ it('lets trusted reviewers edit the original when automation has no usable sugge
             ->and(RestorationCandidate::query()->findOrFail($supersededCandidateId)->review_state)->toBe('pending');
     } finally {
         File::deleteDirectory($directory);
+    }
+});
+
+it('lets trusted reviewers edit an exact duplicate against its verified archived original', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+    $firstDirectory = storage_path('framework/testing/exact-source-'.str()->random(10));
+    $duplicateDirectory = storage_path('framework/testing/exact-copy-'.str()->random(10));
+    File::ensureDirectoryExists($firstDirectory);
+    File::ensureDirectoryExists($duplicateDirectory);
+    $photo = UploadedFile::fake()->image('archived-family-photo.jpg', 800, 600);
+    File::copy($photo->getRealPath(), $firstDirectory.'/archived-family-photo.jpg');
+    File::copy($photo->getRealPath(), $duplicateDirectory.'/family-photo-copy.jpg');
+
+    try {
+        $first = app(HighVolumePhotoBatch::class)->plan($trusted, $firstDirectory, 25);
+        app(HighVolumePhotoBatch::class)->process($first['session_id'], $firstDirectory, 1);
+        app(TrustedBatchReview::class)->prepare($first['session_id'], $trusted, 25);
+        $firstSessionKey = (int) DB::table('cloud_import_sessions')->where('session_id', $first['session_id'])->value('id');
+        $firstItem = DB::table('cloud_import_items')->where('cloud_import_session_id', $firstSessionKey)->first();
+        app(TrustedBatchReview::class)->decide($first['session_id'], $trusted, [(int) $firstItem->id], 'original');
+
+        $mediaItem = MediaItem::query()->firstOrFail();
+        $original = $mediaItem->fileVersions()
+            ->where('version_type', 'original')
+            ->where('is_preferred', true)
+            ->firstOrFail();
+        $originalBytes = Storage::disk('archive_originals')->get($original->storage_path);
+
+        $duplicate = app(HighVolumePhotoBatch::class)->plan($trusted, $duplicateDirectory, 25);
+        app(HighVolumePhotoBatch::class)->process($duplicate['session_id'], $duplicateDirectory, 1);
+        $prepared = app(TrustedBatchReview::class)->prepare($duplicate['session_id'], $trusted, 25);
+        $duplicateSessionKey = (int) DB::table('cloud_import_sessions')->where('session_id', $duplicate['session_id'])->value('id');
+        $item = DB::table('cloud_import_items')->where('cloud_import_session_id', $duplicateSessionKey)->first();
+
+        expect($prepared['attention'])->toBe(1)
+            ->and($item->attention_code)->toBe('exact_duplicate')
+            ->and($item->restoration_candidate_id)->toBeNull()
+            ->and(DuplicateCandidate::query()->where('incoming_upload_id', $item->incoming_upload_id)->exists())->toBeTrue();
+
+        $this->actingAs($trusted)
+            ->post(route('intake.items.editor.update', [$duplicate['session_id'], $item->id]), [
+                'orient' => 1,
+                'quarter_turn' => 0,
+                'straighten' => 0,
+                'crop_left' => 10,
+                'crop_top' => 5,
+                'crop_right' => 10,
+                'crop_bottom' => 5,
+                'brightness' => 0,
+                'contrast' => 0,
+                'red' => 0,
+                'green' => 0,
+                'blue' => 0,
+                'denoise' => 0,
+                'sharpen' => 0,
+                'cleanup' => 0,
+            ])
+            ->assertRedirect(route('intake.batches.show', [$duplicate['session_id'], 'filter' => 'pending']));
+
+        $freshItem = DB::table('cloud_import_items')->where('id', $item->id)->first();
+        $manualCandidate = RestorationCandidate::query()->findOrFail((int) $freshItem->restoration_candidate_id);
+        expect($manualCandidate->source_version_id)->toBe($original->id)
+            ->and($manualCandidate->analysis['editor'])->toBe('manual')
+            ->and($original->fresh()->sha256)->toBe($original->sha256)
+            ->and(Storage::disk('archive_originals')->get($original->storage_path))->toBe($originalBytes);
+
+        $result = app(TrustedBatchReview::class)->decide(
+            $duplicate['session_id'],
+            $trusted,
+            [(int) $item->id],
+            'suggested_edit',
+        );
+        expect($result)->toBe(['reviewed' => 1, 'failed' => 0])
+            ->and(MediaItem::query()->count())->toBe(1)
+            ->and($mediaItem->fresh()->review_status)->toBe(MediaReviewStatus::Approved)
+            ->and($manualCandidate->fresh()->review_state)->toBe('approved')
+            ->and(DB::table('cloud_import_items')->where('id', $item->id)->value('review_decision'))->toBe('suggested_edit');
+    } finally {
+        File::deleteDirectory($firstDirectory);
+        File::deleteDirectory($duplicateDirectory);
     }
 });
 

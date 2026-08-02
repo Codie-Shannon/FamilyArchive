@@ -214,7 +214,13 @@ final class TrustedBatchReview
         $candidateId = data_get($item, 'restoration_candidate_id');
         $candidate = $candidateId === null
             ? null
-            : RestorationCandidate::query()->whereKey((int) $candidateId)->first();
+            : RestorationCandidate::query()
+                ->with('sourceVersion.mediaItem')
+                ->whereKey((int) $candidateId)
+                ->first();
+        if (! $mediaItem instanceof MediaItem && $candidate instanceof RestorationCandidate) {
+            $mediaItem = $candidate->sourceVersion?->mediaItem;
+        }
 
         if ($decision === 'hold') {
             if ($mediaItem instanceof MediaItem) {
