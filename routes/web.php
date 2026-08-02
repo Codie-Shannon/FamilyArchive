@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DuplicateCandidateController;
 use App\Http\Controllers\Admin\FamilyOperationsController;
 use App\Http\Controllers\Admin\HighVolumeBatchController;
 use App\Http\Controllers\Admin\MediaIntelligenceController;
+use App\Http\Controllers\Admin\MigrationQualificationController;
 use App\Http\Controllers\Admin\OperationsController;
 use App\Http\Controllers\Admin\OwnerCommandCentreController;
 use App\Http\Controllers\Admin\PhotoIntakeController;
@@ -184,6 +185,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/media-intelligence', MediaIntelligenceController::class)->name('media-intelligence');
         Route::get('/cloud-imports', CloudImportController::class)->name('cloud-imports');
         Route::get('/batch-imports', HighVolumeBatchController::class)->name('batch-imports');
+        Route::get('/migration-qualification', MigrationQualificationController::class)->name('migration-qualification');
         Route::get('/public-discovery', [PublicDiscoveryController::class, 'admin'])->name('public-discovery');
         Route::get('/community-operations', RealtimeCommunityController::class)->name('community-operations');
         Route::get('/secure-communication', SecureCommunicationController::class)->name('secure-communication');

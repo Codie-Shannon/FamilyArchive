@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 32 completed and approved
+- Official screenshot groups: 33 completed and approved
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -43,8 +43,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG30 - Everyday Family Experience
 - Completed and closed: SG31 - Embedded Family Messaging
 - Completed and closed: SG32 - Migration Preflight
-- Current release: v3.7.0 - Migration Preflight
-- Current evidence state: Screenshot Groups 01-32 approved and closed
+- Completed and closed: SG33 - Migration Qualification
+- Current release: v3.8.0 - Migration Qualification
+- Current evidence state: Screenshot Groups 01-33 approved and closed
 - Current media support: photos
 - Current access model: invite-only approved role/branch access with either
   verified email or guided member-name setup, printable one-time codes,
@@ -85,6 +86,10 @@ system and is not part of another product or student-work archive.
   records relative-path hashes rather than source paths, estimates original,
   derivative and working capacity, identifies duplicate candidates and isolates
   unreadable files before a resumable or bounded unattended import begins
+- Current migration qualification: a synthetic 30,000-entry manifest proves
+  bounded checkpoints, interruption and resume, isolated recovery, idempotent
+  replay and exact reconciliation without reading or retaining private media;
+  the real family migration remains a separate operator-controlled activity
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

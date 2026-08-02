@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 32 completed and approved screenshot
+releases. The repository currently has 33 completed and approved screenshot
 groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
@@ -69,6 +69,27 @@ Its implementation and screenshot evidence are approved and closed.
 Screenshot Group 32 implements the v3.7.0 Migration Preflight boundary. Its
 implementation and six-file privacy-safe evidence pack are approved and
 closed.
+Screenshot Group 33 implements the v3.8.0 Migration Qualification boundary.
+Its implementation and six-file privacy-safe evidence pack are approved and
+closed.
+
+## Screenshot Group 33 Boundary
+
+Screenshot Group 33 qualifies the migration control plane before private media
+is introduced. It:
+
+- persists a deterministic 30,000-entry synthetic manifest without reading or
+  retaining source photos or source paths;
+- advances through 60 bounded, durable 500-entry checkpoints;
+- injects an interruption after 12,000 entries and resumes from the first
+  pending position instead of replaying completed work;
+- isolates three deterministic failures, records their first attempts and
+  recovers them without weakening the rest of the run;
+- rejects a 500-entry replay sample through database-backed idempotency;
+- reconciles expected and observed positions, checkpoint coverage and an
+  end-to-end manifest digest; and
+- states explicitly that qualification is synthetic and that the real private
+  30,000-photo migration remains separate operator-controlled work.
 
 ## Screenshot Group 32 Boundary
 

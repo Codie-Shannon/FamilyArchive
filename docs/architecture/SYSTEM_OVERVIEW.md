@@ -317,6 +317,10 @@ establishes:
 32. a read-only migration preflight that validates decodable image content,
     inventories safe relative identities, estimates capacity, identifies
     duplicate candidates and isolates unreadable files before retention.
+33. a synthetic 30,000-entry migration qualification harness that proves
+    durable checkpoint progression, interruption and resume, isolated recovery,
+    idempotent replay and exact final reconciliation without using private
+    source media.
 
 Photo acceptance preserves the verified source as the immutable original before
 any review candidate can exist. Authorized trusted reviewers may compare an
@@ -349,6 +353,14 @@ cross into persistence. Retention rechecks the inventory and each selected
 content checksum before creating a quarantined upload. Checkpoints make a
 restart idempotent, while checksum mismatch, unreadable content and transient
 retention failures remain distinct operator outcomes.
+
+Migration qualification sits between preflight implementation and the real
+private batch. It stores deterministic synthetic fingerprints and positional
+checkpoints, deliberately interrupts the run, resumes pending work, isolates
+and recovers injected exceptions, rejects replayed entries and compares the
+final digest and coverage with the planned manifest. It proves the control
+plane at 30,000-entry scale but deliberately makes no claim that private media
+has been migrated; that remains a separate operator-controlled acceptance run.
 Family Access & Conversation adds account approval facts, contributor intake
 records and moderated communication while preserving the private archive
 boundary. Collaboration & Restoration adds versioned recipes, immutable-source
