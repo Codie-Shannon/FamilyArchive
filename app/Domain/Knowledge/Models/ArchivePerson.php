@@ -6,6 +6,7 @@ use App\Domain\Knowledge\Enums\KnowledgeReviewState;
 use App\Domain\Knowledge\Enums\PersonDatePrecision;
 use App\Domain\Knowledge\Enums\PersonNameCertainty;
 use App\Domain\Media\Enums\StructuredDateConfidence;
+use App\Domain\Media\Models\MediaItem;
 use App\Domain\Provenance\Models\SourceCollection;
 use App\Models\User;
 use Database\Factories\ArchivePersonFactory;
@@ -132,6 +133,14 @@ final class ArchivePerson extends Model
             SourceCollection::class,
             'archive_person_provenance_links'
         )->withPivot(['id', 'scan_batch_id', 'note', 'attached_by'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<MediaItem, $this> */
+    public function mediaItems(): BelongsToMany
+    {
+        return $this->belongsToMany(MediaItem::class, 'archive_person_media')
+            ->withPivot(['context', 'confidence', 'reviewed_by'])
             ->withTimestamps();
     }
 

@@ -17,6 +17,8 @@ final class ReviewArchiveLocation
     /**
      * @param array{
      *   label: string,
+     *   subtitle?: ?string,
+     *   address?: ?string,
      *   country_code: ?string,
      *   region: ?string,
      *   locality: ?string,
@@ -63,6 +65,8 @@ final class ReviewArchiveLocation
     /**
      * @param array{
      *   label: string,
+     *   subtitle?: ?string,
+     *   address?: ?string,
      *   country_code: ?string,
      *   region: ?string,
      *   locality: ?string,
@@ -153,6 +157,8 @@ final class ReviewArchiveLocation
      * @param  array<string, mixed>  $input
      * @return array{
      *   label: string,
+     *   subtitle: ?string,
+     *   address: ?string,
      *   country_code: ?string,
      *   region: ?string,
      *   locality: ?string,
@@ -168,6 +174,8 @@ final class ReviewArchiveLocation
     {
         return [
             'label' => trim((string) $input['label']),
+            'subtitle' => filled($input['subtitle'] ?? null) ? trim((string) $input['subtitle']) : null,
+            'address' => filled($input['address'] ?? null) ? trim((string) $input['address']) : null,
             'country_code' => filled($input['country_code'])
                 ? Str::upper(trim((string) $input['country_code']))
                 : null,
@@ -185,6 +193,8 @@ final class ReviewArchiveLocation
     /**
      * @return array{
      *   label: string,
+     *   subtitle: ?string,
+     *   address: ?string,
      *   country_code: ?string,
      *   region: ?string,
      *   locality: ?string,
@@ -200,6 +210,8 @@ final class ReviewArchiveLocation
     {
         return [
             'label' => $location->label,
+            'subtitle' => $location->subtitle,
+            'address' => $location->address,
             'country_code' => $location->country_code,
             'region' => $location->region,
             'locality' => $location->locality,

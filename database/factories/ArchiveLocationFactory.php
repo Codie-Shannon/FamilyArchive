@@ -20,6 +20,8 @@ final class ArchiveLocationFactory extends Factory
         return [
             'location_id' => 'LOC-'.Str::upper((string) Str::ulid()),
             'label' => 'Fictional Wellington location',
+            'subtitle' => 'Reviewed family place',
+            'address' => 'Fictional address, Te Aro, Wellington',
             'country_code' => 'NZ',
             'region' => 'Wellington',
             'locality' => 'Te Aro',

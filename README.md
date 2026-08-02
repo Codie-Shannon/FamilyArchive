@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 27 planned
+- Official screenshot groups: 28 completed
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -38,8 +38,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG25 - Role-Aware Workflow Polish
 - Completed and closed: SG26 - Original-First Manual Restoration
 - Completed and closed: SG27 - Interactive Archive Map
-- Current release: v3.2.0 - Interactive Archive Map
-- Current evidence state: Screenshot Groups 01-27 approved and closed
+- Completed and closed: SG28 - Album-Centred Archive
+- Current release: v3.3.0 - Album-Centred Archive
+- Current evidence state: Screenshot Groups 01-28 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -52,10 +53,12 @@ system and is not part of another product or student-work archive.
 - Current trusted-intake workflow: trusted contributors review their own
   batches, administrators cover ordinary contributors and Owners oversee policy
   exceptions through one checkpointed batch workspace
-- Current archive-discovery model: approved members move between photos,
-  reviewed places, people, events, branches and permission-aware search through
-  one position-stable navigation surface, while private, living, sensitive and
-  unreviewed facts are filtered before display
+- Current archive-discovery model: approved members use Photos, Albums and
+  permission-aware Search as the primary journey. Reviewed places, people,
+  events and branches generate connected albums and retain specialist detail
+  behind them, while private, living, sensitive and unreviewed facts are
+  filtered before display. Trusted family roles manage shared album membership
+  through a dedicated searchable batch-add page
 - Current public-map model: a real Google map receives only published,
   separately reviewed neighbourhood, town or region points; exact archive
   coordinates are excluded and the reviewed list remains available if the
@@ -87,7 +90,9 @@ The completed system can:
 - represent uncertain historical dates without manufacturing precision;
 - manage stable source collections and scan batches;
 - attach multiple reviewed provenance records with immutable revision evidence;
-- curate reviewed events and normalized locations with stable identities;
+- curate reviewed events and normalized locations with stable identities,
+  required family-facing titles, optional subtitles and separately stored
+  geographic addresses;
 - preserve uncertain event dates with explicit precision and confidence;
 - redact sensitive location precision from browse surfaces; and
 - link events safely to approved media and existing source provenance;

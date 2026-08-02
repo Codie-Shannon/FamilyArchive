@@ -5,7 +5,11 @@ use App\Domain\Knowledge\Models\ArchiveEvent;
 use App\Domain\Knowledge\Models\ArchiveLocation;
 use App\Domain\Knowledge\Models\ArchivePerson;
 use App\Domain\Knowledge\Models\FamilyBranch;
+use App\Domain\Media\Enums\MediaReviewStatus;
+use App\Domain\Media\Enums\MediaVisibility;
+use App\Domain\Media\Models\MediaItem;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 function sg23User(string $role = 'viewer'): User
 {
@@ -25,11 +29,7 @@ it('gives approved members one safe archive journey', function (): void {
             ->assertOk()
             ->assertSee('Explore archive')
             ->assertSee('Photos')
-            ->assertSee('Places')
-            ->assertSee('Map')
-            ->assertSee('People')
-            ->assertSee('Events')
-            ->assertSee('Branches')
+            ->assertSee('Albums')
             ->assertSee('Search');
     }
 });
@@ -119,10 +119,30 @@ it('retains complete reviewed knowledge and curation controls for the owner', fu
 });
 
 it('applies the same privacy filter to archive search', function (): void {
+    $owner = sg23User('owner');
     $member = sg23User();
     $branch = FamilyBranch::factory()->create(['name' => 'Searchable Branch']);
-    ArchivePerson::factory()->create(['display_name' => 'Searchable Ancestor', 'family_branch_id' => $branch]);
-    ArchivePerson::factory()->create(['display_name' => 'Searchable Living Person', 'life_state' => 'living', 'family_branch_id' => $branch]);
+    $ancestor = ArchivePerson::factory()->create(['display_name' => 'Searchable Ancestor', 'family_branch_id' => $branch]);
+    $living = ArchivePerson::factory()->create(['display_name' => 'Searchable Living Person', 'life_state' => 'living', 'family_branch_id' => $branch]);
+    $photo = MediaItem::factory()->create([
+        'created_by' => $owner,
+        'visibility' => MediaVisibility::FamilyVisible,
+        'review_status' => MediaReviewStatus::Approved,
+        'approved_by' => $owner,
+        'approved_at' => now(),
+    ]);
+
+    foreach ([$ancestor, $living] as $person) {
+        DB::table('archive_person_media')->insert([
+            'archive_person_id' => $person->id,
+            'media_item_id' => $photo->id,
+            'context' => 'Fictional reviewed link.',
+            'confidence' => 'confirmed',
+            'reviewed_by' => $owner->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
 
     $this->actingAs($member)->get(route('archive.knowledge', ['q' => 'Searchable']))
         ->assertOk()

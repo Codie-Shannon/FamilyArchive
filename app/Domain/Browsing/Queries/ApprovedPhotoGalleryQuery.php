@@ -21,9 +21,18 @@ final class ApprovedPhotoGalleryQuery
         private ApprovedPhotoViewingSource $sources,
     ) {}
 
-    /** @return LengthAwarePaginator<int, ApprovedPhotoGalleryItem> */
-    public function handle(User $user, int $perPage = 8, ?int $mediaItemId = null): LengthAwarePaginator
-    {
+    /**
+     * @param  array<int, int>|null  $mediaItemIds
+     * @return LengthAwarePaginator<int, ApprovedPhotoGalleryItem>
+     */
+    public function handle(
+        User $user,
+        int $perPage = 8,
+        ?int $mediaItemId = null,
+        ?array $mediaItemIds = null,
+        ?string $search = null,
+        ?int $excludedCuratedCollectionId = null,
+    ): LengthAwarePaginator {
         $query = MediaItem::query()
             ->select(['id', 'archive_id', 'title', 'approved_at'])
             ->with(['fileVersions' => fn ($query) => $query
@@ -37,11 +46,26 @@ final class ApprovedPhotoGalleryQuery
         if ($mediaItemId !== null) {
             $query->whereKey($mediaItemId);
         }
+        if ($mediaItemIds !== null) {
+            $query->whereKey($mediaItemIds);
+        }
+        if ($excludedCuratedCollectionId !== null) {
+            $query->whereDoesntHave('curatedCollections', fn ($collections) => $collections
+                ->whereKey($excludedCuratedCollectionId));
+        }
+        if (filled($search)) {
+            $term = mb_substr(trim((string) $search), 0, 100);
+            $query->where(fn ($builder) => $builder
+                ->where('title', 'like', "%{$term}%")
+                ->orWhere('description', 'like', "%{$term}%")
+                ->orWhere('story', 'like', "%{$term}%")
+                ->orWhere('archive_id', 'like', "%{$term}%"));
+        }
 
         $paginator = $this->access->scopeVisible($query, $user)
             ->orderByDesc('approved_at')
             ->orderBy('archive_id')
-            ->paginate(max(1, min($perPage, 24)));
+            ->paginate(max(1, min($perPage, 100)));
 
         return $paginator->through(function (MediaItem $item): ApprovedPhotoGalleryItem {
             $original = $item->fileVersions->first(fn (MediaFileVersion $version): bool => $version->version_type === MediaFileVersionType::Original

@@ -25,6 +25,8 @@ final class SaveArchiveLocationRequest extends FormRequest
                 'min:0',
             ],
             'label' => ['required', 'string', 'max:160'],
+            'subtitle' => ['nullable', 'string', 'max:200'],
+            'address' => ['nullable', 'string', 'max:500'],
             'country_code' => ['nullable', 'string', 'size:2'],
             'region' => ['nullable', 'string', 'max:160'],
             'locality' => ['nullable', 'string', 'max:160'],
@@ -40,6 +42,8 @@ final class SaveArchiveLocationRequest extends FormRequest
     /**
      * @return array{
      *   label: string,
+     *   subtitle: ?string,
+     *   address: ?string,
      *   country_code: ?string,
      *   region: ?string,
      *   locality: ?string,
@@ -55,6 +59,8 @@ final class SaveArchiveLocationRequest extends FormRequest
     {
         return [
             'label' => (string) $this->validated('label'),
+            'subtitle' => $this->validated('subtitle'),
+            'address' => $this->validated('address'),
             'country_code' => $this->validated('country_code'),
             'region' => $this->validated('region'),
             'locality' => $this->validated('locality'),

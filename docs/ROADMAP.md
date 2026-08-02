@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 27 screenshot groups.
+releases. The repository currently has 28 completed screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -55,6 +55,8 @@ boundary. Its implementation and six-file evidence pack are approved and
 closed. Screenshot Group 27 implements the v3.2.0 Interactive Archive Map
 boundary. Its implementation and six-file screenshot evidence pack are approved
 and closed.
+Screenshot Group 28 implements the v3.3.0 Album-Centred Archive boundary. Its
+implementation and eight-file screenshot evidence pack are approved and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -166,6 +168,23 @@ PDFs remain external artifacts and must not be committed.
 | 25 | Role-aware workflow polish | 3.0.0 | Role-Aware Workflow Polish |
 | 26 | Corrective original-first editor | 3.1.0 | Original-First Manual Restoration |
 | 27 | Corrective interactive archive map | 3.2.0 | Interactive Archive Map |
+| 28 | Corrective album-centred archive | 3.3.0 | Album-Centred Archive |
+
+## Screenshot Group 28 Boundary
+
+Implementation status: complete — eight-file screenshot evidence approved and
+closed.
+
+Screenshot Group 28 makes Photos, Albums and Search the primary member-facing
+archive journey. Curated albums can be maintained by Owners, administrators and
+trusted contributors through a dedicated searchable batch-add page, while
+accepted events, places, people and family branches
+produce generated albums from existing reviewed links. Album membership never
+duplicates or rewrites an archive photo, and all covers, counts, search results
+and album contents use the same family, branch, privacy and review boundary as
+the private gallery. Specialist knowledge and the interactive map remain
+available as context behind an album instead of competing as separate primary
+destinations.
 
 ## Screenshot Group 27 Boundary
 
@@ -179,6 +198,10 @@ closed.
 
 When a restricted Google Maps browser key is configured, the map renders real
 tiles and interactive markers. Only published, separately privacy-reviewed
+locations are eligible for display. Place records keep their required archive
+title and optional subtitle separate from their geographic address, so names
+such as `Glossop Home` remain meaningful even when an address is resolved or
+later corrected.
 neighbourhood, town or region points enter the browser payload; exact,
 unreviewed and private coordinates remain excluded. Without the external key,
 the page fails honestly to its reviewed place list.

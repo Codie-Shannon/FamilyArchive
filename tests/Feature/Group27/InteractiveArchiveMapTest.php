@@ -42,7 +42,7 @@ function sg27PublishedMapPoint(array $attributes = []): void
     ]);
 }
 
-it('uses one shared archive shell with separate places and map destinations', function (string $routeName): void {
+it('uses one shared archive shell with the simplified archive navigation', function (string $routeName): void {
     $member = User::factory()->create([
         'role' => 'viewer',
         'account_state' => 'approved',
@@ -52,10 +52,10 @@ it('uses one shared archive shell with separate places and map destinations', fu
     $this->actingAs($member)->get(route($routeName))
         ->assertOk()
         ->assertSee('max-w-7xl flex-1 flex-col gap-7 p-4 sm:p-6', false)
-        ->assertSee('>Places<', false)
-        ->assertSee('>Map<', false)
-        ->assertSee(route('archive.locations.index'), false)
-        ->assertSee(route('public-discovery.map'), false);
+        ->assertSee('>Photos<', false)
+        ->assertSee('>Albums<', false)
+        ->assertSee('>Search<', false)
+        ->assertSee(route('archive.albums.index'), false);
 })->with([
     'photos' => 'archive.index',
     'places' => 'archive.locations.index',

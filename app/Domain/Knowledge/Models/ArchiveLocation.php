@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $location_id
  * @property string $label
+ * @property string|null $subtitle
+ * @property string|null $address
  * @property string|null $country_code
  * @property string|null $region
  * @property string|null $locality
@@ -35,6 +37,8 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'location_id',
     'label',
+    'subtitle',
+    'address',
     'country_code',
     'region',
     'locality',

@@ -57,7 +57,12 @@ final class ArchiveKnowledgeExplorer
             ));
 
         $locations = $this->access->locations(ArchiveLocation::query(), $user)
-            ->where('label', 'like', "%{$term}%")
+            ->where(fn ($builder) => $builder
+                ->where('label', 'like', "%{$term}%")
+                ->orWhere('subtitle', 'like', "%{$term}%")
+                ->orWhere('address', 'like', "%{$term}%")
+                ->orWhere('locality', 'like', "%{$term}%")
+                ->orWhere('region', 'like', "%{$term}%"))
             ->limit(25)
             ->get(['location_id', 'label'])
             ->map(fn (ArchiveLocation $location): ArchiveKnowledgeSearchResult => new ArchiveKnowledgeSearchResult(

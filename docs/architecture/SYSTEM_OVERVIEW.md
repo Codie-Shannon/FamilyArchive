@@ -47,7 +47,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Metadata | Controlled descriptive edits and immutable revision history |
 | Provenance | Structured historical dates, stable physical sources and scan batches |
 | High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
-| Knowledge | Reviewed events, locations, people and family branches with one role-aware browsing and search policy |
+| Knowledge | Reviewed events, locations, people and family branches with one role-aware browsing and search policy; place titles and optional subtitles remain distinct from geographic addresses |
 | Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
 | Communication | Immediate approved-member family posts, recipient-controlled private messaging and moderated anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
@@ -322,6 +322,21 @@ automation rule or acceptance action changes the original.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.
+Location identity is deliberately separate from geography: every place has a
+family-facing title, may have a descriptive subtitle, and may store an address
+for context and mapping without replacing that title. Sensitive locations
+continue to redact all of those browse details.
+
+The album-centred archive presents Photos, Albums and Search as the stable
+member journey. Curated albums store ordered membership links only; they do not
+copy media or change immutable originals. Generated event, place, person and
+branch albums are read models over existing reviewed relationships. Cover
+selection, counts, combined search and album contents all pass through the same
+archive and knowledge access policies before rendering. Owners, administrators
+and trusted contributors may curate shared albums through a dedicated
+searchable batch-add surface for up to 100 approved photos at a time. This
+changes membership without changing or duplicating archive media, while
+ordinary members browse the published result.
 Family Access & Conversation adds account approval facts, contributor intake
 records and moderated communication while preserving the private archive
 boundary. Collaboration & Restoration adds versioned recipes, immutable-source

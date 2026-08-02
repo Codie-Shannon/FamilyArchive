@@ -16,10 +16,23 @@ final class ArchiveLocationPresenter
         return $location->label;
     }
 
+    public function browseSubtitle(ArchiveLocation $location): ?string
+    {
+        if ($location->is_sensitive || $location->precision === LocationPrecision::Private) {
+            return null;
+        }
+
+        return $location->subtitle;
+    }
+
     public function browseDetail(ArchiveLocation $location): string
     {
         if ($location->is_sensitive || $location->precision === LocationPrecision::Private) {
             return 'Exact location details are withheld from archive browsing.';
+        }
+
+        if ($location->address !== null && $location->address !== '') {
+            return $location->address;
         }
 
         return collect([

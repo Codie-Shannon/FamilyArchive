@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\RestorationCandidatePreviewController;
 use App\Http\Controllers\Admin\RestorationWorkspaceController;
 use App\Http\Controllers\Admin\SecureCommunicationController;
 use App\Http\Controllers\Admin\ViewingDerivativeController;
+use App\Http\Controllers\Archive\ArchiveAlbumController;
 use App\Http\Controllers\Archive\ArchiveBrowseController;
 use App\Http\Controllers\Archive\ArchiveEventController;
 use App\Http\Controllers\Archive\ArchiveLocationController;
@@ -79,6 +80,13 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         ->name('secure-messages.consent');
     Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
     Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
+    Route::get('/archive/albums', [ArchiveAlbumController::class, 'index'])->name('archive.albums.index');
+    Route::get('/archive/albums/create', [ArchiveAlbumController::class, 'create'])
+        ->middleware('trusted.intake')
+        ->name('archive.albums.create');
+    Route::get('/archive/albums/{type}/{stableId}', [ArchiveAlbumController::class, 'show'])
+        ->where('type', 'album|event|place|person|branch')
+        ->name('archive.albums.show');
     Route::get('/archive/derivatives/{mediaFileVersion}/preview', PrivateDerivativeController::class)->name('archive.derivatives.preview');
     Route::get('/archive/originals/{mediaFileVersion}', OriginalMediaController::class)->name('archive.originals.show');
     Route::get('/archive/knowledge', KnowledgeHubController::class)->name('archive.knowledge');
@@ -104,6 +112,12 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
         Route::get('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'edit'])->name('items.editor');
         Route::post('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'update'])->name('items.editor.update');
+    });
+    Route::middleware('trusted.intake')->group(function (): void {
+        Route::post('/archive/albums', [ArchiveAlbumController::class, 'store'])->name('archive.albums.store');
+        Route::get('/archive/albums/{curatedCollection}/photos/add', [ArchiveAlbumController::class, 'addPhotos'])->name('archive.albums.photos.add');
+        Route::post('/archive/albums/{curatedCollection}/photos', [ArchiveAlbumController::class, 'attachBatch'])->name('archive.albums.photos.attach');
+        Route::delete('/archive/albums/{curatedCollection}/photos/{mediaItem}', [ArchiveAlbumController::class, 'detach'])->name('archive.albums.photos.detach');
     });
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');

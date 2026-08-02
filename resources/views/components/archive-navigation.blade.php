@@ -7,32 +7,17 @@
             'href' => route('archive.index'),
             'active' => request()->routeIs('archive.index', 'archive.photos.*'),
         ] : null,
-        [
-            'label' => $isApprovedMember ? 'Places' : 'Archive map',
-            'href' => $isApprovedMember ? route('archive.locations.index') : route('public-discovery.map'),
-            'active' => $isApprovedMember
-                ? request()->routeIs('archive.locations.*')
-                : request()->routeIs('public-discovery.map'),
-        ],
         $isApprovedMember ? [
-            'label' => 'Map',
-            'href' => route('public-discovery.map'),
-            'active' => request()->routeIs('public-discovery.map'),
-        ] : null,
-        $isApprovedMember ? [
-            'label' => 'People',
-            'href' => route('archive.people.index'),
-            'active' => request()->routeIs('archive.people.*'),
-        ] : null,
-        $isApprovedMember ? [
-            'label' => 'Events',
-            'href' => route('archive.events.index'),
-            'active' => request()->routeIs('archive.events.*'),
-        ] : null,
-        $isApprovedMember ? [
-            'label' => 'Branches',
-            'href' => route('archive.branches.index'),
-            'active' => request()->routeIs('archive.branches.*'),
+            'label' => 'Albums',
+            'href' => route('archive.albums.index'),
+            'active' => request()->routeIs(
+                'archive.albums.*',
+                'archive.locations.*',
+                'archive.people.*',
+                'archive.events.*',
+                'archive.branches.*',
+                'public-discovery.map',
+            ),
         ] : null,
         $isApprovedMember ? [
             'label' => 'Search',
@@ -42,7 +27,7 @@
     ]);
 @endphp
 
-<nav aria-label="Explore archive" class="grid w-full grid-cols-2 gap-1 rounded-xl border border-zinc-200 bg-white p-1 text-sm sm:grid-cols-3 lg:flex lg:w-fit lg:max-w-full dark:border-zinc-700 dark:bg-zinc-900">
+<nav aria-label="Explore archive" class="grid w-full grid-cols-3 gap-1 rounded-xl border border-zinc-200 bg-white p-1 text-sm lg:w-fit dark:border-zinc-700 dark:bg-zinc-900">
     @foreach($items as $item)
         <a
             href="{{ $item['href'] }}"

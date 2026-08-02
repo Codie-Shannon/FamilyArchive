@@ -35,6 +35,8 @@ function g13LocationPayload(array $overrides = []): array
 {
     return [
         'label' => 'Fictional Te Aro studio',
+        'subtitle' => 'Family studio, 1972–1981',
+        'address' => 'Fictional address, Te Aro, Wellington',
         'country_code' => 'nz',
         'region' => 'Wellington',
         'locality' => 'Te Aro',
@@ -71,6 +73,8 @@ function g13EventPayload(?ArchiveLocation $location, array $overrides = []): arr
 
 it('adds Group 13 review and revision columns without activating later-group tables', function () {
     expect(Schema::hasColumns('archive_locations', [
+        'subtitle',
+        'address',
         'review_state',
         'confidence',
         'source_note',
@@ -107,6 +111,8 @@ it('creates reviewed locations with stable identity and immutable revision evide
     $revision = ArchiveLocationRevision::sole();
 
     expect($location->location_id)->toStartWith('LOC-')
+        ->and($location->subtitle)->toBe('Family studio, 1972–1981')
+        ->and($location->address)->toBe('Fictional address, Te Aro, Wellington')
         ->and($location->country_code)->toBe('NZ')
         ->and($location->precision)->toBe(LocationPrecision::Locality)
         ->and($location->review_state)->toBe(KnowledgeReviewState::Accepted)
@@ -117,6 +123,13 @@ it('creates reviewed locations with stable identity and immutable revision evide
         ->and($revision->to_revision)->toBe(1)
         ->and($revision->after_values['source_note'])
         ->toBe('Location written on a synthetic album sleeve.');
+
+    expect($revision->after_values)
+        ->toMatchArray([
+            'label' => 'Fictional Te Aro studio',
+            'subtitle' => 'Family studio, 1972–1981',
+            'address' => 'Fictional address, Te Aro, Wellington',
+        ]);
 
     expect(fn () => $revision->update(['change_reason' => 'Mutated']))
         ->toThrow(LogicException::class, 'Location revisions are immutable.');

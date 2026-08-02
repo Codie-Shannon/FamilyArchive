@@ -5,6 +5,8 @@ namespace App\Domain\Media\Models;
 use App\Domain\Archive\Models\ArchivePromotion;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Knowledge\Models\ArchiveEvent;
+use App\Domain\Knowledge\Models\ArchivePerson;
+use App\Domain\Knowledge\Models\CuratedCollection;
 use App\Domain\Knowledge\Models\ReviewedEventMedia;
 use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\DatePrecision;
@@ -162,6 +164,22 @@ class MediaItem extends Model
             'archive_event_media'
         )->using(ReviewedEventMedia::class)
             ->withPivot(['confidence', 'source_note', 'reviewed_by', 'reviewed_at'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<ArchivePerson, $this> */
+    public function people(): BelongsToMany
+    {
+        return $this->belongsToMany(ArchivePerson::class, 'archive_person_media')
+            ->withPivot(['context', 'confidence', 'reviewed_by'])
+            ->withTimestamps();
+    }
+
+    /** @return BelongsToMany<CuratedCollection, $this> */
+    public function curatedCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(CuratedCollection::class, 'curated_collection_media')
+            ->withPivot(['added_by', 'position'])
             ->withTimestamps();
     }
 

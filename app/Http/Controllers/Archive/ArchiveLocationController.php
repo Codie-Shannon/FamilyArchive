@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Archive;
 
 use App\Domain\Knowledge\Actions\ReviewArchiveLocation;
 use App\Domain\Knowledge\Enums\KnowledgeReviewState;
+use App\Domain\Knowledge\Models\ArchiveEvent;
 use App\Domain\Knowledge\Models\ArchiveLocation;
 use App\Domain\Knowledge\Presenters\ArchiveLocationPresenter;
 use App\Domain\Knowledge\Services\ArchiveKnowledgeAccess;
@@ -57,7 +58,13 @@ final class ArchiveLocationController extends Controller
     ): View {
         abort_unless($access->canViewLocation($archiveLocation, $request->user()), 404);
         $canCurate = $request->user()->isArchiveAdministrator();
-        $archiveLocation->load(['events' => fn ($query) => $access->events($query, $request->user())->orderBy('name')]);
+        $archiveLocation->setRelation(
+            'events',
+            $access->events(
+                ArchiveEvent::query()->where('archive_location_id', $archiveLocation->id),
+                $request->user()
+            )->orderBy('name')->get()
+        );
 
         if ($canCurate) {
             $archiveLocation->load(['revisions' => fn ($query) => $query->with('actor:id,name')->latest('revision_number')]);

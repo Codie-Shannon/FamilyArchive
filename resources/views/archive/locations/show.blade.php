@@ -2,7 +2,7 @@
     <x-archive-shell>
         @if(session('status'))<div class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-800">{{ session('status') }}</div>@endif
         <header class="flex flex-wrap items-end justify-between gap-4">
-            <div><p class="font-mono text-xs text-zinc-500">{{ $location->location_id }}</p><h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">{{ $presenter->browseLabel($location) }}</h1><p class="mt-2 text-zinc-600 dark:text-zinc-300">{{ $presenter->browseDetail($location) }}</p></div>
+            <div><p class="font-mono text-xs text-zinc-500">{{ $location->location_id }}</p><h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">{{ $presenter->browseLabel($location) }}</h1>@if($presenter->browseSubtitle($location))<p class="mt-1 text-lg text-zinc-700 dark:text-zinc-200">{{ $presenter->browseSubtitle($location) }}</p>@endif<p class="mt-2 text-zinc-600 dark:text-zinc-300">{{ $presenter->browseDetail($location) }}</p></div>
             @if($canCurate)<a href="{{ route('archive.locations.edit', $location) }}" class="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-black">Review location</a>@endif
         </header>
 

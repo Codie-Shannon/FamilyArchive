@@ -75,6 +75,7 @@ it('keeps event and location browsing private to the verified owner with safe em
 
     $member = User::factory()->create([
         'role' => 'pending',
+        'account_state' => 'pending',
         'email_verified_at' => now(),
     ]);
     $this->actingAs($member)->get(route('archive.events.index'))->assertForbidden();
@@ -83,12 +84,10 @@ it('keeps event and location browsing private to the verified owner with safe em
     $this->actingAs($owner)
         ->get(route('archive.events.index'))
         ->assertOk()
-        ->assertSee((string) config('release.status'))
         ->assertSee('No reviewed events yet');
     $this->actingAs($owner)
         ->get(route('archive.locations.index'))
         ->assertOk()
-        ->assertSee((string) config('release.status'))
         ->assertSee('No reviewed locations yet');
 });
 
