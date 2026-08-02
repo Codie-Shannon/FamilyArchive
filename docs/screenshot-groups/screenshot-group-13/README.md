@@ -7,6 +7,9 @@ Status: approved and closed.
 The evidence demonstrates uploader-controlled processing, non-destructive
 source verification, conservative rotation/deskew/crop analysis, separate
 restoration candidates, explicit approval and append-only processing history.
+Automatic crop decisions require a sustained four-sided boundary and safe
+geometry. Ambiguous, edge-touching or multi-item album captures preserve their
+full framing and are sent to focused crop review.
 
 All visible media and records are fictional. Perspective correction, damage
 reconstruction and upscaling remain manual-only and no live Wasabi or

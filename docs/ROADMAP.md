@@ -159,6 +159,21 @@ PDFs remain external artifacts and must not be committed.
 | 23 | Corrective unified archive experience | 2.8.0 | Unified Archive Experience |
 | 24 | Corrective delegated family operations | 2.9.0 | Delegated Family Operations |
 | 25 | Role-aware workflow polish | 3.0.0 | Role-Aware Workflow Polish |
+| 26 | Corrective original-first editor | 3.1.0 | Original-First Manual Restoration |
+
+## Screenshot Group 26 Boundary
+
+Screenshot Group 26 exposes each supported restoration adjustment through a
+role-authorized editor that always starts from the retained immutable original.
+Automation remains an optional comparison and is not required before a person
+can crop, rotate, straighten or make supported image adjustments.
+
+Implementation status: complete — screenshot evidence approved and closed.
+
+Saving a manual edit creates a separate versioned review candidate with
+lineage. The verified original remains unchanged, and unavailable capabilities
+such as perspective reconstruction, damage repair and upscaling are not
+presented as working controls.
 
 ## Screenshot Group 25 Boundary
 
@@ -680,11 +695,20 @@ The release:
 - applies supported EXIF orientation, conservative deskew and photo-edge crop
   detection plus optional gentle exposure, colour, denoise, sharpen and surface
   cleanup;
+- exposes those same supported operations to authorized reviewers in a manual
+  editor whose working source is always the verified immutable original;
+- allows a manual review candidate when automation creates no usable suggestion,
+  while treating any automatic result as optional comparison material;
+- verifies automatic crops with sustained four-sided boundary, geometry,
+  confidence and edge-inset gates, withholding ambiguous or multi-item album
+  captures for focused review;
+- regenerates pending batch suggestions after processing-rule corrections while
+  preserving reviewed decisions, immutable originals and superseded candidates;
 - writes each result as a separate private WebP `edited_full` candidate whose
   lineage points to the original;
 - leaves perspective correction, damage reconstruction and upscaling
-  manual-only instead of fabricating unsupported output;
-- requires owner review before a candidate becomes preferred within its
+  unavailable instead of fabricating unsupported output;
+- requires authorized human review before a candidate becomes preferred within its
   derivative type; and
 - appends immutable processing history without rendering paths, hashes or
   credentials.

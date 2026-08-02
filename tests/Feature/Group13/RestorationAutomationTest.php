@@ -69,6 +69,56 @@ it('generates a separate cropped candidate and verifies the source before and af
         ->toContain('queued', 'processing_started', 'candidate_ready');
 });
 
+it('withholds an ambiguous crop instead of treating dark subject matter as a photo frame', function () {
+    [$owner, $source] = sg13Source(sg13SyntheticUnframedPortrait());
+    $workflow = app(RestorationWorkflow::class);
+    $preferences = sg13Preferences([
+        'deskew' => false,
+        'exposure' => false,
+        'color' => false,
+    ]);
+    $recipeId = $workflow->createFromPreferences('Ambiguous unframed portrait', $preferences, $owner);
+    $jobId = $workflow->queue($source, $recipeId, $owner, $preferences);
+
+    $candidate = app(GdRestorationCandidateProcessor::class)
+        ->process(ProcessingJob::query()->where('job_id', $jobId)->firstOrFail(), $owner);
+
+    expect($candidate->operations_applied)->not->toContain('auto_crop')
+        ->and(data_get($candidate->analysis, 'crop.applied'))->toBeFalse()
+        ->and(data_get($candidate->analysis, 'crop.quality_gate_passed'))->toBeFalse()
+        ->and(data_get($candidate->analysis, 'crop.requires_review'))->toBeTrue()
+        ->and(data_get($candidate->analysis, 'crop.reason'))->toBeIn([
+            'ambiguous_frame_geometry',
+            'content_boundary_withheld',
+            'no_reliable_content_boundary',
+        ])
+        ->and($candidate->candidateVersion?->width)->toBe($source->width)
+        ->and($candidate->candidateVersion?->height)->toBe($source->height);
+});
+
+it('withholds an album capture when a neighbouring item enters through the image edge', function () {
+    [$owner, $source] = sg13Source(sg13SyntheticAlbumWithNeighbour());
+    $workflow = app(RestorationWorkflow::class);
+    $preferences = sg13Preferences([
+        'deskew' => false,
+        'exposure' => false,
+        'color' => false,
+    ]);
+    $recipeId = $workflow->createFromPreferences('Album page with neighbouring item', $preferences, $owner);
+    $jobId = $workflow->queue($source, $recipeId, $owner, $preferences);
+
+    $candidate = app(GdRestorationCandidateProcessor::class)
+        ->process(ProcessingJob::query()->where('job_id', $jobId)->firstOrFail(), $owner);
+
+    expect($candidate->operations_applied)->not->toContain('auto_crop')
+        ->and(data_get($candidate->analysis, 'crop.applied'))->toBeFalse()
+        ->and(data_get($candidate->analysis, 'crop.requires_review'))->toBeTrue()
+        ->and(data_get($candidate->analysis, 'crop.method'))->toBe('content_edge')
+        ->and((float) data_get($candidate->analysis, 'crop.minimum_boundary_inset'))->toBeLessThan(0.015)
+        ->and($candidate->candidateVersion?->width)->toBe($source->width)
+        ->and($candidate->candidateVersion?->height)->toBe($source->height);
+});
+
 it('respects disabled rotation crop and cleanup controls', function () {
     [$owner, $source] = sg13Source();
     $workflow = app(RestorationWorkflow::class);
@@ -174,7 +224,7 @@ it('keeps processing review and previews inside the owner boundary', function ()
 /**
  * @return array{User, MediaFileVersion}
  */
-function sg13Source(): array
+function sg13Source(?string $sourceBytes = null): array
 {
     $owner = User::factory()->create(['role' => 'owner']);
     $item = MediaItem::factory()->create([
@@ -185,7 +235,7 @@ function sg13Source(): array
         'approved_by' => $owner->id,
         'approved_at' => now(),
     ]);
-    $bytes = sg13SyntheticPrint();
+    $bytes = $sourceBytes ?? sg13SyntheticPrint();
     $facts = getimagesizefromstring($bytes);
     if (! is_array($facts)) {
         throw new RuntimeException('Synthetic SG13 fixture could not be decoded.');
@@ -237,7 +287,7 @@ function sg13SyntheticPrint(): string
 {
     $canvas = imagecreatetruecolor(900, 650);
     $paper = imagecolorallocate($canvas, 239, 236, 224);
-    $shadow = imagecolorallocate($canvas, 174, 164, 145);
+    $shadow = imagecolorallocate($canvas, 36, 42, 48);
     imagefill($canvas, 0, 0, $paper);
     imagefilledrectangle($canvas, 130, 100, 790, 570, $shadow);
     imagefilledrectangle($canvas, 150, 120, 770, 550, imagecolorallocate($canvas, 50, 80, 110));
@@ -246,6 +296,53 @@ function sg13SyntheticPrint(): string
     imagefilledellipse($canvas, 585, 285, 160, 200, imagecolorallocate($canvas, 218, 194, 150));
     imagefilledrectangle($canvas, 250, 385, 650, 500, imagecolorallocate($canvas, 125, 72, 55));
     imagestring($canvas, 5, 180, 510, 'FICTIONAL FAMILY PRINT', imagecolorallocate($canvas, 246, 242, 224));
+
+    ob_start();
+    imagejpeg($canvas, null, 92);
+    $bytes = ob_get_clean();
+    imagedestroy($canvas);
+
+    return is_string($bytes) ? $bytes : '';
+}
+
+function sg13SyntheticUnframedPortrait(): string
+{
+    $canvas = imagecreatetruecolor(900, 650);
+    $paper = imagecolorallocate($canvas, 239, 236, 224);
+    $subject = imagecolorallocate($canvas, 36, 46, 54);
+    imagefill($canvas, 0, 0, $paper);
+    imagefilledellipse($canvas, 450, 325, 580, 460, $subject);
+    imagefilledellipse($canvas, 365, 275, 55, 38, $paper);
+    imagefilledellipse($canvas, 535, 275, 55, 38, $paper);
+    imagefilledellipse($canvas, 450, 405, 210, 48, $paper);
+
+    ob_start();
+    imagejpeg($canvas, null, 92);
+    $bytes = ob_get_clean();
+    imagedestroy($canvas);
+
+    return is_string($bytes) ? $bytes : '';
+}
+
+function sg13SyntheticAlbumWithNeighbour(): string
+{
+    $canvas = imagecreatetruecolor(900, 650);
+    $album = imagecolorallocate($canvas, 236, 232, 216);
+    $card = imagecolorallocate($canvas, 204, 184, 148);
+    $ink = imagecolorallocate($canvas, 55, 43, 35);
+    imagefill($canvas, 0, 0, $album);
+
+    for ($x = 12; $x < 900; $x += 22) {
+        for ($y = 12; $y < 650; $y += 22) {
+            imageellipse($canvas, $x, $y, 5, 5, imagecolorallocate($canvas, 198, 196, 186));
+        }
+    }
+
+    imagefilledrectangle($canvas, 8, 72, 690, 575, $card);
+    imagerectangle($canvas, 24, 88, 674, 559, $ink);
+    imagefilledrectangle($canvas, 770, 105, 899, 545, imagecolorallocate($canvas, 192, 176, 145));
+    imagerectangle($canvas, 786, 121, 899, 529, $ink);
+    imagestring($canvas, 5, 210, 275, 'PRIMARY ARCHIVE ITEM', $ink);
 
     ob_start();
     imagejpeg($canvas, null, 92);

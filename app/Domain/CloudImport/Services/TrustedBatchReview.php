@@ -102,6 +102,54 @@ final class TrustedBatchReview
         return $this->refreshSession($this->integer($session, 'id'));
     }
 
+    /** @return array{regenerated:int,failed:int,attention:int} */
+    public function regeneratePending(string $sessionId, User $actor, int $limit = 25): array
+    {
+        $session = $this->session($sessionId, $actor);
+        if (data_get($session, 'state') !== 'complete') {
+            throw ValidationException::withMessages(['batch' => 'Finish the upload batch before regenerating review previews.']);
+        }
+
+        $items = DB::table('cloud_import_items')
+            ->where('cloud_import_session_id', $this->integer($session, 'id'))
+            ->where('state', 'retained')
+            ->whereNotNull('prepared_at')
+            ->whereNull('review_decision')
+            ->orderBy('position')
+            ->limit(max(1, min($limit, 50)))
+            ->get();
+
+        $regenerated = 0;
+        $failed = 0;
+        foreach ($items as $item) {
+            try {
+                $upload = IncomingUpload::query()->whereKey($this->integer($item, 'incoming_upload_id'))->first();
+                if (! $upload instanceof IncomingUpload) {
+                    throw new RuntimeException('The retained upload is unavailable.');
+                }
+
+                $result = $this->approver->regeneratePendingSuggestion($upload, $actor);
+                $candidate = $result->candidate;
+                $attention = $candidate instanceof RestorationCandidate
+                    ? $this->candidateAttention($candidate)
+                    : null;
+                $this->markPrepared($this->integer($item, 'id'), $candidate?->id, $attention);
+                $regenerated++;
+            } catch (Throwable $exception) {
+                report($exception);
+                DB::table('cloud_import_items')->where('id', $this->integer($item, 'id'))->update([
+                    'attention_code' => 'regeneration_failed',
+                    'updated_at' => now(),
+                ]);
+                $failed++;
+            }
+        }
+
+        $counts = $this->refreshSession($this->integer($session, 'id'));
+
+        return ['regenerated' => $regenerated, 'failed' => $failed, 'attention' => $counts['attention']];
+    }
+
     /** @param list<int> $itemIds
      * @return array{reviewed:int,failed:int}
      */
@@ -250,8 +298,23 @@ final class TrustedBatchReview
     {
         $analysis = $candidate->analysis;
         $crop = is_array($analysis) ? ($analysis['crop'] ?? null) : null;
-        if (is_array($crop) && (float) ($crop['confidence'] ?? 1.0) < 0.55) {
-            return 'crop_check';
+        if (is_array($crop)) {
+            $applied = (bool) ($crop['applied'] ?? false);
+            $qualityGatePassed = (bool) ($crop['quality_gate_passed'] ?? false);
+            $requiresReview = (bool) ($crop['requires_review'] ?? false);
+            $confidence = (float) ($crop['confidence'] ?? 0.0);
+            $areaRatio = (float) ($crop['area_ratio'] ?? 1.0);
+            $aspectRatioDelta = (float) ($crop['aspect_ratio_delta'] ?? 0.0);
+            $marginBalance = (float) ($crop['margin_balance'] ?? 0.0);
+
+            if (
+                $requiresReview
+                || ($applied && ! $qualityGatePassed)
+                || ($applied && $confidence < 0.72)
+                || ($applied && ($areaRatio < 0.45 || $aspectRatioDelta > 0.32 || $marginBalance > 0.28))
+            ) {
+                return 'crop_check';
+            }
         }
 
         return null;

@@ -38,5 +38,7 @@ return [
     ],
     'restoration' => [
         'memory_limit' => env('ARCHIVE_RESTORATION_MEMORY_LIMIT', '512M'),
+        'minimum_crop_confidence' => (float) env('ARCHIVE_MINIMUM_CROP_CONFIDENCE', 0.72),
+        'minimum_crop_boundary_inset' => (float) env('ARCHIVE_MINIMUM_CROP_BOUNDARY_INSET', 0.015),
     ],
 ];

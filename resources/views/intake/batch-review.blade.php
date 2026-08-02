@@ -3,7 +3,12 @@
     <header class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div><a href="{{ route('intake.index') }}" class="text-sm font-semibold text-emerald-300">← Intake & Review</a><p class="mt-4 text-sm font-semibold text-zinc-400">{{ $manifest['source_label'] ?? 'Private photo batch' }}</p><h1 class="mt-1 text-3xl font-semibold text-white">Review batch</h1><p class="mt-2 max-w-3xl text-zinc-400">Compare the retained original with the suggested edit, handle exceptions first and apply decisions in bulk.</p></div>
         @if($session->state === 'complete')
-            <form method="POST" action="{{ route('intake.batches.prepare', $session->session_id) }}" class="w-full sm:w-auto">@csrf<button class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-zinc-950 sm:w-auto">Prepare next 25 previews</button></form>
+            <div class="grid w-full gap-2 sm:flex sm:w-auto">
+                @if($preparedCount > (int) $session->reviewed_count)
+                    <form method="POST" action="{{ route('intake.batches.regenerate', $session->session_id) }}" onsubmit="return confirm('Regenerate pending suggestions with the current processing rules? Reviewed decisions and immutable originals will not change.')">@csrf<button class="w-full rounded-xl border border-zinc-600 px-5 py-3 text-sm font-semibold text-white sm:w-auto">Regenerate pending suggestions</button></form>
+                @endif
+                <form method="POST" action="{{ route('intake.batches.prepare', $session->session_id) }}">@csrf<button class="w-full rounded-xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-zinc-950 sm:w-auto">Prepare next 25 previews</button></form>
+            </div>
         @else
             <div class="rounded-xl border border-amber-800 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">Upload still open · finish it before review</div>
         @endif
@@ -41,7 +46,7 @@
                             <div class="grid place-items-center p-6 text-center text-sm text-zinc-500">No suggested edit is available. Choose original, hold or reject.</div>
                         @endif
                     </div>
-                    <div class="flex flex-wrap justify-between gap-3 px-4 py-3 text-xs text-zinc-400"><span>Position {{ number_format($item->position) }}</span><span>Original retained · edit remains reversible</span></div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400"><span>Position {{ number_format($item->position) }} · Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-emerald-700 px-3 py-2 font-semibold text-emerald-200">Edit original manually</a>@else<span>Edit remains reversible</span>@endif</div>
                 </article>
             @empty
                 <div class="col-span-full rounded-2xl border border-dashed border-zinc-700 p-10 text-center text-zinc-400">No items match this filter. Prepare the next preview checkpoint or choose another filter.</div>
@@ -82,7 +87,7 @@
                         <a data-mobile-preview="suggested" target="_blank" href="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" class="hidden bg-zinc-950"><img src="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" alt="Suggested edit" class="aspect-[4/3] w-full object-contain"></a>
                     @endif
 
-                    <div class="px-4 py-3 text-xs text-zinc-400">Original retained · edit remains reversible</div>
+                    <div class="flex items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400"><span>Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-emerald-700 px-3 py-2 font-semibold text-emerald-200">Edit original manually</a>@else<span>Edit remains reversible</span>@endif</div>
                 </article>
             @empty
                 <div class="rounded-2xl border border-dashed border-zinc-700 p-8 text-center text-zinc-400">No items match this filter. Prepare the next preview checkpoint or choose another filter.</div>

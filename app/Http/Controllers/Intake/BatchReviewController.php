@@ -75,6 +75,13 @@ final class BatchReviewController extends Controller
         return back()->with('status', "Prepared {$result['prepared']} items; {$result['remaining']} remain and {$result['attention']} need attention.");
     }
 
+    public function regenerate(Request $request, string $sessionId, TrustedBatchReview $reviews): RedirectResponse
+    {
+        $result = $reviews->regeneratePending($sessionId, $request->user(), 25);
+
+        return back()->with('status', "Regenerated {$result['regenerated']} pending suggestions; {$result['failed']} failed and {$result['attention']} need attention.");
+    }
+
     public function decide(Request $request, string $sessionId, TrustedBatchReview $reviews): RedirectResponse
     {
         $validated = $request->validate([

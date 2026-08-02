@@ -13,6 +13,7 @@ use App\Domain\Processing\Models\RestorationCandidate;
 use App\Domain\Processing\Services\GdRestorationCandidateProcessor;
 use App\Domain\Processing\Services\RestorationWorkflow;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class ApproveIncomingPhotoForRestoration
@@ -97,6 +98,68 @@ final class ApproveIncomingPhotoForRestoration
         $jobId = $this->workflow->queue($source, $recipeId, $actor, $preferences);
         $job = ProcessingJob::query()->where('job_id', $jobId)->firstOrFail();
         $candidate = $this->processor->process($job, $actor);
+
+        return new IncomingPhotoAutomationResult('candidate_ready', promotion: $promotion, job: $job->fresh(), candidate: $candidate);
+    }
+
+    public function regeneratePendingSuggestion(IncomingUpload $upload, User $actor): IncomingPhotoAutomationResult
+    {
+        if (! $actor->canManageTrustedIntake() || $actor->email_verified_at === null) {
+            abort(403, 'A verified trusted-intake account is required.');
+        }
+
+        $promotion = ArchivePromotion::query()
+            ->where('incoming_upload_id', $upload->id)
+            ->with(['originalVersion', 'mediaItem'])
+            ->first();
+        if (! $promotion instanceof ArchivePromotion || $promotion->originalVersion === null) {
+            throw ValidationException::withMessages([
+                'upload' => 'A retained immutable original is required before regenerating its suggestion.',
+            ]);
+        }
+
+        $source = $promotion->originalVersion;
+        $submission = ContributorSubmission::query()
+            ->where('incoming_upload_id', $upload->id)
+            ->first();
+        $preferences = is_array($submission?->automation_preferences)
+            ? $submission->automation_preferences
+            : [];
+        $preferences = $this->workflow->normalizePreferences($preferences);
+        if ($preferences['automation_mode'] !== 'candidates') {
+            return new IncomingPhotoAutomationResult('original_accepted', promotion: $promotion);
+        }
+
+        $recipeId = $this->workflow->createFromPreferences(
+            'Uploader-controlled photo restoration',
+            $preferences,
+            $actor,
+        );
+        $jobId = $this->workflow->queue($source, $recipeId, $actor, $preferences);
+        $job = ProcessingJob::query()->where('job_id', $jobId)->firstOrFail();
+        $candidate = $this->processor->process($job, $actor);
+
+        DB::transaction(function () use ($source, $candidate, $actor): void {
+            $superseded = RestorationCandidate::query()
+                ->where('source_version_id', $source->id)
+                ->where('review_state', 'pending')
+                ->whereKeyNot($candidate->id)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($superseded as $oldCandidate) {
+                $oldCandidate->forceFill([
+                    'review_state' => 'rejected',
+                    'reviewed_by' => $actor->id,
+                    'review_note' => 'Superseded by regenerated batch-review suggestion.',
+                    'reviewed_at' => now(),
+                ])->save();
+                $oldCandidate->job()->update([
+                    'state' => 'rejected',
+                    'completed_at' => now(),
+                ]);
+            }
+        });
 
         return new IncomingPhotoAutomationResult('candidate_ready', promotion: $promotion, job: $job->fresh(), candidate: $candidate);
     }

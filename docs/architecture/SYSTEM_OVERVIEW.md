@@ -215,8 +215,14 @@ four-file evidence pack approved. Screenshot Group 11 is implemented as v1.6.0
 Portfolio Showcase, with its seven-file evidence pack approved. Screenshot
 Group 12 is implemented as v1.7.0 Accounts & Contributor Access, with its
 six-file evidence pack approved. Screenshot Group 13 is implemented as v1.8.0
-Restoration Automation, with its six-file evidence pack approved. Screenshot
-Group 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
+Restoration Automation, with its six-file evidence pack approved. Its crop
+processing fails closed when a sustained four-sided boundary cannot be
+verified: original framing is retained and the batch item is routed to
+`crop_check` instead of promoting a low-confidence suggestion. Pending batch
+suggestions can be regenerated after a rule correction; reviewed decisions are
+excluded and the former derivative candidate remains as rejected audit history.
+Screenshot Group
+14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
 Hosted Production, with its four-file live evidence pack approved. Screenshot
 Groups 01-19 are closed. Screenshot Group 16 implements the v2.1.0 Unified
@@ -242,6 +248,11 @@ v3.0.0 Role-Aware Workflow Polish boundary consolidates operational entry points
 into one Work hub whose summaries and destinations are filtered by role. It does
 not merge specialist authorization boundaries or expose operational queues to
 ordinary members; its six-file Screenshot Group 25 evidence pack is approved and closed. The
+v3.1.0 Original-First Manual Restoration boundary makes automatic output an
+optional comparison and gives authorized reviewers equivalent manual controls
+that always render from the verified original. Manual saves create separate
+candidate versions with explicit lineage; its six-file Screenshot Group 26
+evidence pack is approved and closed. The
 implemented foundation
 establishes:
 
@@ -288,14 +299,20 @@ establishes:
     photo intake that requests separate smart-crop, rotation and deskew
     candidates without automatic archive promotion; and
 29. an exception-first trusted-intake workspace that compares verified
-    originals with reversible suggestions and commits bounded bulk decisions.
-30. delegated routine family operations that keep privileged access and
+    originals with reversible suggestions and commits bounded bulk decisions;
+    and
+30. a role-authorized manual restoration editor that starts from the verified
+    immutable original, exposes every implemented image adjustment, accepts
+    work even when automation has no usable suggestion and saves only a new
+    versioned review candidate.
+31. delegated routine family operations that keep privileged access and
     original-file decisions inside the Owner exception boundary.
 
-Owner photo acceptance is a two-step decision: first preserve the verified
-source as the immutable original, then immediately compare that original with
-the generated edit. Only the second explicit decision may change the preferred
-viewing version; it never changes the original.
+Photo acceptance preserves the verified source as the immutable original before
+any review candidate can exist. Authorized trusted reviewers may compare an
+automatic suggestion or build their own edit directly from that original. Only
+an explicit later decision may change the preferred viewing version; no editor,
+automation rule or acceptance action changes the original.
 
 The Archive Knowledge hub adds reviewed, permission-aware discovery across
 events, safe locations, non-private non-living people and family branches.

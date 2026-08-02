@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 25 planned
+- Official screenshot groups: 26 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -36,13 +36,15 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG23 - Unified Archive Experience
 - Completed and closed: SG24 - Delegated Family Operations
 - Completed and closed: SG25 - Role-Aware Workflow Polish
-- Current release: v3.0.0 - Role-Aware Workflow Polish
-- Current evidence state: Screenshot Groups 01-25 approved and closed
+- Completed and closed: SG26 - Original-First Manual Restoration
+- Current release: v3.1.0 - Original-First Manual Restoration
+- Current evidence state: Screenshot Groups 01-26 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
-- Current restoration model: uploader-controlled, integrity-verified,
-  non-destructive candidates with explicit human review
+- Current restoration model: uploader-controlled automation plus a role-authorized
+  manual editor that recreates every supported adjustment from the verified
+  immutable original and saves a separate review candidate
 - Current verified photo workflow: retained contributor input, delegated human
   acceptance, immediate original-versus-edit review, approved restoration and
   private web/thumbnail derivatives with explicit lineage
@@ -152,8 +154,14 @@ The completed system can:
   recipes and separate WebP review candidates;
 - apply EXIF orientation, conservative deskew/crop analysis and optional gentle
   tonal cleanup without changing an original;
-- retain perspective correction, damage reconstruction and upscaling as
-  manual-only requests until a supported processor exists; and
+- let authorized reviewers manually rotate, straighten, crop, balance colour,
+  adjust exposure, denoise, sharpen and clean up a photo directly from its
+  verified original, even when automation produces no usable suggestion;
+- save each manual result as a new versioned candidate while preserving the
+  original, automatic suggestions and superseded edits as lineage and audit
+  history;
+- keep perspective correction, damage reconstruction and upscaling unavailable
+  until a supported processor exists; and
 - append processing and review history while requiring human approval before a
   restored derivative can become preferred;
 - switch the four logical archive disks between private local storage and one
@@ -176,11 +184,16 @@ The completed system can:
 - inventory up to 100,000 local photos without persisting their source paths;
 - process high-volume intake through bounded, resumable quarantine checkpoints
   that request separate photo-edge crop, auto-rotation and deskew candidates;
-  and
+- apply automatic crops only after four-sided boundary, geometry, confidence
+  and edge-inset checks; ambiguous or multi-item album captures retain their
+  original framing and enter focused review;
 - isolate per-file failures and stop on inventory drift without repeating
   retained work or bypassing human archive approval;
 - prepare reversible suggestions beside verified retained originals in one batch
   workspace;
+- regenerate pending suggestions after processing-rule improvements without
+  reopening reviewed decisions, replacing originals or deleting superseded
+  candidate history;
 - isolate crop, duplicate and processing exceptions for focused review; and
 - apply original, suggested-edit, hold or reject decisions to visible selections
   while keeping failed decisions resumable.

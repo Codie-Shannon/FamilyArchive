@@ -42,6 +42,7 @@ use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\ContributorSubmissionController;
 use App\Http\Controllers\Intake\BatchItemPreviewController;
 use App\Http\Controllers\Intake\BatchReviewController;
+use App\Http\Controllers\Intake\RestorationEditorController;
 use App\Http\Controllers\MemberHomeController;
 use App\Http\Controllers\PublicConversationController;
 use App\Http\Controllers\PublicDiscoveryController;
@@ -98,8 +99,11 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/', [BatchReviewController::class, 'index'])->name('index');
         Route::get('/batches/{sessionId}', [BatchReviewController::class, 'show'])->name('batches.show');
         Route::post('/batches/{sessionId}/prepare', [BatchReviewController::class, 'prepare'])->name('batches.prepare');
+        Route::post('/batches/{sessionId}/regenerate', [BatchReviewController::class, 'regenerate'])->name('batches.regenerate');
         Route::patch('/batches/{sessionId}/review', [BatchReviewController::class, 'decide'])->name('batches.review');
         Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
+        Route::get('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'edit'])->name('items.editor');
+        Route::post('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'update'])->name('items.editor.update');
     });
     Route::middleware('owner')->group(function (): void {
         Route::get('/archive/events/create', [ArchiveEventController::class, 'create'])->name('archive.events.create');
