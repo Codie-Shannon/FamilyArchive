@@ -12,7 +12,8 @@ final class CommunityWorkspaceController extends Controller
 {
     public function __invoke(RealtimeStatus $status): View
     {
-        $userId = (int) request()->user()->getAuthIdentifier();
+        $user = request()->user();
+        $userId = (int) $user->getAuthIdentifier();
         $spaces = $this->visibleSpaces($userId);
         $selectedSpace = $spaces->first();
 
@@ -25,6 +26,7 @@ final class CommunityWorkspaceController extends Controller
                 'presence' => collect(),
                 'voiceMessages' => collect(),
                 'readiness' => $status->callReadiness(),
+                'showOperationalDetails' => $user->isArchiveAdministrator(),
             ]);
         }
 
@@ -66,6 +68,7 @@ final class CommunityWorkspaceController extends Controller
                 ->latest('voice_messages.created_at')
                 ->get(),
             'readiness' => $status->callReadiness(),
+            'showOperationalDetails' => $user->isArchiveAdministrator(),
         ]);
     }
 

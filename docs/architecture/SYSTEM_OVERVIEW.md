@@ -371,6 +371,11 @@ requests, versioned encrypted-envelope validation and private attachment scan
 states. Its guidance bot cannot read the private archive. WhatsApp and
 Messenger records describe only official business platforms, and end-to-end
 encryption remains disabled until runtime interoperability is proven.
+Everyday Family Experience keeps these communication controls while separating
+member language from operator evidence. Members see Requests, Conversations,
+Shared files and Family activity; administrators and Owners may expand the
+underlying envelope, attachment and real-time service facts when operational
+verification is required.
 Portfolio Showcase packages the cumulative architecture into six safe,
 Owner-only evidence views. Its fictional dataset is local-only, and optional
 read-only mode rejects authenticated writes without weakening authentication

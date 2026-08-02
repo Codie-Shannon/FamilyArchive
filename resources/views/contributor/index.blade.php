@@ -1,6 +1,6 @@
 <x-layouts::app :title="__('Contribute family media')">
 <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-4 md:p-8">
-    <header><p class="text-sm font-medium text-emerald-300">Preservation-safe contributor intake</p><h1 class="mt-1 text-3xl font-semibold text-white">Start or resume an upload</h1><p class="mt-2 max-w-3xl text-zinc-400">Add a batch, compare automatic suggestions, then finish it in one review flow. Every source is retained unchanged.</p></header>
+    <header><p class="text-sm font-medium text-emerald-300">Family photos</p><h1 class="mt-1 text-3xl font-semibold text-white">Add a photo batch</h1><p class="mt-2 max-w-3xl text-zinc-400">Choose photos, review the suggested improvements, then finish the batch. Your original photos always remain unchanged.</p></header>
     <section class="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
         <form method="POST" action="{{ route('contributor.sessions.start') }}" class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
             @csrf
@@ -25,7 +25,7 @@
             </details>
             <button class="mt-5 rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white">Create photo batch</button>
         </form>
-        <div class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Your batches</h2><div class="mt-4 space-y-3">@forelse($sessions as $session)<a href="{{ route('contributor.sessions.show',$session) }}" class="block rounded-xl border border-zinc-700 bg-zinc-950 p-4 hover:border-emerald-700"><div class="flex items-center justify-between"><strong class="text-white">{{ $session->title }}</strong><span class="rounded-full border border-emerald-800 px-2 py-1 text-xs text-emerald-300">{{ $session->status }}</span></div><p class="mt-2 text-sm text-zinc-400">{{ $session->received_files }} / {{ $session->expected_files }} retained · expires {{ $session->expires_at->format('j M') }}</p></a>@empty<p class="text-zinc-500">No upload batches yet.</p>@endforelse</div></div>
+        <div class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Your photo batches</h2><p class="mt-2 text-sm text-zinc-400">Open a batch to continue adding or reviewing photos.</p><div class="mt-4 space-y-3">@forelse($sessions as $session)<a href="{{ route('contributor.sessions.show',$session) }}" class="block rounded-xl border border-zinc-700 bg-zinc-950 p-4 hover:border-emerald-700"><div class="flex items-center justify-between gap-3"><strong class="text-white">{{ $session->title }}</strong><span class="rounded-full border border-emerald-800 px-2 py-1 text-xs text-emerald-300">{{ str($session->status)->replace('_', ' ')->headline() }}</span></div><p class="mt-2 text-sm text-zinc-400">{{ $session->received_files }} of {{ $session->expected_files }} photos received · available until {{ $session->expires_at->format('j M') }}</p></a>@empty<p class="text-zinc-500">No photo batches yet.</p>@endforelse</div></div>
     </section>
 </div>
 <script>document.getElementById('automation-preset')?.addEventListener('change', event => { if (event.target.value === 'custom') document.getElementById('advanced-automation')?.setAttribute('open', 'open'); });</script>

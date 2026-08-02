@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 29 completed
+- Official screenshot groups: 30 completed
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -40,8 +40,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG27 - Interactive Archive Map
 - Completed and closed: SG28 - Album-Centred Archive
 - Completed and closed: SG29 - Guided Family Access
-- Current release: v3.4.0 - Guided Family Access
-- Current evidence state: Screenshot Groups 01-29 approved and closed
+- Completed and closed: SG30 - Everyday Family Experience
+- Current release: v3.5.0 - Everyday Family Experience
+- Current evidence state: Screenshot Groups 01-30 approved and closed
 - Current media support: photos
 - Current access model: invite-only approved role/branch access with either
   verified email or guided member-name setup, printable one-time codes,
@@ -69,6 +70,10 @@ system and is not part of another product or student-work archive.
   contributor accounts, resolve reported posts and ordinary communication
   queues, while recipients decide their own private-message requests and the
   Owner retains elevated-role, original-access and policy exceptions
+- Current everyday experience: members use plain-language Requests,
+  Conversations, Shared files and Family activity screens; encryption,
+  delivery and real-time service facts remain available only inside an
+  administrator/Owner operational-details boundary
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes

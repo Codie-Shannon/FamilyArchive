@@ -53,7 +53,7 @@ it('keeps family activity reachable from home without a separate sidebar item', 
 
     $this->actingAs($member)->get(route('community.index'))
         ->assertOk()
-        ->assertSee('Home · Family activity')
+        ->assertSee('Your family')
         ->assertSee('Back to Home');
 });
 
@@ -64,11 +64,8 @@ it('presents archive exploration as a shared bar instead of permanent sidebar li
         ->assertOk()
         ->assertSee('Explore archive')
         ->assertSee('Photos')
-        ->assertSee('Places & map')
-        ->assertSee(route('archive.locations.index'), false)
-        ->assertSee('People</a>', false)
-        ->assertSee('Events</a>', false)
-        ->assertSee('Branches</a>', false)
+        ->assertSee('Albums')
+        ->assertSee(route('archive.albums.index'), false)
         ->assertSee('Search</a>', false);
 });
 
@@ -77,7 +74,7 @@ it('keeps owner tooling separate from the member navigation layer', function ():
 
     $this->actingAs($owner)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Owner command centre')
-        ->assertSee('Open command centre')
-        ->assertSee(route('admin.dashboard'), false);
+        ->assertSee('Owner exceptions')
+        ->assertSee('Open your work')
+        ->assertSee(route('work.index'), false);
 });

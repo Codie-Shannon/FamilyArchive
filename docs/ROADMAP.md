@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 29 completed screenshot groups.
+releases. The repository currently has 30 completed screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -60,6 +60,9 @@ implementation and eight-file screenshot evidence pack are approved and closed.
 Screenshot Group 29 implements the v3.4.0 Guided Family Access boundary. Its
 implementation and seven-file screenshot evidence pack are approved and
 closed.
+Screenshot Group 30 implements the v3.5.0 Everyday Family Experience boundary.
+Its implementation and eight-file screenshot evidence pack are approved and
+closed.
 
 ## Screenshot Group 29 Boundary
 
@@ -79,6 +82,24 @@ participation without weakening the invitation or approval boundary. It:
   history; and
 - retains verified-email registration and password reset for members who prefer
   email-based access.
+
+## Screenshot Group 30 Boundary
+
+Screenshot Group 30 completes a cross-feature daily-use polish pass without
+weakening archive safeguards. It:
+
+- presents private communication as Requests, Conversations and Shared files;
+- leaves message-request decisions with the intended recipient rather than an
+  Owner approval queue;
+- translates safe attachment states into understandable family-facing labels;
+- presents family spaces, presence and voice notes as Family activity;
+- gives contributors a direct Add a photo batch starting point;
+- keeps implementation-specific encryption, delivery and real-time service
+  details out of ordinary member screens;
+- retains those technical and audit facts in a collapsed operational-details
+  boundary for administrators and Owners; and
+- verifies the simplified language, role boundaries and responsive inbox with
+  focused regression coverage.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.

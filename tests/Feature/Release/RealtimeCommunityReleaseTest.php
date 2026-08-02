@@ -154,7 +154,7 @@ it('shows only active memberships and allowed voice messages in the community wo
         ->get(route('community.index'))
         ->assertOk()
         ->assertSee('Fictional History Circle')
-        ->assertSee('archive-stories')
+        ->assertSee('Archive Stories')
         ->assertSee('Fictional Community Member')
         ->assertSee('Typing now')
         ->assertDontSee('Private Other Space')
