@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\PublicDiscovery\Services\PublicMapPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -12,7 +13,7 @@ final class PublicDiscoveryController extends Controller
         return view('public-discovery.index', ['entries' => $this->publishedEntries()]);
     }
 
-    public function map(): View
+    public function map(PublicMapPolicy $mapPolicy): View
     {
         $points = DB::table('public_map_points')
             ->join('public_showcase_entries', 'public_showcase_entries.id', '=', 'public_map_points.public_showcase_entry_id')
@@ -27,15 +28,26 @@ final class PublicDiscoveryController extends Controller
                 'public_map_points.public_place_name',
             ])
             ->get()
-            ->map(function (object $point): object {
-                $point->map_x = max(8, min(92, 8 + (((float) $point->longitude - 166) / 14) * 84));
-                $point->map_y = max(8, min(92, 8 + ((-34 - (float) $point->latitude) / 14) * 84));
-                unset($point->latitude, $point->longitude);
+            ->map(function (object $point) use ($mapPolicy): array {
+                $protected = $mapPolicy->protect(
+                    (float) $point->latitude,
+                    (float) $point->longitude,
+                    (string) $point->precision,
+                );
 
-                return $point;
+                return [
+                    'title' => (string) $point->public_title,
+                    'place' => (string) $point->public_place_name,
+                    'precision' => $protected['precision'],
+                    'latitude' => $protected['latitude'],
+                    'longitude' => $protected['longitude'],
+                ];
             });
 
-        return view('public-discovery.map', compact('points'));
+        return view('public-discovery.map', [
+            'points' => $points,
+            'googleMapsKey' => (string) config('services.google_maps.browser_key', ''),
+        ]);
     }
 
     public function admin(): View

@@ -1,6 +1,5 @@
 <x-layouts::app title="Reviewed Event">
-    <main class="mx-auto max-w-6xl space-y-6 p-6">
-        <x-archive-navigation />
+    <x-archive-shell>
         @if(session('status'))<div class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-800">{{ session('status') }}</div>@endif
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div><p class="font-mono text-xs text-zinc-500">{{ $event->event_id }}</p><h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">{{ $event->name }}</h1><p class="mt-2 text-zinc-600 dark:text-zinc-300">{{ $datePresenter->display($event) }} · {{ str($event->date_confidence->value)->headline() }} confidence</p></div>
@@ -36,5 +35,5 @@
         @if($canCurate)<section class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"><h2 class="text-xl font-semibold">Immutable revision evidence</h2><div class="mt-4 space-y-3">@foreach($event->revisions as $revision)<article class="rounded-lg bg-zinc-100 p-4 text-sm dark:bg-zinc-950"><strong>Revision {{ $revision->revision_number }}</strong><p class="text-zinc-500">{{ implode(', ', $revision->changed_fields) }} · {{ $revision->actor->name }}</p><p class="mt-1">{{ $revision->change_reason }}</p></article>@endforeach</div></section>@endif
 
         @if($canCurate)<aside class="rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">Event curation changes database knowledge only. It does not move, rename, replace or expose originals, derivatives or quarantine objects.</aside>@endif
-    </main>
+    </x-archive-shell>
 </x-layouts::app>

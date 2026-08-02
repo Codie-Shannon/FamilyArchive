@@ -252,7 +252,13 @@ v3.1.0 Original-First Manual Restoration boundary makes automatic output an
 optional comparison and gives authorized reviewers equivalent manual controls
 that always render from the verified original. Manual saves create separate
 candidate versions with explicit lineage; its six-file Screenshot Group 26
-evidence pack is approved and closed. The
+evidence pack is approved and closed. The v3.2.0 Interactive Archive Map
+boundary moves every archive destination into one position-stable navigation
+shell and replaces the illustrative map surface with a real provider-backed
+map. Its browser payload contains only published, separately reviewed points
+after neighbourhood, town or region precision reduction; exact and unreviewed
+coordinates remain server-side and its six-file Screenshot Group 27 evidence
+pack is approved and closed. The
 implemented foundation
 establishes:
 

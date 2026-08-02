@@ -1,8 +1,6 @@
 @php
     $user = auth()->user();
     $isApprovedMember = $user?->account_state === 'approved';
-    $placesRoute = $isApprovedMember ? route('archive.locations.index') : route('public-discovery.map');
-
     $items = array_filter([
         $isApprovedMember ? [
             'label' => 'Photos',
@@ -10,10 +8,17 @@
             'active' => request()->routeIs('archive.index', 'archive.photos.*'),
         ] : null,
         [
-            'label' => 'Places & map',
-            'href' => $placesRoute,
-            'active' => request()->routeIs('public-discovery.map', 'archive.locations.*'),
+            'label' => $isApprovedMember ? 'Places' : 'Archive map',
+            'href' => $isApprovedMember ? route('archive.locations.index') : route('public-discovery.map'),
+            'active' => $isApprovedMember
+                ? request()->routeIs('archive.locations.*')
+                : request()->routeIs('public-discovery.map'),
         ],
+        $isApprovedMember ? [
+            'label' => 'Map',
+            'href' => route('public-discovery.map'),
+            'active' => request()->routeIs('public-discovery.map'),
+        ] : null,
         $isApprovedMember ? [
             'label' => 'People',
             'href' => route('archive.people.index'),

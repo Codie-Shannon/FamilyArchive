@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently plans 25 screenshot groups.
+releases. The repository currently plans 27 screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -50,6 +50,11 @@ Its implementation and eight-file privacy-safe evidence pack are approved and
 closed.
 Screenshot Group 25 implements the v3.0.0 Role-Aware Workflow Polish boundary.
 Its implementation and six-file evidence pack are approved and closed.
+Screenshot Group 26 implements the v3.1.0 Original-First Manual Restoration
+boundary. Its implementation and six-file evidence pack are approved and
+closed. Screenshot Group 27 implements the v3.2.0 Interactive Archive Map
+boundary. Its implementation and six-file screenshot evidence pack are approved
+and closed.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.
@@ -160,6 +165,23 @@ PDFs remain external artifacts and must not be committed.
 | 24 | Corrective delegated family operations | 2.9.0 | Delegated Family Operations |
 | 25 | Role-aware workflow polish | 3.0.0 | Role-Aware Workflow Polish |
 | 26 | Corrective original-first editor | 3.1.0 | Original-First Manual Restoration |
+| 27 | Corrective interactive archive map | 3.2.0 | Interactive Archive Map |
+
+## Screenshot Group 27 Boundary
+
+Screenshot Group 27 places Photos, Places, Map, People, Events, Branches and
+Search in one position-stable archive navigation shell. The Map destination is
+separate from the reviewed Places list and no longer presents a decorative
+illustration as though it were geographic infrastructure.
+
+Implementation status: complete — six-file screenshot evidence approved and
+closed.
+
+When a restricted Google Maps browser key is configured, the map renders real
+tiles and interactive markers. Only published, separately privacy-reviewed
+neighbourhood, town or region points enter the browser payload; exact,
+unreviewed and private coordinates remain excluded. Without the external key,
+the page fails honestly to its reviewed place list.
 
 ## Screenshot Group 26 Boundary
 

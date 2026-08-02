@@ -1,6 +1,5 @@
 <x-layouts::app title="Archive Knowledge">
-    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
-        <x-archive-navigation />
+    <x-archive-shell>
 
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -44,5 +43,5 @@
         <aside class="rounded-xl border border-emerald-800 bg-emerald-950/20 p-5 text-sm text-emerald-100">
             Living people, sensitive locations, private identities and unreviewed records are filtered before display. Owners and archive administrators retain controlled curation access without making ordinary browsing an approval task.
         </aside>
-    </main>
+    </x-archive-shell>
 </x-layouts::app>

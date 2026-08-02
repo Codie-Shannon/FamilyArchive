@@ -1,10 +1,8 @@
 <x-layouts::app title="Reviewed Locations">
-    <main class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
-        <x-archive-navigation />
+    <x-archive-shell>
 
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
-                <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{{ config('release.status') }}</p>
                 <h1 class="text-3xl font-semibold text-zinc-950 dark:text-white">Reviewed locations</h1>
                 <p class="mt-2 text-zinc-600 dark:text-zinc-300">Browse normalized places without exposing sensitive location precision.</p>
             </div>
@@ -31,5 +29,5 @@
         </section>
 
         {{ $locations->links() }}
-    </main>
+    </x-archive-shell>
 </x-layouts::app>

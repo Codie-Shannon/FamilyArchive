@@ -1,6 +1,5 @@
 <x-layouts::app title="Reviewed Person">
-    <main class="mx-auto max-w-6xl space-y-6 p-6">
-        <x-archive-navigation />
+    <x-archive-shell>
         @if(session('status'))<div class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-800">{{ session('status') }}</div>@endif
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -74,5 +73,5 @@
         @else
             <aside class="rounded-xl border border-emerald-800 bg-emerald-950/20 p-5 text-sm text-emerald-100">You are viewing accepted family knowledge. Evidence attachments and immutable revision history remain in the controlled curation workspace.</aside>
         @endif
-    </main>
+    </x-archive-shell>
 </x-layouts::app>

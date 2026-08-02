@@ -1,6 +1,5 @@
 <x-layouts::app :title="__('Private Archive')">
-<div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-6">
-    <x-archive-navigation />
+<x-archive-shell>
     <header class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div><p class="text-sm font-medium text-emerald-300">Access-filtered family archive</p><h1 class="text-3xl font-semibold text-white">Photos</h1><p class="mt-2 max-w-2xl text-zinc-400">Browse preservation-safe copies allowed by your role and family branch. Originals require a separate active grant.</p></div>
         <div class="flex items-center gap-3">@if(auth()->user()?->role === 'owner')<a href="{{ route('archive.sources.index') }}" class="rounded-xl border border-zinc-700 px-4 py-3 text-sm text-emerald-300">Source provenance</a>@endif<div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100"><strong>{{ $photos->total() }}</strong> approved archive records</div></div>
@@ -26,5 +25,5 @@
     </section>
     <div class="rounded-xl border border-zinc-700 bg-zinc-900 p-4">{{ $photos->links() }}</div>
     <section class="rounded-xl border border-zinc-700 bg-zinc-900 p-5 text-sm text-zinc-400"><strong class="text-white">No mutation controls:</strong> no download, edit, delete, replace, approve, share, select or bulk-action controls exist in this archive.</section>
-</div>
+</x-archive-shell>
 </x-layouts::app>

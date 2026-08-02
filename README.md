@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 26 planned
+- Official screenshot groups: 27 planned
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -37,8 +37,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG24 - Delegated Family Operations
 - Completed and closed: SG25 - Role-Aware Workflow Polish
 - Completed and closed: SG26 - Original-First Manual Restoration
-- Current release: v3.1.0 - Original-First Manual Restoration
-- Current evidence state: Screenshot Groups 01-26 approved and closed
+- Completed and closed: SG27 - Interactive Archive Map
+- Current release: v3.2.0 - Interactive Archive Map
+- Current evidence state: Screenshot Groups 01-27 approved and closed
 - Current media support: photos
 - Current access model: invite-only, verified and approved role/branch access with
   owner-controlled administration and original grants
@@ -53,8 +54,12 @@ system and is not part of another product or student-work archive.
   exceptions through one checkpointed batch workspace
 - Current archive-discovery model: approved members move between photos,
   reviewed places, people, events, branches and permission-aware search through
-  one shared navigation surface, while private, living, sensitive and
+  one position-stable navigation surface, while private, living, sensitive and
   unreviewed facts are filtered before display
+- Current public-map model: a real Google map receives only published,
+  separately reviewed neighbourhood, town or region points; exact archive
+  coordinates are excluded and the reviewed list remains available if the
+  external map provider is not configured
 - Current family-operations model: administrators decide routine viewer and
   contributor accounts, resolve reported posts and ordinary communication
   queues, while recipients decide their own private-message requests and the
@@ -128,8 +133,8 @@ The completed system can:
   real external requirements are satisfied;
 - publish only explicitly reviewed showcase stories through a restricted
   public read model;
-- render only privacy-reviewed neighbourhood, town or region map labels while
-  withholding exact coordinates; and
+- render privacy-reviewed neighbourhood, town or region markers on an
+  interactive map while withholding exact coordinates; and
 - review public entries, map privacy and social-publication receipt state
   inside the verified Owner boundary;
 - restrict community spaces and channels to active memberships;
