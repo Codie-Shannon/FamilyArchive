@@ -1,5 +1,11 @@
 const token = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
+document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-open-family-chat]')) {
+        window.dispatchEvent(new CustomEvent('family-chat:open'));
+    }
+});
+
 window.familyChat = () => ({
     open: false,
     loading: false,

@@ -79,10 +79,10 @@
                 <a href="{{ route('community.index') }}" class="mt-5 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Open family activity</a>
             </article>
             <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-5">
-                <p class="text-sm font-medium text-cyan-300">Private messages</p>
-                <h2 class="mt-1 text-xl font-semibold text-white">Consent-first conversations</h2>
-                <p class="mt-3 text-sm leading-6 text-zinc-400">Review message requests and private attachment status without exposing archive originals.</p>
-                <a href="{{ route('secure-messages.index') }}" class="mt-5 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Open messages</a>
+                <p class="text-sm font-medium text-cyan-300">Outside contact</p>
+                <h2 class="mt-1 text-xl font-semibold text-white">Contact requests</h2>
+                <p class="mt-3 text-sm leading-6 text-zinc-400">Choose whether people contacting you through the public site may connect, and check the status of files they shared.</p>
+                <a href="{{ route('contact-requests.index') }}" class="mt-5 inline-flex rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-white">Review contact requests</a>
             </article>
             @if($user->role === 'owner')
                 <article class="rounded-2xl border border-amber-800 bg-amber-950/20 p-5">

@@ -194,14 +194,14 @@ it('scopes secure messages to the recipient and excludes sensitive envelope fiel
         ],
     ]);
 
-    $this->get(route('secure-messages.index'))->assertRedirect('/login');
+    $this->get(route('contact-requests.index'))->assertRedirect('/login');
     $this->actingAs($recipient)
-        ->get(route('secure-messages.index'))
+        ->get(route('contact-requests.index'))
         ->assertOk()
         ->assertSee('Harbour Historian 14')
         ->assertDontSee('Album Helper 27')
         ->assertDontSee('harbour-caption-card.png')
-        ->assertSee('Private by design')
+        ->assertSee('Consent by design')
         ->assertDontSee('Protocol v1')
         ->assertDontSee('Runtime setup required')
         ->assertDontSee('Private Outside Alias')
@@ -221,7 +221,7 @@ it('scopes secure messages to the recipient and excludes sensitive envelope fiel
         ->assertDontSee(str_repeat('d', 64));
 
     $this->actingAs($recipient)
-        ->get(route('secure-messages.index', ['view' => 'attachments']))
+        ->get(route('contact-requests.index', ['view' => 'attachments']))
         ->assertOk()
         ->assertSee('Shared files')
         ->assertSee('Ready')

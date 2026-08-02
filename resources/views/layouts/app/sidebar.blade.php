@@ -12,7 +12,7 @@
    @if(auth()->user()?->canContribute())
     <flux:navlist.item icon="arrow-up-tray" :href="route('contributor.index')" :current="request()->routeIs('contributor.*')" wire:navigate>{{ __('Contribute') }}</flux:navlist.item>
    @endif
-   <flux:navlist.item icon="envelope" :href="route('secure-messages.index')" :current="request()->routeIs('secure-messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
+   <flux:navlist.item icon="inbox-arrow-down" :href="route('contact-requests.index')" :current="request()->routeIs('contact-requests.*')" wire:navigate>{{ __('Contact requests') }}</flux:navlist.item>
   </flux:navlist.group>
   @if(auth()->user()?->canAccessWorkHub())
    <flux:navlist.group :heading="__('Operations')" class="grid">

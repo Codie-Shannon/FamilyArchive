@@ -120,6 +120,9 @@ routine family communication to an Owner approval queue. It:
   conversation state;
 - supports right-click and long-press access to conversation controls while
   retaining a visible controls button;
+- makes embedded Family chat the only approved-family conversation surface;
+- retains the earlier consent boundary as a clearly labelled Contact requests
+  inbox exclusively for public-site contacts and their checked attachments;
 - keeps every conversation private to its two participants; and
 - exposes a private message to administrators only when its recipient reports
   that specific message.
@@ -454,7 +457,8 @@ Implementation status: complete — seven-file screenshot evidence approved.
 
 The release:
 
-- reduces viewer navigation to Home, Archive and Messages;
+- reduces viewer navigation to Home, Archive and Contact requests, with Family
+  chat available from the persistent chat control;
 - adds Contribute only for roles allowed to upload;
 - moves family activity into the Home journey instead of a permanent sidebar
   destination;

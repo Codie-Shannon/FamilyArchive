@@ -51,15 +51,19 @@ function sg30Conversation(User $recipient): array
     return compact('alias', 'thread', 'envelope');
 }
 
-it('presents ordinary private messaging without protocol jargon', function (): void {
+it('separates public contact requests from embedded family chat', function (): void {
     $member = sg30User();
     sg30Conversation($member);
 
-    $this->actingAs($member)->get(route('secure-messages.index', ['view' => 'conversations']))
+    $this->actingAs($member)->get(route('secure-messages.legacy'))
+        ->assertRedirect('/contact-requests');
+
+    $this->actingAs($member)->get(route('contact-requests.index'))
         ->assertOk()
-        ->assertSee('Private conversations')
-        ->assertSee('1 protected message')
-        ->assertSee('Routine requests never wait for Owner approval')
+        ->assertSee('Contact requests')
+        ->assertSee('Family chat stays in the chat panel')
+        ->assertSee('data-open-family-chat', false)
+        ->assertDontSee('Private conversations')
         ->assertDontSee('Protocol v1')
         ->assertDontSee('Versioned envelopes')
         ->assertDontSee('Ciphertext')
@@ -72,8 +76,8 @@ it('keeps security evidence available only to archive administrators', function 
     sg30Conversation($viewer);
     sg30Conversation($owner);
 
-    $this->actingAs($viewer)->get(route('secure-messages.index'))->assertDontSee('Security and audit details');
-    $this->actingAs($owner)->get(route('secure-messages.index'))
+    $this->actingAs($viewer)->get(route('contact-requests.index'))->assertDontSee('Security and audit details');
+    $this->actingAs($owner)->get(route('contact-requests.index'))
         ->assertOk()
         ->assertSee('Security and audit details')
         ->assertSee('Protocol v1')

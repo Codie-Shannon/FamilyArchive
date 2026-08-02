@@ -104,10 +104,10 @@ it('gives each recipient control of their own private-message request', function
         'updated_at' => now(),
     ]);
 
-    $this->actingAs($outsider)->patch(route('secure-messages.consent', $thread), ['decision' => 'accept'])->assertSessionHasErrors('thread');
+    $this->actingAs($outsider)->patch(route('contact-requests.consent', $thread), ['decision' => 'accept'])->assertSessionHasErrors('thread');
     expect(DB::table('public_direct_threads')->where('id', $thread)->value('state'))->toBe('pending');
 
-    $this->actingAs($recipient)->patch(route('secure-messages.consent', $thread), ['decision' => 'accept'])->assertRedirect()->assertSessionHas('status');
+    $this->actingAs($recipient)->patch(route('contact-requests.consent', $thread), ['decision' => 'accept'])->assertRedirect()->assertSessionHas('status');
     expect(DB::table('public_direct_threads')->where('id', $thread)->value('state'))->toBe('accepted');
 });
 

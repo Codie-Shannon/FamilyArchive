@@ -78,10 +78,11 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::get('/dashboard', MemberHomeController::class)->name('dashboard');
     Route::get('/work', WorkHomeController::class)->middleware('work.access')->name('work.index');
     Route::get('/community', CommunityWorkspaceController::class)->name('community.index');
-    Route::get('/secure-messages', SecureMessagingController::class)->name('secure-messages.index');
-    Route::patch('/secure-messages/requests/{thread}', [SecureMessagingController::class, 'consent'])
+    Route::redirect('/secure-messages', '/contact-requests', 301)->name('secure-messages.legacy');
+    Route::get('/contact-requests', SecureMessagingController::class)->name('contact-requests.index');
+    Route::patch('/contact-requests/{thread}', [SecureMessagingController::class, 'consent'])
         ->whereNumber('thread')
-        ->name('secure-messages.consent');
+        ->name('contact-requests.consent');
     Route::prefix('family-messages')->name('family-messages.')->group(function (): void {
         Route::get('/', [FamilyMessageController::class, 'index'])->name('index');
         Route::post('/threads', [FamilyMessageController::class, 'storeThread'])->middleware('throttle:20,1')->name('threads.store');

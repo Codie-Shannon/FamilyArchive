@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 30 completed, SG31 evidence pending
+- Official screenshot groups: 31 completed and approved
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -41,9 +41,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG28 - Album-Centred Archive
 - Completed and closed: SG29 - Guided Family Access
 - Completed and closed: SG30 - Everyday Family Experience
-- In evidence review: SG31 - Embedded Family Messaging
+- Completed and closed: SG31 - Embedded Family Messaging
 - Current release: v3.6.0 - Embedded Family Messaging
-- Current evidence state: Screenshot Groups 01-30 approved and closed; SG31 implementation complete
+- Current evidence state: Screenshot Groups 01-31 approved and closed
 - Current media support: photos
 - Current access model: invite-only approved role/branch access with either
   verified email or guided member-name setup, printable one-time codes,
@@ -69,12 +69,12 @@ system and is not part of another product or student-work archive.
   external map provider is not configured
 - Current family-operations model: administrators decide routine viewer and
   contributor accounts, resolve reported posts and ordinary communication
-  queues, while recipients decide their own private-message requests and the
-  Owner retains elevated-role, original-access and policy exceptions
-- Current everyday experience: members use plain-language Requests,
-  Conversations, Shared files and Family activity screens; encryption,
-  delivery and real-time service facts remain available only inside an
-  administrator/Owner operational-details boundary
+  queues, while recipients decide their own public-site contact requests and
+  the Owner retains elevated-role, original-access and policy exceptions
+- Current everyday experience: members use embedded Family chat for approved
+  family conversations, a separate Contact requests inbox for public contacts
+  and checked attachments, and Family activity for shared spaces; encryption
+  and delivery facts remain inside an administrator/Owner details boundary
 - Current embedded messaging model: every approved Owner, administrator,
   trusted contributor, contributor and viewer can start an immediate private
   conversation with another approved family member; each participant controls

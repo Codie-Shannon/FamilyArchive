@@ -21,12 +21,6 @@ final class SecureMessagingController extends Controller
             ->where('state', 'accepted')
             ->pluck('internal_id')
             ->all();
-        $messageCounts = $this->messageCounts($acceptedThreadIds);
-        $threads = $threads->map(function (array $thread) use ($messageCounts): array {
-            $thread['message_count'] = (int) ($messageCounts[$thread['internal_id']] ?? 0);
-
-            return $thread;
-        });
         $showOperationalDetails = $user->isArchiveAdministrator();
         $requestedView = request()->string('view')->toString();
 
@@ -37,7 +31,7 @@ final class SecureMessagingController extends Controller
             'encryptionEnabled' => (bool) config('communication_bridges.end_to_end_encryption.enabled'),
             'protocolVersion' => (int) config('communication_bridges.end_to_end_encryption.protocol_version'),
             'showOperationalDetails' => $showOperationalDetails,
-            'activeView' => in_array($requestedView, ['conversations', 'attachments'], true) ? $requestedView : 'requests',
+            'activeView' => $requestedView === 'attachments' ? 'attachments' : 'requests',
         ]);
     }
 
@@ -73,26 +67,6 @@ final class SecureMessagingController extends Controller
                     'state' => (string) $row['state'],
                 ];
             });
-    }
-
-    /**
-     * @param  array<int, int>  $threadIds
-     * @return array<int, int>
-     */
-    private function messageCounts(array $threadIds): array
-    {
-        if ($threadIds === []) {
-            return [];
-        }
-
-        return DB::table('encrypted_message_envelopes')
-            ->where('conversation_type', 'public_direct_thread')
-            ->whereIn('conversation_id', $threadIds)
-            ->select(['conversation_id', DB::raw('count(*) as message_count')])
-            ->groupBy('conversation_id')
-            ->pluck('message_count', 'conversation_id')
-            ->map(fn (mixed $count): int => (int) $count)
-            ->all();
     }
 
     /**

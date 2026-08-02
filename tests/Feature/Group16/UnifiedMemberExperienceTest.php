@@ -21,7 +21,7 @@ it('reduces viewer navigation to home archive and messages', function (): void {
         ->assertSee('Your archive')
         ->assertSee('Home')
         ->assertSee('Archive')
-        ->assertSee('Messages')
+        ->assertSee('Contact requests')
         ->assertDontSee('Contribute</', false)
         ->assertDontSee('Family Community')
         ->assertDontSee('Public Home')
