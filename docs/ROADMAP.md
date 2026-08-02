@@ -1,7 +1,8 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 30 completed screenshot groups.
+releases. The repository currently has 30 completed screenshot groups and one
+implemented group awaiting evidence approval.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -63,6 +64,9 @@ closed.
 Screenshot Group 30 implements the v3.5.0 Everyday Family Experience boundary.
 Its implementation and eight-file screenshot evidence pack are approved and
 closed.
+Screenshot Group 31 implements the v3.6.0 Embedded Family Messaging boundary.
+Its implementation is complete and its screenshot evidence is awaiting manual
+approval.
 
 ## Screenshot Group 29 Boundary
 
@@ -100,6 +104,25 @@ weakening archive safeguards. It:
   boundary for administrators and Owners; and
 - verifies the simplified language, role boundaries and responsive inbox with
   focused regression coverage.
+
+## Screenshot Group 31 Boundary
+
+Screenshot Group 31 adds immediate one-to-one conversation without returning
+routine family communication to an Owner approval queue. It:
+
+- defines an approved family member as an approved account with an Owner,
+  administrator, trusted-contributor, contributor or viewer role;
+- treats the private archive installation as the family boundary while leaving
+  branch membership to scope archive content;
+- embeds a floating conversation surface on desktop and a full-screen surface
+  on narrow mobile viewports;
+- lets either participant mute, archive, block and unblock their own
+  conversation state;
+- supports right-click and long-press access to conversation controls while
+  retaining a visible controls button;
+- keeps every conversation private to its two participants; and
+- exposes a private message to administrators only when its recipient reports
+  that specific message.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.

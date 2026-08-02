@@ -25,5 +25,8 @@
 </flux:sidebar>
 <flux:header class="lg:hidden"><flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" /><flux:spacer /><x-dropdown-user-menu /></flux:header>
 {{ $slot }}
+@if(auth()->user()?->isApprovedFamilyMember())
+ <x-family-chat />
+@endif
 @fluxScripts
 </body></html>

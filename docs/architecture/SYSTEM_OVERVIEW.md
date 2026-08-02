@@ -49,7 +49,7 @@ derivative, review, access and recovery boundaries are implemented.
 | High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
 | Knowledge | Reviewed events, locations, people and family branches with one role-aware browsing and search policy; place titles and optional subtitles remain distinct from geographic addresses |
 | Access | Invitation-only accounts, verified-email or guided member-name setup, enforced approval, branch-filtered browsing, one-time assisted recovery, immutable access events and active original grants |
-| Communication | Immediate approved-member family posts, recipient-controlled private messaging and moderated anonymous contact intake |
+| Communication | Immediate approved-family-member one-to-one messaging, per-participant mute/archive/block controls, recipient-reported moderation exceptions, family posts and moderated anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
 | Verified Photo Workflow | Retained contributor input, delegated batch review and approved-candidate viewing lineage |

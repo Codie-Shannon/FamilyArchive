@@ -10,8 +10,17 @@
                 <h1 class="mt-2 text-3xl font-semibold text-white">Messages</h1>
                 <p class="mt-2 max-w-3xl text-zinc-400">Choose who may contact you, continue accepted conversations and check shared files.</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="w-fit rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200">← Back to Home</a>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('family-chat:open'))" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Open family chat</button>
+                <a href="{{ route('dashboard') }}" class="w-fit rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200">← Back to Home</a>
+            </div>
         </header>
+
+        <section class="rounded-2xl border border-emerald-800 bg-emerald-950/20 p-5 md:p-6">
+            <p class="text-sm font-semibold text-emerald-300">Everyday family messaging</p>
+            <h2 class="mt-1 text-xl font-semibold text-white">Chat without an approval queue</h2>
+            <p class="mt-2 max-w-3xl text-sm leading-6 text-zinc-300">Approved family accounts can message one another directly. Each person controls their own mute, archive, block and report choices. Requests below are only for contacts arriving through the public site.</p>
+        </section>
 
         @php
             $pendingRequests = $threads->where('state', 'pending');

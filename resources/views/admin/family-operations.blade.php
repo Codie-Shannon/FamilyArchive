@@ -23,10 +23,11 @@
         <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 sm:p-6"><p class="text-sm font-semibold text-cyan-300">Assisted recovery</p><h2 class="mt-1 text-xl font-semibold text-white">Help a member back in</h2><p class="mt-2 text-sm text-zinc-400">Issue a 24-hour one-time code. It changes only the selected member’s password and leaves their role and archive permissions unchanged.</p><div class="mt-4 max-h-72 space-y-3 overflow-y-auto">@foreach($recoverableAccounts as $member)<form method="POST" action="{{ route('admin.family-operations.recovery', $member) }}" class="grid gap-2 rounded-xl border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">@csrf<div><p class="font-semibold text-white">{{ $member->name }}</p><p class="text-xs text-zinc-500">{{ $member->username ?? $member->email }} · {{ $member->account_state }}</p></div><label class="text-xs text-zinc-400">Reason<input name="reason" required value="Member requested assisted recovery" class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2"></label><button class="rounded-lg border border-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-100">Create code</button></form>@endforeach</div></article>
     </section>
 
-    <section class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <section class="grid grid-cols-2 gap-3 lg:grid-cols-6">
         @foreach([
             'Routine accounts' => $routineAccounts->count(),
             'Reported posts' => $reportedMessages->count(),
+            'Reported messages' => $reportedPrivateMessages->count(),
             'Voice review' => $voiceMessages->count(),
             'Anonymous contact' => $anonymousMessages->count(),
             'Owner exceptions' => $ownerExceptions->count(),
@@ -34,6 +35,24 @@
         <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-4"><p class="text-xs text-zinc-400 sm:text-sm">{{ $label }}</p><p class="mt-2 text-2xl font-semibold {{ $label === 'Owner exceptions' ? 'text-amber-300' : 'text-white' }}">{{ $count }}</p></article>
         @endforeach
     </section>
+
+    @if($reportedPrivateMessages->isNotEmpty())
+    <section class="rounded-2xl border border-rose-900 bg-rose-950/15 p-4 sm:p-6">
+        <p class="text-sm font-semibold text-rose-300">Recipient-reported only</p>
+        <h2 class="mt-1 text-xl font-semibold text-white">Private-message exceptions</h2>
+        <p class="mt-2 text-sm text-zinc-400">Administrators see a private message only after a participant reports it. Ordinary family chat never enters an approval queue.</p>
+        <div class="mt-5 grid gap-4 lg:grid-cols-2">
+            @foreach($reportedPrivateMessages as $message)
+            <form method="POST" action="{{ route('admin.family-operations.private-messages', $message) }}" class="rounded-xl border border-zinc-700 bg-zinc-950 p-4">
+                @csrf @method('PATCH')
+                <p class="text-xs text-zinc-500">{{ $message->sender->name }} · participant report</p>
+                <p class="mt-2 text-sm text-zinc-200">{{ $message->body }}</p>
+                <div class="mt-3 flex gap-2"><button name="decision" value="restore" class="rounded bg-emerald-700 px-3 py-2 text-xs font-semibold text-white">Restore</button><button name="decision" value="hide" class="rounded border border-zinc-700 px-3 py-2 text-xs text-zinc-300">Hide</button></div>
+            </form>
+            @endforeach
+        </div>
+    </section>
+    @endif
 
     <section class="grid gap-5 xl:grid-cols-[1.15fr_.85fr]">
         <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 sm:p-6">

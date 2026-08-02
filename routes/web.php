@@ -41,6 +41,7 @@ use App\Http\Controllers\Archive\SourceCollectionController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\CommunityWorkspaceController;
 use App\Http\Controllers\ContributorSubmissionController;
+use App\Http\Controllers\FamilyMessageController;
 use App\Http\Controllers\Intake\BatchItemPreviewController;
 use App\Http\Controllers\Intake\BatchReviewController;
 use App\Http\Controllers\Intake\RestorationEditorController;
@@ -81,6 +82,14 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::patch('/secure-messages/requests/{thread}', [SecureMessagingController::class, 'consent'])
         ->whereNumber('thread')
         ->name('secure-messages.consent');
+    Route::prefix('family-messages')->name('family-messages.')->group(function (): void {
+        Route::get('/', [FamilyMessageController::class, 'index'])->name('index');
+        Route::post('/threads', [FamilyMessageController::class, 'storeThread'])->middleware('throttle:20,1')->name('threads.store');
+        Route::get('/threads/{threadId}', [FamilyMessageController::class, 'show'])->name('threads.show');
+        Route::post('/threads/{threadId}/messages', [FamilyMessageController::class, 'storeMessage'])->middleware('throttle:30,1')->name('messages.store');
+        Route::patch('/threads/{threadId}/setting', [FamilyMessageController::class, 'setting'])->middleware('throttle:20,1')->name('settings.update');
+        Route::patch('/messages/{messageId}/report', [FamilyMessageController::class, 'report'])->middleware('throttle:10,1')->name('messages.report');
+    });
     Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
     Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
     Route::get('/archive/albums', [ArchiveAlbumController::class, 'index'])->name('archive.albums.index');
@@ -165,6 +174,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::patch('/family-operations/accounts/{user}', [FamilyOperationsController::class, 'account'])->name('family-operations.accounts');
         Route::patch('/family-operations/voice/{message}', [FamilyOperationsController::class, 'voice'])->whereNumber('message')->name('family-operations.voice');
         Route::patch('/family-operations/conversations/{message}', [FamilyOperationsController::class, 'conversation'])->whereNumber('message')->name('family-operations.conversations');
+        Route::patch('/family-operations/private-messages/{message}', [FamilyOperationsController::class, 'privateMessage'])->whereNumber('message')->name('family-operations.private-messages');
         Route::patch('/family-operations/anonymous/{message}', [FamilyOperationsController::class, 'anonymous'])->whereNumber('message')->name('family-operations.anonymous');
     });
     Route::middleware('owner')->prefix('admin')->name('admin.')->group(function (): void {

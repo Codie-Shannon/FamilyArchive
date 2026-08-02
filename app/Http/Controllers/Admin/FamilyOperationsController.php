@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Access\Services\MemberAccessService;
+use App\Domain\Communication\Models\FamilyMessage;
 use App\Domain\Knowledge\Models\FamilyBranch;
 use App\Domain\Operations\Services\DelegatedFamilyOperations;
 use App\Http\Controllers\Controller;
@@ -43,6 +44,11 @@ final class FamilyOperationsController extends Controller
                 ->where('conversation_messages.moderation_state', 'reported')
                 ->select(['conversation_messages.id', 'conversation_messages.body', 'conversation_threads.subject', 'users.name as author_name'])
                 ->latest('conversation_messages.updated_at')
+                ->get(),
+            'reportedPrivateMessages' => FamilyMessage::query()
+                ->with(['sender:id,name', 'thread.userOne:id,name', 'thread.userTwo:id,name'])
+                ->where('state', 'reported')
+                ->latest('reported_at')
                 ->get(),
             'voiceMessages' => DB::table('voice_messages')
                 ->join('users', 'users.id', '=', 'voice_messages.user_id')
@@ -109,6 +115,19 @@ final class FamilyOperationsController extends Controller
         $operations->decideReportedConversation($request->user(), $message, $validated['decision']);
 
         return back()->with('status', 'Conversation report resolved.');
+    }
+
+    public function privateMessage(Request $request, FamilyMessage $message): RedirectResponse
+    {
+        $validated = $request->validate(['decision' => ['required', Rule::in(['restore', 'hide'])]]);
+        abort_unless($message->state === 'reported', 422);
+        $message->update([
+            'state' => $validated['decision'] === 'restore' ? 'visible' : 'removed',
+            'reported_by_user_id' => null,
+            'reported_at' => null,
+        ]);
+
+        return back()->with('status', 'Private-message report resolved.');
     }
 
     public function anonymous(Request $request, int $message, DelegatedFamilyOperations $operations): RedirectResponse

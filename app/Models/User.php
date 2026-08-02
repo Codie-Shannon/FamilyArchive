@@ -85,4 +85,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return in_array($this->role, ['owner', 'admin', 'trusted_contributor'], true);
     }
+
+    public function isApprovedFamilyMember(): bool
+    {
+        return $this->account_state === 'approved'
+            && in_array($this->role, ['owner', 'admin', 'trusted_contributor', 'contributor', 'viewer'], true);
+    }
 }
