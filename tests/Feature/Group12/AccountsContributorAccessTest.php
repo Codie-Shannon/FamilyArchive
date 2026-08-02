@@ -83,7 +83,7 @@ it('requires both verification and owner approval for archive access', function 
     $pending = sg12User(['account_state' => 'pending']);
 
     $this->actingAs($unverified)->get(route('archive.index'))->assertRedirect(route('verification.notice'));
-    $this->actingAs($pending)->get(route('archive.index'))->assertForbidden();
+    $this->actingAs($pending)->get(route('archive.index'))->assertRedirect(route('account.waiting'));
 });
 
 it('filters approved archive records by role visibility and family branch', function (): void {
@@ -178,6 +178,7 @@ it('creates a resumable multi-file contributor session and retains sources in qu
         'title' => 'Fictional album batch',
         'source_context' => 'Synthetic family album used only for automated tests.',
         'expected_files' => 2,
+        'automation_preset' => 'custom',
         'automation_mode' => 'suggestions',
         'auto_rotate' => 1,
         'deskew' => 1,

@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 28 completed
+- Official screenshot groups: 29 completed
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -39,11 +39,13 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG26 - Original-First Manual Restoration
 - Completed and closed: SG27 - Interactive Archive Map
 - Completed and closed: SG28 - Album-Centred Archive
-- Current release: v3.3.0 - Album-Centred Archive
-- Current evidence state: Screenshot Groups 01-28 approved and closed
+- Completed and closed: SG29 - Guided Family Access
+- Current release: v3.4.0 - Guided Family Access
+- Current evidence state: Screenshot Groups 01-29 approved and closed
 - Current media support: photos
-- Current access model: invite-only, verified and approved role/branch access with
-  owner-controlled administration and original grants
+- Current access model: invite-only approved role/branch access with either
+  verified email or guided member-name setup, printable one-time codes,
+  administrator-assisted recovery and owner-controlled original grants
 - Current restoration model: uploader-controlled automation plus a role-authorized
   manual editor that recreates every supported adjustment from the verified
   immutable original and saves a separate review candidate

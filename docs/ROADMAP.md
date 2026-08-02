@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 28 completed screenshot groups.
+releases. The repository currently has 29 completed screenshot groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
 21–28 and is closed with approved v0.28.0 Family Access & Conversation
@@ -57,6 +57,28 @@ boundary. Its implementation and six-file screenshot evidence pack are approved
 and closed.
 Screenshot Group 28 implements the v3.3.0 Album-Centred Archive boundary. Its
 implementation and eight-file screenshot evidence pack are approved and closed.
+Screenshot Group 29 implements the v3.4.0 Guided Family Access boundary. Its
+implementation and seven-file screenshot evidence pack are approved and
+closed.
+
+## Screenshot Group 29 Boundary
+
+Screenshot Group 29 removes email literacy as a prerequisite for private family
+participation without weakening the invitation or approval boundary. It:
+
+- lets a family operator create a printable one-time access card with a friendly
+  member name and optional email;
+- accepts email addresses or member names at the normal sign-in screen;
+- places newly configured members into the existing routine approval queue;
+- gives pending members a clear waiting screen instead of a bare authorization
+  error;
+- lets Owners and administrators issue short-lived one-time recovery codes
+  without changing the member's role or archive permissions;
+- keeps elevated-role invitations and original-file grants under Owner control;
+- stores only access-code hashes and records recovery use in append-only access
+  history; and
+- retains verified-email registration and password reset for members who prefer
+  email-based access.
 
 This file records the repository-safe roadmap. Private chat context and planning
 PDFs remain external artifacts and must not be committed.

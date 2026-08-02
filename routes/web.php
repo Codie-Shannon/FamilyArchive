@@ -60,9 +60,12 @@ Route::match(['get', 'post'], '/register', function (): never {
     abort(404);
 })->name('register');
 Route::middleware('guest')->group(function (): void {
-    Route::get('/join/{invitationId}/{token}', [InvitationController::class, 'show'])->name('invitation.show');
-    Route::post('/join/{invitationId}/{token}', [InvitationController::class, 'accept'])->name('invitation.accept');
+    Route::get('/access-code', [InvitationController::class, 'code'])->name('access-code.show');
+    Route::post('/access-code', [InvitationController::class, 'find'])->middleware('throttle:5,1')->name('access-code.find');
+    Route::get('/join/{invitationId}/{token}', [InvitationController::class, 'show'])->middleware('throttle:20,1')->name('invitation.show');
+    Route::post('/join/{invitationId}/{token}', [InvitationController::class, 'accept'])->middleware('throttle:10,1')->name('invitation.accept');
 });
+Route::view('/account/waiting', 'auth.account-waiting')->middleware('auth')->name('account.waiting');
 Route::post('/conversations/messages', [PublicConversationController::class, 'message'])
     ->middleware(['auth', 'verified', 'demo.readonly', 'throttle:20,1'])
     ->name('public-chat.message');
@@ -157,6 +160,8 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::get('/admin/archive-storage', ArchiveStorageController::class)->middleware('owner')->name('admin.archive-storage');
     Route::middleware('family.operations')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('/family-operations', [FamilyOperationsController::class, 'index'])->name('family-operations.index');
+        Route::post('/family-operations/invitations', [FamilyOperationsController::class, 'invite'])->name('family-operations.invitations');
+        Route::post('/family-operations/accounts/{user}/recovery', [FamilyOperationsController::class, 'recovery'])->name('family-operations.recovery');
         Route::patch('/family-operations/accounts/{user}', [FamilyOperationsController::class, 'account'])->name('family-operations.accounts');
         Route::patch('/family-operations/voice/{message}', [FamilyOperationsController::class, 'voice'])->whereNumber('message')->name('family-operations.voice');
         Route::patch('/family-operations/conversations/{message}', [FamilyOperationsController::class, 'conversation'])->whereNumber('message')->name('family-operations.conversations');

@@ -10,11 +10,13 @@ final class EnsureAccountIsApproved
 {
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless(
-            $request->user()?->account_state === 'approved',
-            Response::HTTP_FORBIDDEN,
-            'Account approval is required before this account can access the archive.'
-        );
+        if ($request->user()?->account_state !== 'approved') {
+            if (! $request->expectsJson()) {
+                return redirect()->route('account.waiting');
+            }
+
+            abort(Response::HTTP_FORBIDDEN, 'Account approval is required before this account can access the archive.');
+        }
 
         return $next($request);
     }

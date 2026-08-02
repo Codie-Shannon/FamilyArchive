@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Access\Services\MemberAccessService;
 use App\Domain\Knowledge\Models\FamilyBranch;
 use App\Domain\Operations\Services\DelegatedFamilyOperations;
 use App\Http\Controllers\Controller;
@@ -14,8 +15,15 @@ use Illuminate\View\View;
 
 final class FamilyOperationsController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $recoverableAccounts = User::query()
+            ->whereIn('account_state', ['approved', 'pending', 'suspended']);
+
+        if ($request->user()->role !== 'owner') {
+            $recoverableAccounts->whereIn('role', ['viewer', 'contributor']);
+        }
+
         return view('admin.family-operations', [
             'routineAccounts' => User::query()
                 ->where('account_state', 'pending')
@@ -28,6 +36,7 @@ final class FamilyOperationsController extends Controller
                 ->orderBy('name')
                 ->get(),
             'branches' => FamilyBranch::query()->orderBy('name')->get(),
+            'recoverableAccounts' => $recoverableAccounts->orderBy('name')->get(),
             'reportedMessages' => DB::table('conversation_messages')
                 ->join('conversation_threads', 'conversation_threads.id', '=', 'conversation_messages.conversation_thread_id')
                 ->join('users', 'users.id', '=', 'conversation_messages.author_id')
@@ -48,6 +57,30 @@ final class FamilyOperationsController extends Controller
                 ->latest()
                 ->get(),
         ]);
+    }
+
+    public function invite(Request $request, MemberAccessService $access): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'username' => ['nullable', 'string', 'min:3', 'max:80', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
+            'role' => ['required', Rule::in(['viewer', 'contributor'])],
+            'family_branch_id' => ['nullable', 'exists:family_branches,id'],
+        ]);
+        $result = $access->createSetup($request->user(), $validated);
+
+        return back()->with('access_card', $result['card']);
+    }
+
+    public function recovery(Request $request, User $user, MemberAccessService $access): RedirectResponse
+    {
+        abort_if($request->user()->role !== 'owner' && ! in_array($user->role, ['viewer', 'contributor'], true), 403);
+
+        $validated = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
+        $result = $access->createRecovery($request->user(), $user, $validated['reason']);
+
+        return back()->with('access_card', $result['card']);
     }
 
     public function account(Request $request, User $user, DelegatedFamilyOperations $operations): RedirectResponse

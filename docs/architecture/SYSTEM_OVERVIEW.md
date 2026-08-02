@@ -48,7 +48,7 @@ derivative, review, access and recovery boundaries are implemented.
 | Provenance | Structured historical dates, stable physical sources and scan batches |
 | High-volume intake | Path-safe inventory fingerprints and resumable quarantine checkpoints for large local photo batches |
 | Knowledge | Reviewed events, locations, people and family branches with one role-aware browsing and search policy; place titles and optional subtitles remain distinct from geographic addresses |
-| Access | Invitation-only accounts, enforced verification and approval, branch-filtered browsing, immutable access events and active original grants |
+| Access | Invitation-only accounts, verified-email or guided member-name setup, enforced approval, branch-filtered browsing, one-time assisted recovery, immutable access events and active original grants |
 | Communication | Immediate approved-member family posts, recipient-controlled private messaging and moderated anonymous contact intake |
 | Collaboration | Identity suggestions and archive notifications |
 | Processing | Versioned restoration recipes, queued jobs and review candidates |
@@ -174,8 +174,9 @@ Original paths never become public URLs.
 ## Access Model
 
 Public registration is disabled. An owner creates an expiring one-use
-invitation; an accepted account must verify its email and remain blocked until
-an owner records approval. Approved viewers and contributors see only
+invitation. Email-based accounts verify their address; guided accounts use a
+printable one-time code and friendly member name. Both remain blocked until an
+authorized family operator records approval. Approved viewers and contributors see only
 family-visible records plus branch-visible records matching their reviewed
 branch. Admins and owners retain archive-wide visibility. Approved members use
 one shared archive journey across photos, reviewed places, people, events,

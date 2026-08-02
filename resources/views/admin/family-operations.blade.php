@@ -10,7 +10,18 @@
     </header>
 
     @if(session('status'))<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-100">{{ session('status') }}</div>@endif
+    @include('admin.partials.access-card')
     @if($errors->any())<div class="rounded-xl border border-red-700 bg-red-950/30 p-4 text-red-100">{{ $errors->first() }}</div>@endif
+
+    <section class="grid gap-5 xl:grid-cols-2">
+        <form method="POST" action="{{ route('admin.family-operations.invitations') }}" class="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 sm:p-6">
+            @csrf
+            <p class="text-sm font-semibold text-emerald-300">Guided member setup</p><h2 class="mt-1 text-xl font-semibold text-white">Create a family access card</h2><p class="mt-2 text-sm text-zinc-400">Email is optional. The member uses a simple one-time code, chooses a password, then appears in the routine approval queue.</p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2"><label class="text-xs text-zinc-400">Full name<input name="name" required class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-base"></label><label class="text-xs text-zinc-400">Member name (optional)<input name="username" placeholder="Generated automatically" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-base"></label><label class="text-xs text-zinc-400">Email (optional)<input name="email" type="email" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-base"></label><label class="text-xs text-zinc-400">Access level<select name="role" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-base"><option value="viewer">Viewer</option><option value="contributor">Contributor</option></select></label><label class="text-xs text-zinc-400 sm:col-span-2">Family branch<select name="family_branch_id" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3 text-base"><option value="">Whole family</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->name }}</option>@endforeach</select></label></div>
+            <button class="mt-4 w-full rounded-lg bg-emerald-500 px-5 py-3 font-semibold text-zinc-950">Create access card</button>
+        </form>
+        <article class="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 sm:p-6"><p class="text-sm font-semibold text-cyan-300">Assisted recovery</p><h2 class="mt-1 text-xl font-semibold text-white">Help a member back in</h2><p class="mt-2 text-sm text-zinc-400">Issue a 24-hour one-time code. It changes only the selected member’s password and leaves their role and archive permissions unchanged.</p><div class="mt-4 max-h-72 space-y-3 overflow-y-auto">@foreach($recoverableAccounts as $member)<form method="POST" action="{{ route('admin.family-operations.recovery', $member) }}" class="grid gap-2 rounded-xl border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">@csrf<div><p class="font-semibold text-white">{{ $member->name }}</p><p class="text-xs text-zinc-500">{{ $member->username ?? $member->email }} · {{ $member->account_state }}</p></div><label class="text-xs text-zinc-400">Reason<input name="reason" required value="Member requested assisted recovery" class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2"></label><button class="rounded-lg border border-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-100">Create code</button></form>@endforeach</div></article>
+    </section>
 
     <section class="grid grid-cols-2 gap-3 lg:grid-cols-5">
         @foreach([
@@ -31,7 +42,7 @@
                 @forelse($routineAccounts as $member)
                 <form method="POST" action="{{ route('admin.family-operations.accounts', $member) }}" class="rounded-xl border border-zinc-700 bg-zinc-950 p-4">
                     @csrf @method('PATCH')
-                    <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-semibold text-white">{{ $member->name }}</p><p class="mt-1 text-sm text-zinc-500">{{ $member->email }} · {{ str($member->role)->headline() }}</p></div><span class="rounded-full bg-amber-950 px-3 py-1 text-xs font-semibold uppercase text-amber-300">Pending</span></div>
+                    <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-semibold text-white">{{ $member->name }}</p><p class="mt-1 text-sm text-zinc-500">{{ $member->username ?? $member->email }} · {{ str($member->role)->headline() }}</p></div><span class="rounded-full bg-amber-950 px-3 py-1 text-xs font-semibold uppercase text-amber-300">Pending</span></div>
                     <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1.2fr_auto] sm:items-end">
                         <label class="text-xs text-zinc-400">Family branch<select name="family_branch_id" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 p-2"><option value="">Whole family</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->name }}</option>@endforeach</select></label>
                         <label class="text-xs text-zinc-400">Reason<input name="reason" required value="Verified family invitation" class="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 p-2"></label>

@@ -6,6 +6,7 @@ use App\Domain\Access\Models\AccountAccessEvent;
 use App\Domain\Access\Models\ContributorSubmission;
 use App\Domain\Access\Models\OriginalAccessGrant;
 use App\Domain\Access\Models\UserInvitation;
+use App\Domain\Access\Services\MemberAccessService;
 use App\Domain\Knowledge\Models\FamilyBranch;
 use App\Domain\Media\Models\MediaItem;
 use App\Http\Controllers\Controller;
@@ -14,7 +15,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 final class AccountAccessController extends Controller
@@ -38,24 +38,18 @@ final class AccountAccessController extends Controller
         ]);
     }
 
-    public function invite(Request $request): RedirectResponse
+    public function invite(Request $request, MemberAccessService $access): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'username' => ['nullable', 'string', 'min:3', 'max:80', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'role' => ['required', Rule::in(self::ROLES)],
             'family_branch_id' => ['nullable', 'exists:family_branches,id'],
         ]);
-        $token = Str::random(64);
-        $invitation = UserInvitation::query()->create([
-            ...$validated,
-            'invitation_id' => (string) Str::uuid(),
-            'token_hash' => hash('sha256', $token),
-            'invited_by' => $request->user()->id,
-            'expires_at' => now()->addDays(7),
-        ]);
+        $result = $access->createSetup($request->user(), $validated);
 
-        return back()->with('invitation_url', route('invitation.show', [$invitation->invitation_id, $token]));
+        return back()->with('access_card', $result['card']);
     }
 
     public function update(Request $request, User $user): RedirectResponse

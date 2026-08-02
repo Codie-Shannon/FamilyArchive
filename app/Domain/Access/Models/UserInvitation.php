@@ -9,7 +9,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $invitation_id
- * @property string $email
+ * @property string|null $email
+ * @property string|null $username
  * @property string $name
  * @property string $role
  * @property int|null $family_branch_id
@@ -20,8 +21,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $revoked_at
  */
 #[Fillable([
-    'invitation_id', 'email', 'name', 'role', 'family_branch_id', 'token_hash',
-    'invited_by', 'expires_at', 'accepted_at', 'revoked_at',
+    'invitation_id', 'email', 'name', 'username', 'role', 'purpose', 'target_user_id',
+    'family_branch_id', 'token_hash', 'invited_by', 'expires_at', 'accepted_at', 'revoked_at',
 ])]
 final class UserInvitation extends Model
 {

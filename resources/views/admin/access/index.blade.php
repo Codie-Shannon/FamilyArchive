@@ -2,7 +2,7 @@
 <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-7 p-4 md:p-8">
     <header><p class="text-sm font-medium text-emerald-300">Policy and original-access control</p><h1 class="mt-1 text-3xl font-semibold text-white">Accounts, branches & original grants</h1><p class="mt-2 max-w-3xl text-zinc-400">Routine viewer and contributor decisions stay with administrators. Elevated roles, scoped original access and append-only access history remain here.</p></header>
     @if(session('status'))<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-100">{{ session('status') }}</div>@endif
-    @if(session('invitation_url'))<div class="rounded-xl border border-cyan-700 bg-cyan-950/30 p-4 text-cyan-100"><strong>One-time invitation URL</strong><p class="mt-2 break-all font-mono text-xs">{{ session('invitation_url') }}</p></div>@endif
+    @include('admin.partials.access-card')
     @if($errors->any())<div class="rounded-xl border border-red-700 bg-red-950/30 p-4 text-red-100">{{ $errors->first() }}</div>@endif
 
     <section class="grid gap-5 lg:grid-cols-2">
@@ -11,11 +11,12 @@
             <h2 class="text-xl font-semibold text-white">Invite a family member</h2>
             <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <label class="text-sm text-zinc-300">Name<input name="name" required class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3"></label>
-                <label class="text-sm text-zinc-300">Email<input name="email" type="email" required class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3"></label>
+                <label class="text-sm text-zinc-300">Member name <span class="text-zinc-500">(optional)</span><input name="username" placeholder="Generated from their name" class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3"></label>
+                <label class="text-sm text-zinc-300">Email <span class="text-zinc-500">(optional)</span><input name="email" type="email" class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3"></label>
                 <label class="text-sm text-zinc-300">Role<select name="role" class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3">@foreach($roles as $role)<option value="{{ $role }}">{{ str_replace('_',' ',$role) }}</option>@endforeach</select></label>
                 <label class="text-sm text-zinc-300">Family branch<select name="family_branch_id" class="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 p-3"><option value="">Whole family</option>@foreach($branches as $branch)<option value="{{ $branch->id }}">{{ $branch->name }}</option>@endforeach</select></label>
             </div>
-            <button class="mt-5 rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white">Create seven-day invitation</button>
+            <button class="mt-5 rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white">Create printable access card</button>
         </form>
         <form method="POST" action="{{ route('admin.access.grants.store') }}" class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
             @csrf
@@ -36,7 +37,7 @@
             @foreach($users as $user)
             <form method="POST" action="{{ route('admin.access.users.update', $user) }}" class="grid gap-3 rounded-xl border border-zinc-700 bg-zinc-950/50 p-4 lg:grid-cols-[1.4fr_.8fr_.8fr_1fr_1.5fr_auto] lg:items-end">
                 @csrf @method('PATCH')
-                <div><strong class="text-white">{{ $user->name }}</strong><p class="text-xs text-zinc-500">{{ $user->email }} · {{ $user->email_verified_at ? 'verified' : 'unverified' }}</p></div>
+                <div><strong class="text-white">{{ $user->name }}</strong><p class="text-xs text-zinc-500">{{ $user->username ?? $user->email }} · {{ $user->email ? ($user->email_verified_at ? 'email verified' : 'email unverified') : 'managed access' }}</p></div>
                 <label class="text-xs text-zinc-400">Role<select name="role" class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2">@foreach($roles as $role)<option value="{{ $role }}" @selected($user->role===$role)>{{ str_replace('_',' ',$role) }}</option>@endforeach</select></label>
                 <label class="text-xs text-zinc-400">State<select name="account_state" class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2">@foreach($states as $state)<option value="{{ $state }}" @selected($user->account_state===$state)>{{ $state }}</option>@endforeach</select></label>
                 <label class="text-xs text-zinc-400">Branch<select name="family_branch_id" class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 p-2"><option value="">Whole family</option>@foreach($branches as $branch)<option value="{{ $branch->id }}" @selected($user->family_branch_id===$branch->id)>{{ $branch->name }}</option>@endforeach</select></label>
@@ -62,7 +63,7 @@
     </section>
 
     <section class="grid gap-5 lg:grid-cols-2">
-        <div class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Invitation register</h2><div class="mt-4 space-y-3 text-sm">@forelse($invitations as $invite)<div class="rounded-lg bg-zinc-950 p-3"><strong class="text-white">{{ $invite->name }}</strong><p class="text-zinc-400">{{ $invite->email }} · {{ $invite->accepted_at ? 'accepted' : ($invite->revoked_at ? 'revoked' : 'open') }} · expires {{ $invite->expires_at->format('j M Y') }}</p></div>@empty<p class="text-zinc-500">No invitations.</p>@endforelse</div></div>
+        <div class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Access-code register</h2><div class="mt-4 space-y-3 text-sm">@forelse($invitations as $invite)<div class="rounded-lg bg-zinc-950 p-3"><strong class="text-white">{{ $invite->name }}</strong><p class="text-zinc-400">{{ $invite->username ?? $invite->email }} · {{ $invite->purpose }} · {{ $invite->accepted_at ? 'used' : ($invite->revoked_at ? 'revoked' : 'open') }} · expires {{ $invite->expires_at->format('j M Y') }}</p></div>@empty<p class="text-zinc-500">No access codes.</p>@endforelse</div></div>
         <div class="rounded-2xl border border-zinc-700 bg-zinc-900 p-6"><h2 class="text-xl font-semibold text-white">Immutable access history</h2><div class="mt-4 space-y-3 text-sm">@forelse($events as $event)<div class="rounded-lg bg-zinc-950 p-3"><strong class="text-white">{{ str_replace('_',' ',$event->event_type) }}</strong><p class="text-zinc-400">Member #{{ $event->user_id }} · actor #{{ $event->actor_id ?? 'system' }} · {{ $event->created_at->format('j M Y H:i') }}</p><p class="mt-1 text-zinc-500">{{ $event->reason }}</p></div>@empty<p class="text-zinc-500">No access changes recorded.</p>@endforelse</div></div>
     </section>
 </div>
