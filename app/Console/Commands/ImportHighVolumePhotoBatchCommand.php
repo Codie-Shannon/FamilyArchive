@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 final class ImportHighVolumePhotoBatchCommand extends Command
 {
-    protected $signature = 'archive:batch-import {directory} {owner} {--batch=} {--limit=} {--chunk=500} {--inventory-only}';
+    protected $signature = 'archive:batch-import {directory} {owner} {--batch=} {--limit=} {--chunk=500} {--inventory-only} {--until-complete} {--retry-failed=0}';
 
     protected $description = 'Inventory or resume a large local photo batch without bypassing quarantine or review';
 
@@ -32,8 +32,15 @@ final class ImportHighVolumePhotoBatchCommand extends Command
 
             return self::SUCCESS;
         }
+        $retryMaximum = (int) $this->option('retry-failed');
+        if ($retryMaximum > 0) {
+            $retried = $batches->retryFailed($batchId, $retryMaximum);
+            $this->line("Retry queue: {$retried} transient failures returned to the next checkpoint.");
+        }
         $limit = $this->option('limit');
-        $result = $batches->process($batchId, (string) $this->argument('directory'), is_numeric($limit) ? (int) $limit : null);
+        $result = $this->option('until-complete')
+            ? $batches->runToCompletion($batchId, (string) $this->argument('directory'))
+            : $batches->process($batchId, (string) $this->argument('directory'), is_numeric($limit) ? (int) $limit : null);
         $this->info("Checkpoint: {$result['processed_count']} processed, {$result['retained_count']} retained, {$result['failed_count']} failed, {$result['remaining_count']} remaining.");
         $this->line("Batch state: {$result['state']}");
 

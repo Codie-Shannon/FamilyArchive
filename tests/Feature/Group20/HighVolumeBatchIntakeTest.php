@@ -79,7 +79,7 @@ it('keeps the high-volume progress view owner only and path safe', function (): 
         $this->get(route('admin.batch-imports'))->assertRedirect('/login');
         $this->actingAs($member)->get(route('admin.batch-imports'))->assertForbidden();
         $this->actingAs($owner)->get(route('admin.batch-imports'))->assertOk()
-            ->assertSee('High-volume photo batches')
+            ->assertSee('High-volume photo migration')
             ->assertSee('No source path enters the database')
             ->assertDontSee(str_replace('\\', '/', $directory));
         $this->actingAs($owner)->get(route('admin.batch-imports', ['batch' => $planned['session_id']]))->assertOk()

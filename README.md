@@ -10,7 +10,7 @@ system and is not part of another product or student-work archive.
 
 ## Current Status
 
-- Official screenshot groups: 31 completed and approved
+- Official screenshot groups: 32 completed and approved
 - Completed and closed: SG01 - Build Groups 13-20
 - Completed and closed: SG02 - Build Groups 21-28
 - Completed and closed: SG03 - Build Groups 29-36
@@ -42,8 +42,9 @@ system and is not part of another product or student-work archive.
 - Completed and closed: SG29 - Guided Family Access
 - Completed and closed: SG30 - Everyday Family Experience
 - Completed and closed: SG31 - Embedded Family Messaging
-- Current release: v3.6.0 - Embedded Family Messaging
-- Current evidence state: Screenshot Groups 01-31 approved and closed
+- Completed and closed: SG32 - Migration Preflight
+- Current release: v3.7.0 - Migration Preflight
+- Current evidence state: Screenshot Groups 01-32 approved and closed
 - Current media support: photos
 - Current access model: invite-only approved role/branch access with either
   verified email or guided member-name setup, printable one-time codes,
@@ -80,6 +81,10 @@ system and is not part of another product or student-work archive.
   conversation with another approved family member; each participant controls
   mute, archive and block locally, and administrators see private content only
   after a recipient reports a specific message
+- Current migration model: a read-only deep preflight validates content,
+  records relative-path hashes rather than source paths, estimates original,
+  derivative and working capacity, identifies duplicate candidates and isolates
+  unreadable files before a resumable or bounded unattended import begins
 - Current storage model: private local mode by default, with a fail-closed
   Wasabi production mode using isolated prefixes and versioned no-overwrite
   writes
@@ -205,6 +210,10 @@ The completed system can:
 - record a redacted live deployment proof only after HTTPS, health, response
   headers and isolated Wasabi verification all pass;
 - inventory up to 100,000 local photos without persisting their source paths;
+- generate optional JSON and CSV preflight reports containing only relative
+  source references, verified content facts and safe aggregate capacity totals;
+- verify each selected file checksum immediately before retention, stop on
+  inventory drift and retry only bounded transient failures;
 - process high-volume intake through bounded, resumable quarantine checkpoints
   that request separate photo-edge crop, auto-rotation and deskew candidates;
 - apply automatic crops only after four-sided boundary, geometry, confidence

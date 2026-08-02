@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 31 completed and approved screenshot
+releases. The repository currently has 32 completed and approved screenshot
 groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
@@ -66,6 +66,29 @@ Its implementation and eight-file screenshot evidence pack are approved and
 closed.
 Screenshot Group 31 implements the v3.6.0 Embedded Family Messaging boundary.
 Its implementation and screenshot evidence are approved and closed.
+Screenshot Group 32 implements the v3.7.0 Migration Preflight boundary. Its
+implementation and six-file privacy-safe evidence pack are approved and
+closed.
+
+## Screenshot Group 32 Boundary
+
+Screenshot Group 32 hardens the step before the real family migration. It:
+
+- performs a recursive, read-only content inventory without changing or
+  retaining source bytes;
+- verifies supported files as decodable images and isolates unreadable content
+  before import;
+- records SHA-256 content checksums and relative-path hashes while keeping
+  absolute source paths out of the database and reports;
+- reports ignored extensions, duplicate candidates, EXIF orientation and
+  capture-date coverage;
+- estimates original, derivative and working capacity through configurable,
+  explicit ratios;
+- stops retention if the inventory changes and verifies each file checksum
+  again immediately before its quarantine write;
+- resumes completed checkpoints, bounds retries to transient failures and
+  supports a safety-limited unattended run; and
+- keeps the real 30,000-photo source and its reports outside public evidence.
 
 ## Screenshot Group 29 Boundary
 
@@ -237,6 +260,10 @@ PDFs remain external artifacts and must not be committed.
 | 26 | Corrective original-first editor | 3.1.0 | Original-First Manual Restoration |
 | 27 | Corrective interactive archive map | 3.2.0 | Interactive Archive Map |
 | 28 | Corrective album-centred archive | 3.3.0 | Album-Centred Archive |
+| 29 | Corrective guided family access | 3.4.0 | Guided Family Access |
+| 30 | Corrective everyday family experience | 3.5.0 | Everyday Family Experience |
+| 31 | Corrective embedded family messaging | 3.6.0 | Embedded Family Messaging |
+| 32 | Corrective migration preflight | 3.7.0 | Migration Preflight |
 
 ## Screenshot Group 28 Boundary
 

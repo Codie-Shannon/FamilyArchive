@@ -314,6 +314,9 @@ establishes:
     versioned review candidate.
 31. delegated routine family operations that keep privileged access and
     original-file decisions inside the Owner exception boundary.
+32. a read-only migration preflight that validates decodable image content,
+    inventories safe relative identities, estimates capacity, identifies
+    duplicate candidates and isolates unreadable files before retention.
 
 Photo acceptance preserves the verified source as the immutable original before
 any review candidate can exist. Authorized trusted reviewers may compare an
@@ -338,6 +341,14 @@ and trusted contributors may curate shared albums through a dedicated
 searchable batch-add surface for up to 100 approved photos at a time. This
 changes membership without changing or duplicating archive media, while
 ordinary members browse the published result.
+
+High-volume migration is split into a read-only preflight and a resumable
+retention run. Preflight may inspect local absolute paths in memory, but only
+relative-path hashes, content checksums, safe image facts and aggregate totals
+cross into persistence. Retention rechecks the inventory and each selected
+content checksum before creating a quarantined upload. Checkpoints make a
+restart idempotent, while checksum mismatch, unreadable content and transient
+retention failures remain distinct operator outcomes.
 Family Access & Conversation adds account approval facts, contributor intake
 records and moderated communication while preserving the private archive
 boundary. Collaboration & Restoration adds versioned recipes, immutable-source

@@ -36,6 +36,11 @@ return [
             'image/jpeg' => ['jpg', 'jpeg'], 'image/png' => ['png'], 'image/webp' => ['webp'], 'image/tiff' => ['tif', 'tiff'],
         ],
     ],
+    'batch_preflight' => [
+        'derivative_reserve_ratio' => (float) env('ARCHIVE_BATCH_DERIVATIVE_RESERVE_RATIO', 0.45),
+        'working_reserve_ratio' => (float) env('ARCHIVE_BATCH_WORKING_RESERVE_RATIO', 0.15),
+        'maximum_unattended_chunks' => (int) env('ARCHIVE_BATCH_MAXIMUM_UNATTENDED_CHUNKS', 1000),
+    ],
     'restoration' => [
         'memory_limit' => env('ARCHIVE_RESTORATION_MEMORY_LIMIT', '512M'),
         'minimum_crop_confidence' => (float) env('ARCHIVE_MINIMUM_CROP_CONFIDENCE', 0.72),
