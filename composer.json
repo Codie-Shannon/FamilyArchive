@@ -13,7 +13,19 @@
         "laravel",
         "livewire"
     ],
-    "license": "MIT",
+    "license": "proprietary",
+    "homepage": "https://familyarchive.bayforgesystems.com",
+    "authors": [
+        {
+            "name": "Codie Shannon",
+            "role": "Creator and maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/Codie-Shannon/FamilyArchive/issues",
+        "security": "https://github.com/Codie-Shannon/FamilyArchive/security/policy",
+        "source": "https://github.com/Codie-Shannon/FamilyArchive"
+    },
     "require": {
         "php": "^8.3",
         "laravel/chisel": "^0.1.0",

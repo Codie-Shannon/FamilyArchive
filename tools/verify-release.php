@@ -58,6 +58,7 @@ $pass(str_contains((string) config('release.status'), '33'), 'config/release.php
 $requiredDocuments = [
     'README.md',
     'CHANGELOG.md',
+    'RIGHTS_AND_LICENSING.md',
     'SECURITY.md',
     'docs/MASTER.md',
     'docs/CURRENT_BUCKET.md',
@@ -73,9 +74,22 @@ foreach ($requiredDocuments as $document) {
 }
 
 $readme = $read('README.md');
+$rights = $read('RIGHTS_AND_LICENSING.md');
 $roadmap = $read('docs/ROADMAP.md');
 $overview = $read('docs/architecture/SYSTEM_OVERVIEW.md');
 $releaseNotes = $read('docs/release-notes/v3.8.0.md');
+$composerJson = $read('composer.json');
+$composer = json_decode($composerJson, true);
+$pass(is_array($composer), 'composer.json is not valid JSON.');
+$composer = is_array($composer) ? $composer : [];
+
+$pass(($composer['license'] ?? null) === 'proprietary', 'Composer license must remain proprietary.');
+$pass(($composer['homepage'] ?? null) === 'https://familyarchive.bayforgesystems.com', 'Composer homepage disagrees with the live product URL.');
+$pass(($composer['authors'][0]['name'] ?? null) === 'Codie Shannon', 'Composer creator metadata is missing Codie Shannon.');
+$pass(str_contains($readme, 'RIGHTS_AND_LICENSING.md'), 'README does not link to the repository rights document.');
+$pass(str_contains($readme, 'Codie Shannon'), 'README creator attribution is missing Codie Shannon.');
+$pass(str_contains($rights, 'All rights reserved'), 'Rights document does not reserve repository rights.');
+$pass(str_contains($rights, 'publicly viewable'), 'Rights document does not state the portfolio-review boundary.');
 
 foreach ([$readme, $roadmap, $overview, $releaseNotes] as $document) {
     $pass(str_contains($document, '3.8.0'), 'A primary release document does not identify v3.8.0.');

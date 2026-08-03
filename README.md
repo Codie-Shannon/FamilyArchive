@@ -2,6 +2,7 @@
 
 [![Tests](https://github.com/Codie-Shannon/FamilyArchive/actions/workflows/tests.yml/badge.svg)](https://github.com/Codie-Shannon/FamilyArchive/actions/workflows/tests.yml)
 [![Lint](https://github.com/Codie-Shannon/FamilyArchive/actions/workflows/lint.yml/badge.svg)](https://github.com/Codie-Shannon/FamilyArchive/actions/workflows/lint.yml)
+[![Release](https://img.shields.io/github/v/release/Codie-Shannon/FamilyArchive)](https://github.com/Codie-Shannon/FamilyArchive/releases/latest)
 
 Family Archive is a privacy-first, preservation-grade family history platform.
 It protects immutable originals, creates traceable viewing and restoration
@@ -57,6 +58,9 @@ validates the official PNG evidence packs.
 See [Security](SECURITY.md), [Threat Model](docs/THREAT_MODEL.md) and
 [Evidence Guide](docs/screenshot-groups/README.md).
 
+The source is publicly viewable for portfolio and evaluation purposes, but it
+is not open source. See [Rights and Licensing](RIGHTS_AND_LICENSING.md).
+
 ## Technology
 
 - PHP 8.3+ and Laravel 13
@@ -108,4 +112,4 @@ closed. Never reuse demonstration credentials or data in production.
 - [Build and evidence process](docs/BUILD_AND_EVIDENCE.md)
 - [Development process](docs/DEVELOPMENT_PROCESS.md)
 
-Family Archive is developed by BayForge Systems.
+Created and developed by **Codie Shannon** under **BayForge Systems**.
