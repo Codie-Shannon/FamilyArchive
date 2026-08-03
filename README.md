@@ -15,8 +15,9 @@ review and discover shared history.
 
 ## Release state
 
-- Current release: **v4.0.0 — Private Source Exclusion**
-- Official evidence: **35 approved and closed screenshot groups**
+- Current candidate: **v4.1.0 — Clipping-Safe Photo Separation**
+- Last closed release: **v4.0.0 — Private Source Exclusion**
+- Official evidence: **36 approved and closed screenshot groups**
 - Media supported by the completed workflow: **photos**
 - Production services: Laravel Cloud, MySQL, Wasabi object storage and Google Maps
 - Migration qualification: a synthetic 30,000-entry run proved checkpoints,
@@ -24,10 +25,12 @@ review and discover shared history.
 - Real family migration: deliberately separate and not represented by public evidence
 - Composite scans: automatic border and borderless layout suggestions plus a
   free-form, original-first manual split editor, proven by approved Group 34 evidence
+- Split-photo rendering: padded child extraction, independent rotation/deskew and
+  final cropping in that order, with manual 90-degree overrides in Group 36
 - Private source exclusions: pre-discovery subtree pruning and fail-closed resume
   continuity, proven by approved Group 35 evidence
 
-The v4.0.0 private source-exclusion release is approved and closed.
+The v4.1.0 clipping-safe photo-separation release is approved and closed.
 
 ## What the product demonstrates
 
@@ -35,6 +38,7 @@ The v4.0.0 private source-exclusion release is approved and closed.
 - Quarantine, duplicate review, human acceptance and append-only audit history
 - Automatic and manual restoration from the verified original, with versioned lineage
 - Multi-photo scan detection and reversible separation into independently reviewed photos
+- Clipping-safe child rendering that rotates or deskews before calculating the final crop
 - Resumable batch intake designed for tens of thousands of photos
 - Strict source-subtree exclusions whose names and contents never enter discovery
 - Delegated family roles, guided non-email access and owner-controlled exceptions

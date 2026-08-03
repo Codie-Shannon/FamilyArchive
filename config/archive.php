@@ -54,6 +54,18 @@ return [
         'max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAX_SOURCE_PIXELS', 45000000),
         'minimum_seam_spacing' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_SEAM_SPACING', 0.08),
         'maximum_axis_seams' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_AXIS_SEAMS', 7),
+        'maximum_regions' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_REGIONS', 32),
+        'candidate_rendering' => [
+            'memory_limit' => env('ARCHIVE_MULTI_PHOTO_MEMORY_LIMIT', '512M'),
+            'padding_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_PADDING_RATIO', 0.08),
+            'minimum_padding_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MINIMUM_PADDING_PIXELS', 8),
+            'maximum_padding_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_PADDING_PIXELS', 192),
+            'final_safety_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_FINAL_SAFETY_PIXELS', 2),
+            'minimum_deskew_confidence' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_DESKEW_CONFIDENCE', 0.55),
+            'minimum_deskew_degrees' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_DESKEW_DEGREES', 0.4),
+            'maximum_deskew_degrees' => (float) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_DESKEW_DEGREES', 8.0),
+            'webp_quality' => (int) env('ARCHIVE_MULTI_PHOTO_WEBP_QUALITY', 90),
+        ],
         'grid' => [
             'minimum_confidence' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_CONFIDENCE', 0.77),
             'minimum_coverage' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_COVERAGE', 0.78),

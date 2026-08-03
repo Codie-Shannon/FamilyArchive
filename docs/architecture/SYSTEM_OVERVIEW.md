@@ -1,12 +1,19 @@
 # Family Archive System Overview
 
-The current closed release is v4.0.0 Private Source Exclusion, with Screenshot
-Groups 01-35 approved. The real private family migration remains a separate
-operator-controlled activity.
+The current release is v4.1.0 Clipping-Safe Photo Separation, closed by
+approved Screenshot Group 36 evidence. The real private family migration
+remains a separate operator-controlled activity.
 
 The v4.0.0 boundary adds strict source-subtree exclusions. Excluded
 directories are validated and pruned before discovery; only a keyed policy
 fingerprint and aggregate count may cross into the migration record.
+
+The v4.1.0 split renderer creates every proposed child on a padded working
+canvas. Each child is then rotated or deskewed independently before its final
+edge crop is calculated. This prevents tight pre-rotation crops from discarding
+corners, preserves the immutable source and records the processing order in the
+candidate generation recipe. Reviewers can override orientation in 90-degree
+steps without altering sibling photos from the same scan.
 
 Family Archive is a standalone, archive-grade family media preservation
 platform. Its archive is private, while v1.0 also provides deliberately

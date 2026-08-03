@@ -39,12 +39,14 @@ it('lets a trusted reviewer define freeform regions without changing the source'
             ->get(route('intake.items.split', [$planned['session_id'], $item->id]))
             ->assertOk()
             ->assertSeeText('Separate photos from one source')
-            ->assertSeeText('Original preserved');
+            ->assertSeeText('Original preserved')
+            ->assertSeeText('Rotate left')
+            ->assertSeeText('Rotate right');
 
         $proposal = PhotoSplitProposal::query()->where('cloud_import_item_id', $item->id)->firstOrFail();
         $regions = [
-            ['region_id' => $proposal->regions()->firstOrFail()->region_id, 'x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'included' => true],
-            ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'included' => true],
+            ['region_id' => $proposal->regions()->firstOrFail()->region_id, 'x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 90, 'included' => true],
+            ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0, 'included' => true],
         ];
         $this->actingAs($trusted)
             ->post(route('intake.items.split.update', [$planned['session_id'], $item->id]), ['regions_json' => json_encode($regions, JSON_THROW_ON_ERROR)])
@@ -52,10 +54,14 @@ it('lets a trusted reviewer define freeform regions without changing the source'
 
         expect($proposal->fresh()->state)->toBe('ready')
             ->and($proposal->regions()->whereNotNull('candidate_version_id')->count())->toBe(2)
+            ->and($proposal->regions()->orderBy('position')->firstOrFail()->rotation_degrees)->toBe(90)
             ->and($source->fresh()->sha256)->toBe($sourceHash)
             ->and(Storage::disk($source->storage_disk)->get($source->storage_path))->toBe($sourceBytes);
 
         $candidate = $proposal->regions()->whereNotNull('candidate_version_id')->firstOrFail();
+        $candidateVersion = $candidate->candidateVersion()->firstOrFail();
+        expect($candidateVersion->generation_recipe['operation_order'])->toBe(['padded_extract', 'independent_rotate', 'final_edge_crop'])
+            ->and($candidateVersion->generation_recipe['manual_rotation_degrees_clockwise'])->toBe(90);
         $this->actingAs($trusted)
             ->get(route('intake.items.split.preview', [$planned['session_id'], $item->id, $candidate->region_id]))
             ->assertOk()

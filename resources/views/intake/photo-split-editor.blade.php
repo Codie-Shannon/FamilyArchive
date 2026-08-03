@@ -17,6 +17,10 @@
         <strong>Original preserved.</strong> These boxes create reversible child candidates. The source file, hash and storage object are never cropped or overwritten.
     </section>
 
+    <section class="rounded-2xl border border-sky-800 bg-sky-950/20 p-4 text-sm text-sky-100">
+        <strong>Clipping-safe processing order.</strong> Each selected photo is first copied onto its own padded canvas, then independently rotated or deskewed, and only then edge-cropped for its final preview. A rotation can never be applied to an already-tight crop.
+    </section>
+
     <form id="split-form" method="POST" action="{{ route('intake.items.split.update', [$session->session_id, $item->id]) }}" class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
         @csrf
         <section class="space-y-4 rounded-2xl border border-zinc-700 bg-zinc-900 p-3 sm:p-5">
@@ -53,7 +57,10 @@
                     @if($region->candidate_version_id)
                         <article class="overflow-hidden rounded-2xl border {{ $region->review_state === 'included' ? 'border-emerald-800' : 'border-zinc-700 opacity-60' }} bg-zinc-900">
                             <img src="{{ route('intake.items.split.preview', [$session->session_id, $item->id, $region->region_id]) }}" alt="Split photo {{ $region->position }}" class="aspect-[4/3] w-full bg-zinc-950 object-contain">
-                            <p class="p-3 text-sm font-semibold text-white">Photo {{ $region->position }} · {{ ucfirst($region->review_state) }}</p>
+                            <div class="space-y-1 p-3">
+                                <p class="text-sm font-semibold text-white">Photo {{ $region->position }} · {{ ucfirst($region->review_state) }}</p>
+                                <p class="text-xs text-zinc-400">Padded → {{ $region->rotation_degrees }}° rotation/deskew → final crop</p>
+                            </div>
                         </article>
                     @endif
                 @endforeach
@@ -69,6 +76,7 @@
         'y' => $region->y_basis_points,
         'width' => $region->width_basis_points,
         'height' => $region->height_basis_points,
+        'rotation_degrees' => $region->rotation_degrees,
         'included' => $region->review_state === 'included',
     ])->values());
     let regions = initialRegions.map(region => ({ ...region }));
@@ -85,6 +93,7 @@
             region_id: region.region_id || undefined,
             x: Math.round(region.x), y: Math.round(region.y),
             width: Math.round(region.width), height: Math.round(region.height),
+            rotation_degrees: Number(region.rotation_degrees || 0),
             included: Boolean(region.included),
         })));
     };
@@ -131,9 +140,11 @@
 
             const row = document.createElement('div');
             row.className = 'rounded-xl border border-zinc-700 bg-zinc-950 p-3';
-            row.innerHTML = `<div class="flex items-center justify-between gap-3"><label class="flex items-center gap-2 text-sm font-semibold text-white"><input type="checkbox" ${region.included ? 'checked' : ''} class="size-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500"> Photo ${regionNumber(index)}</label><button type="button" class="text-xs font-semibold text-red-300">Remove</button></div><p class="mt-2 text-xs text-zinc-500">${Math.round(region.width / 100)}% × ${Math.round(region.height / 100)}% of source</p>`;
+            row.innerHTML = `<div class="flex items-center justify-between gap-3"><label class="flex items-center gap-2 text-sm font-semibold text-white"><input type="checkbox" ${region.included ? 'checked' : ''} class="size-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500"> Photo ${regionNumber(index)}</label><button type="button" data-action="remove" class="text-xs font-semibold text-red-300">Remove</button></div><p class="mt-2 text-xs text-zinc-500">${Math.round(region.width / 100)}% × ${Math.round(region.height / 100)}% of source · ${Number(region.rotation_degrees || 0)}° clockwise</p><div class="mt-3 grid grid-cols-2 gap-2"><button type="button" data-action="rotate-left" class="rounded-lg border border-zinc-700 px-2 py-2 text-xs font-semibold text-zinc-200">↶ Rotate left</button><button type="button" data-action="rotate-right" class="rounded-lg border border-zinc-700 px-2 py-2 text-xs font-semibold text-zinc-200">↷ Rotate right</button></div>`;
             row.querySelector('input').addEventListener('change', event => { region.included = event.target.checked; render(); });
-            row.querySelector('button').addEventListener('click', () => { regions.splice(index, 1); render(); });
+            row.querySelector('[data-action="remove"]').addEventListener('click', () => { regions.splice(index, 1); render(); });
+            row.querySelector('[data-action="rotate-left"]').addEventListener('click', () => { region.rotation_degrees = (Number(region.rotation_degrees || 0) + 270) % 360; render(); });
+            row.querySelector('[data-action="rotate-right"]').addEventListener('click', () => { region.rotation_degrees = (Number(region.rotation_degrees || 0) + 90) % 360; render(); });
             list.appendChild(row);
         });
         count.textContent = `${regions.filter(region => region.included).length} included`;
@@ -142,7 +153,7 @@
 
     document.getElementById('add-region').addEventListener('click', () => {
         const offset = Math.min(regions.length * 300, 2500);
-        regions.push({ x: 1000 + offset, y: 1000 + offset, width: 4000, height: 4000, included: true });
+        regions.push({ x: 1000 + offset, y: 1000 + offset, width: 4000, height: 4000, rotation_degrees: 0, included: true });
         render();
     });
     document.getElementById('split-form').addEventListener('submit', syncPayload);

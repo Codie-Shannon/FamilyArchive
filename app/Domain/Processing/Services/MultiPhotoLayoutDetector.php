@@ -44,6 +44,7 @@ final class MultiPhotoLayoutDetector
                 }
                 $verticalCandidates = $this->seamCandidates($sample, true);
                 $horizontalCandidates = $this->seamCandidates($sample, false);
+                $adaptiveLayout = $this->adaptiveRegions($sample);
             } finally {
                 unset($sample);
             }
@@ -73,16 +74,20 @@ final class MultiPhotoLayoutDetector
             ));
         }
 
-        $regions = $this->regions($verticalSeams, $horizontalSeams);
+        $gridRegions = $this->regions($verticalSeams, $horizontalSeams);
+        $adaptiveSelected = count($adaptiveLayout['regions']) > count($gridRegions);
+        $regions = $adaptiveSelected ? $adaptiveLayout['regions'] : $gridRegions;
         $selectedSignals = [...$verticalSeams, ...$horizontalSeams];
-        $confidence = $selectedSignals === []
-            ? max($vertical['confidence'], $horizontal['confidence'])
-            : min(array_column($selectedSignals, 'confidence'));
+        $confidence = $adaptiveSelected
+            ? $adaptiveLayout['confidence']
+            : ($selectedSignals === []
+                ? max($vertical['confidence'], $horizontal['confidence'])
+                : min(array_column($selectedSignals, 'confidence')));
 
         return [
             'detected' => count($regions) >= 2,
             'confidence' => round($confidence, 4),
-            'method' => 'variable_grid_seam_graph_v3',
+            'method' => 'adaptive_partition_seam_graph_v4',
             'width' => $width,
             'height' => $height,
             'regions' => $regions,
@@ -93,6 +98,8 @@ final class MultiPhotoLayoutDetector
                 'horizontal_candidates' => $horizontalCandidates,
                 'selected_vertical' => $verticalSeams,
                 'selected_horizontal' => $horizontalSeams,
+                'adaptive_splits' => $adaptiveLayout['splits'],
+                'adaptive_layout_selected' => $adaptiveSelected,
                 'layout_validated' => count($regions) >= 2,
             ],
         ];
@@ -188,6 +195,220 @@ final class MultiPhotoLayoutDetector
         }
 
         return $regions;
+    }
+
+    /**
+     * Recursively partitions scanner sheets so different rows or columns may use
+     * different photo counts. This complements the whole-sheet grid detector.
+     *
+     * @return array{
+     *     regions:list<array{x:int,y:int,width:int,height:int,confidence:float}>,
+     *     splits:list<array<string,mixed>>,
+     *     confidence:float
+     * }
+     */
+    private function adaptiveRegions(\GdImage $image): array
+    {
+        $imageWidth = imagesx($image);
+        $imageHeight = imagesy($image);
+        $maximumRegions = max(2, (int) $this->setting('archive.multi_photo.maximum_regions', 32));
+        $minimumWidth = max(18, (int) floor($imageWidth * 0.09));
+        $minimumHeight = max(18, (int) floor($imageHeight * 0.09));
+        $leaves = [[
+            'x' => 0,
+            'y' => 0,
+            'width' => $imageWidth,
+            'height' => $imageHeight,
+            'confidence' => 1.0,
+        ]];
+        $splits = [];
+
+        while (count($leaves) < $maximumRegions) {
+            $best = null;
+            foreach ($leaves as $leafIndex => $leaf) {
+                foreach ([true, false] as $vertical) {
+                    if (($vertical && $leaf['width'] < $minimumWidth * 2)
+                        || (! $vertical && $leaf['height'] < $minimumHeight * 2)) {
+                        continue;
+                    }
+
+                    $candidates = $this->boundedSeamCandidates(
+                        $image,
+                        $leaf['x'],
+                        $leaf['y'],
+                        $leaf['width'],
+                        $leaf['height'],
+                        $vertical,
+                    );
+                    foreach ($candidates as $candidate) {
+                        if (! $this->axisHighConfidence($candidate, 'grid')) {
+                            continue;
+                        }
+
+                        $axisLength = $vertical ? $leaf['width'] : $leaf['height'];
+                        $cutOffset = (int) round($candidate['ratio'] * $axisLength);
+                        $before = $cutOffset;
+                        $after = $axisLength - $cutOffset;
+                        $minimum = $vertical ? $minimumWidth : $minimumHeight;
+                        if ($before < $minimum || $after < $minimum) {
+                            continue;
+                        }
+
+                        $score = $candidate['confidence'] + (0.04 * $candidate['gutter']);
+                        if ($best === null || $score > $best['score']) {
+                            $best = [
+                                'leaf_index' => $leafIndex,
+                                'vertical' => $vertical,
+                                'candidate' => $candidate,
+                                'cut_offset' => $cutOffset,
+                                'score' => $score,
+                            ];
+                        }
+                    }
+                }
+            }
+
+            if ($best === null) {
+                break;
+            }
+
+            $leaf = $leaves[$best['leaf_index']];
+            $candidate = $best['candidate'];
+            $cutOffset = $best['cut_offset'];
+            $confidence = min($leaf['confidence'], $candidate['confidence']);
+            if ($best['vertical']) {
+                $children = [
+                    [...$leaf, 'width' => $cutOffset, 'confidence' => $confidence],
+                    [
+                        ...$leaf,
+                        'x' => $leaf['x'] + $cutOffset,
+                        'width' => $leaf['width'] - $cutOffset,
+                        'confidence' => $confidence,
+                    ],
+                ];
+            } else {
+                $children = [
+                    [...$leaf, 'height' => $cutOffset, 'confidence' => $confidence],
+                    [
+                        ...$leaf,
+                        'y' => $leaf['y'] + $cutOffset,
+                        'height' => $leaf['height'] - $cutOffset,
+                        'confidence' => $confidence,
+                    ],
+                ];
+            }
+
+            array_splice($leaves, $best['leaf_index'], 1, $children);
+            $splits[] = [
+                'orientation' => $best['vertical'] ? 'vertical' : 'horizontal',
+                'scope' => [
+                    'x' => round($leaf['x'] / max(1, $imageWidth), 4),
+                    'y' => round($leaf['y'] / max(1, $imageHeight), 4),
+                    'width' => round($leaf['width'] / max(1, $imageWidth), 4),
+                    'height' => round($leaf['height'] / max(1, $imageHeight), 4),
+                ],
+                'ratio' => $candidate['ratio'],
+                'confidence' => $candidate['confidence'],
+                'coverage' => $candidate['coverage'],
+                'difference' => $candidate['difference'],
+                'gutter' => $candidate['gutter'],
+            ];
+        }
+
+        if ($splits === []) {
+            return ['regions' => [], 'splits' => [], 'confidence' => 0.0];
+        }
+
+        usort($leaves, static fn (array $a, array $b): int => [$a['y'], $a['x']] <=> [$b['y'], $b['x']]);
+        $regions = array_map(
+            static fn (array $leaf): array => [
+                'x' => (int) round(($leaf['x'] / max(1, $imageWidth)) * 10000),
+                'y' => (int) round(($leaf['y'] / max(1, $imageHeight)) * 10000),
+                'width' => (int) round(($leaf['width'] / max(1, $imageWidth)) * 10000),
+                'height' => (int) round(($leaf['height'] / max(1, $imageHeight)) * 10000),
+                'confidence' => round($leaf['confidence'], 4),
+            ],
+            $leaves,
+        );
+
+        return [
+            'regions' => $regions,
+            'splits' => $splits,
+            'confidence' => round(min(array_column($splits, 'confidence')), 4),
+        ];
+    }
+
+    /**
+     * @return list<array{ratio:float,confidence:float,coverage:float,difference:float,gutter:float}>
+     */
+    private function boundedSeamCandidates(
+        \GdImage $image,
+        int $x,
+        int $y,
+        int $width,
+        int $height,
+        bool $vertical,
+    ): array {
+        $axis = $vertical ? $width : $height;
+        $cross = $vertical ? $height : $width;
+        if ($axis < 8 || $cross < 8) {
+            return [];
+        }
+
+        $measured = [];
+        $step = max(1, (int) floor($axis / 90));
+        for ($position = (int) floor($axis * 0.08); $position <= (int) ceil($axis * 0.92); $position += $step) {
+            $differences = [];
+            $lineLuma = [];
+            for ($offset = 0; $offset < $cross; $offset++) {
+                $axisBefore = max(0, $position - 2);
+                $axisAfter = min($axis - 1, $position + 2);
+                if ($vertical) {
+                    $a = $this->rgb($image, $x + $axisBefore, $y + $offset);
+                    $b = $this->rgb($image, $x + $axisAfter, $y + $offset);
+                    $middle = $this->rgb($image, $x + $position, $y + $offset);
+                } else {
+                    $a = $this->rgb($image, $x + $offset, $y + $axisBefore);
+                    $b = $this->rgb($image, $x + $offset, $y + $axisAfter);
+                    $middle = $this->rgb($image, $x + $offset, $y + $position);
+                }
+                $differences[] = (abs($a[0] - $b[0]) + abs($a[1] - $b[1]) + abs($a[2] - $b[2])) / 3;
+                $lineLuma[] = ($middle[0] + $middle[1] + $middle[2]) / 3;
+            }
+
+            $difference = array_sum($differences) / max(1, count($differences));
+            $coverage = count(array_filter($differences, static fn (float $value): bool => $value >= 28)) / max(1, count($differences));
+            $mean = array_sum($lineLuma) / max(1, count($lineLuma));
+            $variance = array_sum(array_map(static fn (float $value): float => ($value - $mean) ** 2, $lineLuma)) / max(1, count($lineLuma));
+            $uniformity = max(0.0, 1.0 - (sqrt($variance) / 90));
+            $brightOrDark = max($mean / 255, 1 - ($mean / 255));
+            $gutter = $uniformity * $brightOrDark;
+            $confidence = min(1.0, (0.50 * $coverage) + (0.35 * min(1.0, $difference / 72)) + (0.15 * $gutter));
+            $measured[] = [
+                'ratio' => round($position / max(1, $axis), 4),
+                'confidence' => round($confidence, 4),
+                'coverage' => round($coverage, 4),
+                'difference' => round($difference, 2),
+                'gutter' => round($gutter, 4),
+            ];
+        }
+
+        usort($measured, static fn (array $a, array $b): int => $b['confidence'] <=> $a['confidence']);
+        $minimumSpacing = (float) $this->setting('archive.multi_photo.minimum_seam_spacing', 0.08);
+        $selected = [];
+        foreach ($measured as $candidate) {
+            if (! array_any(
+                $selected,
+                static fn (array $existing): bool => abs($existing['ratio'] - $candidate['ratio']) < $minimumSpacing,
+            )) {
+                $selected[] = $candidate;
+            }
+            if (count($selected) >= 3) {
+                break;
+            }
+        }
+
+        return $selected;
     }
 
     /** @return list<array{ratio:float,confidence:float,coverage:float,difference:float,gutter:float}> */

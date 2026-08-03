@@ -130,7 +130,7 @@ it('detects a borderless four-photo layout from continuous edge discontinuities'
 
     expect($analysis['detected'])->toBeTrue()
         ->and($analysis['regions'])->toHaveCount(4)
-        ->and($analysis['method'])->toBe('variable_grid_seam_graph_v3')
+        ->and($analysis['method'])->toBe('adaptive_partition_seam_graph_v4')
         ->and(app(MultiPhotoLayoutDetector::class)->isHighConfidenceAnalysis($analysis))->toBeTrue();
 });
 
@@ -148,6 +148,41 @@ it('detects an eight-photo scanner grid with several row seams', function (): vo
         ->and($analysis['regions'])->toHaveCount(8)
         ->and($analysis['signals']['selected_vertical'])->toHaveCount(1)
         ->and($analysis['signals']['selected_horizontal'])->toHaveCount(3);
+});
+
+it('detects a scanner mosaic whose rows have different column layouts', function (): void {
+    $image = imagecreatetruecolor(900, 600);
+    $palette = [
+        [175, 45, 45], [35, 120, 180],
+        [55, 150, 70], [185, 120, 25], [115, 65, 160],
+    ];
+    $white = splitFixtureColor($image, 250, 250, 250);
+    imagefilledrectangle($image, 0, 0, 899, 599, $white);
+    $topWidths = [355, 545];
+    $bottomWidths = [240, 310, 350];
+    $index = 0;
+    $x = 0;
+    foreach ($topWidths as $cellWidth) {
+        [$red, $green, $blue] = $palette[$index++];
+        imagefilledrectangle($image, $x, 0, $x + $cellWidth - 1, 293, splitFixtureColor($image, $red, $green, $blue));
+        $x += $cellWidth;
+    }
+    $x = 0;
+    foreach ($bottomWidths as $cellWidth) {
+        [$red, $green, $blue] = $palette[$index++];
+        imagefilledrectangle($image, $x, 307, $x + $cellWidth - 1, 599, splitFixtureColor($image, $red, $green, $blue));
+        $x += $cellWidth;
+    }
+    ob_start();
+    imagepng($image);
+    $bytes = ob_get_clean();
+
+    $analysis = app(MultiPhotoLayoutDetector::class)->analyze($bytes);
+
+    expect($analysis['detected'])->toBeTrue()
+        ->and($analysis['regions'])->toHaveCount(5)
+        ->and($analysis['signals']['adaptive_layout_selected'])->toBeTrue()
+        ->and($analysis['signals']['adaptive_splits'])->toHaveCount(4);
 });
 
 it('detects a strongly separated two-photo layout', function (): void {
