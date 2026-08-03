@@ -136,16 +136,22 @@ it('writes only when absent and verifies the exact returned version', function (
 it('writes and verifies a fresh non-seekable remote source stream', function (): void {
     $gateway = group14Gateway();
     $writer = new WasabiVerifiedObjectWriter($gateway);
-    $sockets = stream_socket_pair(STREAM_PF_INET, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-
-    expect($sockets)->not->toBeFalse();
-    [$producer, $source] = $sockets;
     $bytes = 'immutable bytes from a non-seekable remote stream';
+    $process = proc_open(
+        [PHP_BINARY, '-r', 'fwrite(STDOUT, '.var_export($bytes, true).');'],
+        [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ],
+        $pipes,
+    );
+
+    expect($process)->not->toBeFalse();
+    fclose($pipes[0]);
+    $source = $pipes[1];
 
     try {
-        fwrite($producer, $bytes);
-        stream_socket_shutdown($producer, STREAM_SHUT_WR);
-
         expect(stream_get_meta_data($source)['seekable'])->toBeFalse();
 
         $written = $writer->write(
@@ -161,7 +167,9 @@ it('writes and verifies a fresh non-seekable remote source stream', function ():
             ->and($gateway->objectExists('archive/originals', 'aa/bb/non-seekable.bin'))->toBeTrue();
     } finally {
         fclose($source);
-        fclose($producer);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        proc_close($process);
     }
 });
 

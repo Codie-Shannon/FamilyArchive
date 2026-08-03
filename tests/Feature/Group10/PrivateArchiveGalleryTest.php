@@ -53,5 +53,5 @@ it('paginates deterministically and never falls back to originals', function () 
         group10Original(group10Item($owner, sprintf('G10-%03d', $i)));
     }
     $response = $this->actingAs($owner)->get('/archive');
-    $response->assertOk()->assertSee('Derivative unavailable')->assertSee('page=2')->assertDontSee('fictional-source.jpg');
+    $response->assertOk()->assertSee('Preview unavailable')->assertSee('page=2')->assertDontSee('fictional-source.jpg');
 });

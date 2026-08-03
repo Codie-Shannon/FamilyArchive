@@ -280,9 +280,10 @@ it('attaches reviewed provenance and records it as a new immutable revision', fu
         ->and(FamilyBranchRevision::query()->where('family_branch_id', $branch->id)->count())->toBe(2);
 });
 
-it('keeps people and branch surfaces owner-only', function () {
+it('keeps people and branch surfaces private to approved family members', function () {
     $member = User::factory()->create([
         'role' => 'member',
+        'account_state' => 'approved',
         'email_verified_at' => now(),
     ]);
 
@@ -290,7 +291,7 @@ it('keeps people and branch surfaces owner-only', function () {
         route('archive.people.index'),
         route('archive.branches.index'),
     ] as $url) {
-        $this->actingAs($member)->get($url)->assertForbidden();
+        $this->actingAs($member)->get($url)->assertOk();
     }
 
     auth()->logout();

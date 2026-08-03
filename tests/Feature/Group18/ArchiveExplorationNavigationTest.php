@@ -12,7 +12,7 @@ function explorationUser(array $attributes = []): User
     ]);
 }
 
-it('shows approved members every safe archive exploration route', function (): void {
+it('shows approved members the three focused archive destinations', function (): void {
     $member = explorationUser();
 
     $this->actingAs($member)
@@ -20,18 +20,10 @@ it('shows approved members every safe archive exploration route', function (): v
         ->assertOk()
         ->assertSee('aria-label="Explore archive"', false)
         ->assertSee(route('archive.index'), false)
-        ->assertSee(route('archive.locations.index'), false)
-        ->assertSee(route('public-discovery.map'), false)
-        ->assertSee(route('archive.people.index'), false)
-        ->assertSee(route('archive.events.index'), false)
-        ->assertSee(route('archive.branches.index'), false)
+        ->assertSee(route('archive.albums.index'), false)
         ->assertSee(route('archive.knowledge'), false)
         ->assertSee('Photos')
-        ->assertSee('Places</a>', false)
-        ->assertSee('Map</a>', false)
-        ->assertSee('People</a>', false)
-        ->assertSee('Events</a>', false)
-        ->assertSee('Branches</a>', false)
+        ->assertSee('Albums</a>', false)
         ->assertSee('Search</a>', false);
 });
 
@@ -40,7 +32,6 @@ it('keeps the public map navigation safe for signed-out visitors', function (): 
         ->assertOk()
         ->assertSee('aria-label="Explore archive"', false)
         ->assertSee('Archive map', false)
-        ->assertSee('aria-current="page"', false)
         ->assertSee('Private sign in')
         ->assertDontSee('Photos</a>', false)
         ->assertDontSee('People</a>', false);
@@ -54,15 +45,12 @@ it('gives owners one consistent route into every archive workspace', function (s
         ->assertOk()
         ->assertSee('aria-label="Explore archive"', false)
         ->assertSee(route('archive.index'), false)
-        ->assertSee(route('archive.locations.index'), false)
-        ->assertSee(route('public-discovery.map'), false)
-        ->assertSee(route('archive.people.index'), false)
-        ->assertSee(route('archive.events.index'), false)
-        ->assertSee(route('archive.branches.index'), false)
+        ->assertSee(route('archive.albums.index'), false)
         ->assertSee(route('archive.knowledge'), false)
         ->assertSee('aria-current="page"', false);
 })->with([
     'photos' => 'archive.index',
+    'albums' => 'archive.albums.index',
     'places' => 'archive.locations.index',
     'people' => 'archive.people.index',
     'events' => 'archive.events.index',

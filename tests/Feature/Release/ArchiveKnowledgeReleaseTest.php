@@ -22,6 +22,12 @@ it('retains the shared archive knowledge schema', function () {
 });
 
 it('filters living people sensitive locations and unreviewed records from knowledge search', function () {
+    $member = User::factory()->create([
+        'role' => 'member',
+        'account_state' => 'approved',
+        'email_verified_at' => now(),
+    ]);
+
     DB::table('archive_people')->insert([
         [
             'person_id' => 'PERSON-SAFE',
@@ -74,27 +80,37 @@ it('filters living people sensitive locations and unreviewed records from knowle
         'updated_at' => now(),
     ]);
 
-    $results = app(ArchiveKnowledgeExplorer::class)->search('Wellington');
+    $results = app(ArchiveKnowledgeExplorer::class)->search('Wellington', $member);
 
     expect($results->pluck('stable_id')->all())
         ->toContain('PERSON-SAFE', 'LOCATION-SAFE')
         ->not->toContain('PERSON-LIVING', 'LOCATION-SENSITIVE', 'EVENT-DRAFT');
 });
 
-it('keeps archive knowledge private to a verified owner', function () {
+it('keeps archive knowledge private to approved family members', function () {
     $this->withoutVite();
 
-    $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
-    $member = User::factory()->create(['role' => 'member', 'email_verified_at' => now()]);
+    $owner = User::factory()->create([
+        'role' => 'owner',
+        'account_state' => 'approved',
+        'email_verified_at' => now(),
+    ]);
+    $member = User::factory()->create([
+        'role' => 'member',
+        'account_state' => 'approved',
+        'email_verified_at' => now(),
+    ]);
 
     $this->get('/archive/knowledge')->assertRedirect('/login');
-    $this->actingAs($member)->get('/archive/knowledge')->assertForbidden();
+    $this->actingAs($member)
+        ->get('/archive/knowledge')
+        ->assertOk()
+        ->assertSee('Search');
     $this->actingAs($owner)
         ->get('/archive/knowledge')
         ->assertOk()
-        ->assertSee('Archive Knowledge')
-        ->assertSee('v'.config('release.version'))
-        ->assertSee((string) config('release.name'));
+        ->assertSee('Search')
+        ->assertSee('v'.config('release.version'));
 });
 
 it('keeps release metadata aligned beyond the archive knowledge release', function () {

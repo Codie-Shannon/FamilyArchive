@@ -41,7 +41,7 @@ it('replaces the permanent owner menu with one command centre destination', func
 
     $this->actingAs($owner)->get(route('dashboard'))
         ->assertOk()
-        ->assertSee('Command Centre')
+        ->assertSee('Work')
         ->assertDontSee('Archive Administration')
         ->assertDontSee('Archive Schema')
         ->assertDontSee('Restoration Workspace')
@@ -58,7 +58,7 @@ it('groups the established specialist workflows without removing their routes', 
         $response->assertSee($label, false);
     }
 })->with([
-    'work queue' => ['queue', ['Accounts awaiting approval', 'Incoming media review', 'Possible duplicates', 'Open repair cases']],
+    'work queue' => ['queue', ['Accounts awaiting approval', 'Intake batches', 'Possible duplicates', 'Open repair cases']],
     'family and access' => ['family', ['Accounts & contributors', 'Archive knowledge', 'Community & privacy', 'Public experience']],
     'system and storage' => ['system', ['Storage & integrity', 'Intake & preservation', 'Restoration & intelligence', 'Production & release']],
 ]);

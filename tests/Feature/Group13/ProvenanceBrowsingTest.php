@@ -69,7 +69,7 @@ function g13BrowseEventPayload(?ArchiveLocation $location, array $overrides = []
     ];
 }
 
-it('keeps event and location browsing private to the verified owner with safe empty states', function () {
+it('keeps event and location browsing private to approved accounts with safe owner empty states', function () {
     $this->get(route('archive.events.index'))->assertRedirect('/login');
     $this->get(route('archive.locations.index'))->assertRedirect('/login');
 
@@ -78,7 +78,9 @@ it('keeps event and location browsing private to the verified owner with safe em
         'account_state' => 'pending',
         'email_verified_at' => now(),
     ]);
-    $this->actingAs($member)->get(route('archive.events.index'))->assertForbidden();
+    $this->actingAs($member)
+        ->get(route('archive.events.index'))
+        ->assertRedirect(route('account.waiting'));
 
     $owner = g13BrowseOwner();
     $this->actingAs($owner)
