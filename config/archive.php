@@ -43,7 +43,28 @@ return [
     ],
     'restoration' => [
         'memory_limit' => env('ARCHIVE_RESTORATION_MEMORY_LIMIT', '512M'),
+        'max_source_pixels' => (int) env('ARCHIVE_RESTORATION_MAX_SOURCE_PIXELS', 45000000),
         'minimum_crop_confidence' => (float) env('ARCHIVE_MINIMUM_CROP_CONFIDENCE', 0.72),
         'minimum_crop_boundary_inset' => (float) env('ARCHIVE_MINIMUM_CROP_BOUNDARY_INSET', 0.015),
+        'minimum_crop_area_ratio' => (float) env('ARCHIVE_MINIMUM_CROP_AREA_RATIO', 0.45),
+        'maximum_crop_aspect_ratio_delta' => (float) env('ARCHIVE_MAXIMUM_CROP_ASPECT_RATIO_DELTA', 0.32),
+        'maximum_crop_margin_balance' => (float) env('ARCHIVE_MAXIMUM_CROP_MARGIN_BALANCE', 0.28),
+    ],
+    'multi_photo' => [
+        'max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAX_SOURCE_PIXELS', 45000000),
+        'minimum_seam_spacing' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_SEAM_SPACING', 0.08),
+        'maximum_axis_seams' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_AXIS_SEAMS', 7),
+        'grid' => [
+            'minimum_confidence' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_CONFIDENCE', 0.77),
+            'minimum_coverage' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_COVERAGE', 0.78),
+            'minimum_difference' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_DIFFERENCE', 40),
+            'minimum_gutter' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_GUTTER', 0.78),
+        ],
+        'single' => [
+            'minimum_confidence' => (float) env('ARCHIVE_MULTI_PHOTO_SINGLE_MINIMUM_CONFIDENCE', 0.88),
+            'minimum_coverage' => (float) env('ARCHIVE_MULTI_PHOTO_SINGLE_MINIMUM_COVERAGE', 0.92),
+            'minimum_difference' => (float) env('ARCHIVE_MULTI_PHOTO_SINGLE_MINIMUM_DIFFERENCE', 62),
+            'minimum_gutter' => (float) env('ARCHIVE_MULTI_PHOTO_SINGLE_MINIMUM_GUTTER', 0.90),
+        ],
     ],
 ];

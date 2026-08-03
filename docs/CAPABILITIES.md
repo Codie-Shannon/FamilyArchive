@@ -11,6 +11,8 @@ discovery and controlled-sharing workflow.
 - Promotion to immutable, no-overwrite originals
 - Resumable browser and high-volume batch intake
 - Durable checkpoints, bounded retry and per-file failure isolation
+- Decision-preserving recalibration of prepared review samples, so threshold
+  changes can reduce false exceptions without approving or rejecting media
 - Read-only preflight with relative-path hashes and capacity estimates
 - Repeatable source-subtree exclusions pruned before file discovery, with no
   excluded name or path persisted and keyed policy continuity on resume
@@ -25,7 +27,10 @@ discovery and controlled-sharing workflow.
 - Manual rotate, straighten, crop, colour, exposure, denoise, sharpen and cleanup
 - Every edit recreated from the verified original and saved as a separate candidate
 - Human approval before a restoration becomes preferred
-- Confidence-based multi-photo scan detection with and without visible gutters
+- Confidence-ranked, variable-row and variable-column multi-photo scan detection
+  for uneven grids with or without visible gutters
+- One recommended split layout by default, with weak layouts retained as a
+  single original for manual review
 - Free-form manual split regions rendered from the verified immutable original
 - Independently reviewable child photos with explicit source and region lineage
 

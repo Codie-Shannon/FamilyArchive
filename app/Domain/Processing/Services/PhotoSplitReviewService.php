@@ -38,7 +38,20 @@ final class PhotoSplitReviewService
     {
         $existing = PhotoSplitProposal::query()->with(['regions.candidateVersion', 'sourceVersion'])->where('cloud_import_item_id', $itemId)->first();
         if ($existing instanceof PhotoSplitProposal) {
-            return $existing;
+            if ($existing->state === 'dismissed') {
+                return null;
+            }
+            if ($existing->state !== 'suggested' || $this->detector->isHighConfidenceAnalysis($existing->analysis)) {
+                return $existing;
+            }
+
+            $existing->forceFill([
+                'state' => 'dismissed',
+                'reviewed_by' => $actor->id,
+                'reviewed_at' => now(),
+            ])->save();
+
+            return null;
         }
 
         [$item, $source] = $this->itemAndSource($itemId);

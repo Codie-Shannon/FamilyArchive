@@ -160,6 +160,72 @@ final class TrustedBatchReview
         return ['regenerated' => $regenerated, 'failed' => $failed, 'attention' => $counts['attention']];
     }
 
+    /**
+     * Reassess prepared, undecided rows without approving, rejecting, or regenerating anything.
+     *
+     * @return array{reclassified:int,failed:int,attention:int,eligible:int}
+     */
+    public function reclassifyPending(string $sessionId, User $actor, int $limit = 50): array
+    {
+        $session = $this->session($sessionId, $actor);
+        $items = DB::table('cloud_import_items')
+            ->where('cloud_import_session_id', $this->integer($session, 'id'))
+            ->where('state', 'retained')
+            ->whereNotNull('prepared_at')
+            ->whereNull('review_decision')
+            ->orderBy('position')
+            ->limit(max(1, min($limit, 50)))
+            ->get();
+
+        $hardStops = ['exact_duplicate', 'preparation_failed', 'regeneration_failed', 'review_failed', 'multi_photo_ready'];
+        $reclassified = 0;
+        $failed = 0;
+        $eligible = 0;
+
+        foreach ($items as $item) {
+            if (in_array((string) data_get($item, 'attention_code'), $hardStops, true)) {
+                $reclassified++;
+
+                continue;
+            }
+
+            try {
+                $candidateId = data_get($item, 'restoration_candidate_id');
+                $candidate = is_numeric($candidateId)
+                    ? RestorationCandidate::query()->find((int) $candidateId)
+                    : null;
+                $attention = $candidate instanceof RestorationCandidate
+                    ? $this->candidateAttention($candidate)
+                    : null;
+
+                if ($this->splits->analyzeItem($this->integer($item, 'id'), $actor) instanceof PhotoSplitProposal) {
+                    $attention = 'multiple_photos_detected';
+                }
+
+                DB::table('cloud_import_items')->where('id', $this->integer($item, 'id'))->update([
+                    'attention_code' => $attention,
+                    'updated_at' => now(),
+                ]);
+                if ($attention === null) {
+                    $eligible++;
+                }
+                $reclassified++;
+            } catch (Throwable $exception) {
+                report($exception);
+                $failed++;
+            }
+        }
+
+        $counts = $this->refreshSession($this->integer($session, 'id'));
+
+        return [
+            'reclassified' => $reclassified,
+            'failed' => $failed,
+            'attention' => $counts['attention'],
+            'eligible' => $eligible,
+        ];
+    }
+
     /** @param list<int> $itemIds
      * @return array{reviewed:int,failed:int}
      */
@@ -334,10 +400,14 @@ final class TrustedBatchReview
             $marginBalance = (float) ($crop['margin_balance'] ?? 0.0);
 
             if (
-                $requiresReview
-                || ($applied && ! $qualityGatePassed)
-                || ($applied && $confidence < 0.72)
-                || ($applied && ($areaRatio < 0.45 || $aspectRatioDelta > 0.32 || $marginBalance > 0.28))
+                $applied && (
+                    $requiresReview
+                    || ! $qualityGatePassed
+                    || $confidence < (float) config('archive.restoration.minimum_crop_confidence', 0.72)
+                    || $areaRatio < (float) config('archive.restoration.minimum_crop_area_ratio', 0.45)
+                    || $aspectRatioDelta > (float) config('archive.restoration.maximum_crop_aspect_ratio_delta', 0.32)
+                    || $marginBalance > (float) config('archive.restoration.maximum_crop_margin_balance', 0.28)
+                )
             ) {
                 return 'crop_check';
             }
