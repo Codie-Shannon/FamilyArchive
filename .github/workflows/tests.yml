@@ -36,7 +36,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          coverage: none
+          coverage: ${{ matrix.php-version == '8.4' && 'pcov' || 'none' }}
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -78,4 +78,38 @@ jobs:
         run: composer release:verify
 
       - name: Run Tests
+        if: matrix.php-version != '8.4'
         run: php artisan test --compact
+
+      - name: Run Tests And Publish Coverage Baseline
+        if: matrix.php-version == '8.4'
+        shell: bash
+        run: |
+          set -o pipefail
+          php artisan test --compact --coverage | tee coverage.txt
+          {
+            echo '### PHP coverage baseline'
+            echo '```text'
+            tail -n 35 coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Coverage Baseline
+        if: matrix.php-version == '8.4'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: php-coverage-baseline
+          path: coverage.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm PHP Matrix Passed
+        env:
+          MATRIX_RESULT: ${{ needs.ci.result }}
+        run: test "$MATRIX_RESULT" = "success"

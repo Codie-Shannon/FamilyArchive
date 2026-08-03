@@ -48,6 +48,24 @@ deleted. Quarantine objects, originals and derivatives have separate identities.
 Every viewing or restoration derivative records its source lineage. Automated
 processing produces suggestions; people make consequential archive decisions.
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    A["Approved family members"] --> B["Laravel application"]
+    B --> C["MySQL metadata and audit history"]
+    B --> D["Queue workers"]
+    D --> E["Private Wasabi prefixes"]
+    E --> F["Quarantine"]
+    F --> G["Human review"]
+    G --> H["Immutable original"]
+    H --> I["Versioned derivatives"]
+    B --> J["Permission-aware archive, albums and maps"]
+```
+
+The detailed trust boundaries, storage prefixes and processing rules are in the
+[System Overview](docs/architecture/SYSTEM_OVERVIEW.md).
+
 ## Privacy and evidence
 
 The repository, tests and public screenshot evidence use synthetic people,

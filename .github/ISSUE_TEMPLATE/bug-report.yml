@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible product or repository defect.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Do not include family photos, personal names, credentials, storage identifiers,
+        private URLs or local filesystem paths.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the defect and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: "1. Open …\n2. Select …\n3. Observe …"
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release or commit
+      placeholder: v3.8.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local development
+        - Hosted production
+        - GitHub Actions
+        - Other
+    validations:
+      required: true
