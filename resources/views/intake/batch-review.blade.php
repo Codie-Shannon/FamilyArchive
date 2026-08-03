@@ -46,7 +46,15 @@
                             <div class="grid place-items-center p-6 text-center text-sm text-zinc-500">No suggested edit is available. Choose original, hold or reject.</div>
                         @endif
                     </div>
-                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400"><span>Position {{ number_format($item->position) }} · Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-emerald-700 px-3 py-2 font-semibold text-emerald-200">Edit original manually</a>@else<span>Edit remains reversible</span>@endif</div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400">
+                        <span>Position {{ number_format($item->position) }} · Original retained</span>
+                        @if(!$item->review_decision)
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-zinc-600 px-3 py-2 font-semibold text-zinc-200">Edit photo</a>
+                                <a href="{{ route('intake.items.split', [$session->session_id, $item->id]) }}" class="rounded-lg border {{ $item->split_proposal_id ? 'border-amber-600 bg-amber-950/30 text-amber-100' : 'border-emerald-700 text-emerald-200' }} px-3 py-2 font-semibold">{{ $item->split_proposal_id ? 'Review '.$item->split_region_count.' detected photos' : 'Separate multiple photos' }}</a>
+                            </div>
+                        @else<span>Edit remains reversible</span>@endif
+                    </div>
                 </article>
             @empty
                 <div class="col-span-full rounded-2xl border border-dashed border-zinc-700 p-10 text-center text-zinc-400">No items match this filter. Prepare the next preview checkpoint or choose another filter.</div>
@@ -54,7 +62,7 @@
         </section>
 
         @if($items->count() > 0)
-            <div id="decision-bar" class="sticky bottom-4 z-20 hidden items-center justify-between gap-3 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-4 shadow-2xl backdrop-blur"><p class="text-sm text-zinc-300">Apply one decision to every checked item</p><div class="flex flex-wrap gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Use suggested edits</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-4 py-2 text-sm font-semibold text-white">Use originals</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-4 py-2 text-sm font-semibold text-red-200">Reject</button></div></div>
+            <div id="decision-bar" class="sticky bottom-4 z-20 hidden items-center justify-between gap-3 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-4 shadow-2xl backdrop-blur"><p class="text-sm text-zinc-300">Apply one decision to every checked item</p><div class="flex flex-wrap gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Use suggested edits</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-4 py-2 text-sm font-semibold text-white">Use originals</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-4 py-2 text-sm font-semibold text-sky-200">Use split photos</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-4 py-2 text-sm font-semibold text-red-200">Reject</button></div></div>
         @endif
     </form>
 
@@ -87,7 +95,7 @@
                         <a data-mobile-preview="suggested" target="_blank" href="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" class="hidden bg-zinc-950"><img src="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" alt="Suggested edit" class="aspect-[4/3] w-full object-contain"></a>
                     @endif
 
-                    <div class="flex items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400"><span>Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-emerald-700 px-3 py-2 font-semibold text-emerald-200">Edit original manually</a>@else<span>Edit remains reversible</span>@endif</div>
+                    <div class="space-y-2 px-4 py-3 text-xs text-zinc-400"><div class="flex items-center justify-between gap-3"><span>Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-zinc-600 px-3 py-2 font-semibold text-zinc-200">Edit photo</a>@else<span>Edit remains reversible</span>@endif</div>@if(!$item->review_decision)<a href="{{ route('intake.items.split', [$session->session_id, $item->id]) }}" class="block rounded-lg border {{ $item->split_proposal_id ? 'border-amber-600 bg-amber-950/30 text-amber-100' : 'border-emerald-700 text-emerald-200' }} px-3 py-3 text-center font-semibold">{{ $item->split_proposal_id ? 'Review '.$item->split_region_count.' detected photos' : 'Separate multiple photos' }}</a>@endif</div>
                 </article>
             @empty
                 <div class="rounded-2xl border border-dashed border-zinc-700 p-8 text-center text-zinc-400">No items match this filter. Prepare the next preview checkpoint or choose another filter.</div>
@@ -98,7 +106,7 @@
             <div id="mobile-reviewed-state" class="fixed inset-x-2 bottom-2 z-20 hidden rounded-2xl border border-emerald-800 bg-emerald-950/95 p-4 text-center text-sm font-semibold text-emerald-100 shadow-2xl backdrop-blur">This photo has already been reviewed.</div>
             <div id="mobile-decision-bar" class="fixed inset-x-2 bottom-2 z-20 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur">
                 <p class="mb-2 text-xs text-zinc-300">Decision for the current photo</p>
-                <div class="grid grid-cols-2 gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-3 py-3 text-xs font-semibold text-zinc-950">Use suggested edit</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-3 py-3 text-xs font-semibold text-white">Use original</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-3 py-3 text-xs font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-3 py-3 text-xs font-semibold text-red-200">Reject</button></div>
+                <div class="grid grid-cols-2 gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-3 py-3 text-xs font-semibold text-zinc-950">Use suggested edit</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-3 py-3 text-xs font-semibold text-white">Use original</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-3 py-3 text-xs font-semibold text-sky-200">Use split photos</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-3 py-3 text-xs font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="col-span-2 rounded-xl border border-red-800 px-3 py-3 text-xs font-semibold text-red-200">Reject</button></div>
             </div>
         @endif
     </form>

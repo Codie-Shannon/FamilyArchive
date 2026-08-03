@@ -263,6 +263,7 @@ final class GeneratePhotoViewingDerivatives
         if (
             ! $this->sources->isPreferredOriginal($source)
             && ! $this->sources->isApprovedRestoration($source)
+            && ! $this->sources->isApprovedPhotoSplit($source)
         ) {
             throw new DerivativeGenerationException('Only a verified original or owner-approved restoration may be a viewing source.');
         }

@@ -1,7 +1,7 @@
 # Family Archive System Overview
 
-The current closed release is v3.8.0 Migration Qualification, with Screenshot
-Groups 01-33 approved. The real private family migration remains a separate
+The current closed release is v3.9.0 Composite Photo Separation, with Screenshot
+Groups 01-34 approved. The real private family migration remains a separate
 operator-controlled activity.
 
 Family Archive is a standalone, archive-grade family media preservation
@@ -230,7 +230,7 @@ Screenshot Group
 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
 Hosted Production, with its four-file live evidence pack approved. Screenshot
-Groups 01-33 are closed. Screenshot Group 16 implements the v2.1.0 Unified
+Groups 01-34 are closed. Screenshot Group 16 implements the v2.1.0 Unified
 Member Experience with role-aware member navigation and approved evidence.
 Screenshot Group 17 implements the v2.2.0 Owner Command Centre with approved
 six-file evidence. Screenshot Group 18 implements the v2.3.0 Archive
@@ -416,3 +416,15 @@ Incomplete relationship, person-media, identity-merge and resolution workflows
 remain unavailable.
 
 See [Roadmap](../ROADMAP.md) for the complete 46-group sequence.
+
+## Composite photo separation
+
+Composite photo separation sits after immutable-source preparation and before
+the final archive decision. A confidence-based detector may suggest two or four
+photo regions using continuous seams, edge discontinuity and uniform-gutter
+evidence, including layouts without white borders. An authorized reviewer may
+move, resize, exclude, remove or add regions in a free-form editor. Candidate
+files are rendered from the checksum-verified original and remain reversible.
+Publishing creates independent approved photo records whose version recipes
+retain the original source hash and exact region bounds; it never crops,
+overwrites or replaces the preserved source object.

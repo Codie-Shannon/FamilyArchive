@@ -1,9 +1,9 @@
 {
-    "version": "3.8.0",
-    "releaseName": "Migration Qualification",
-    "status": "closed",
-    "officialScreenshotGroups": 33,
-    "latestScreenshotGroup": 33,
+    "version": "3.9.0",
+    "releaseName": "Composite Photo Separation",
+    "status": "approved",
+    "officialScreenshotGroups": 34,
+    "latestScreenshotGroup": 34,
     "mediaSupport": [
         "photos"
     ],

@@ -7,7 +7,9 @@ use App\Domain\Intake\Actions\ApproveIncomingPhotoForRestoration;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Models\MediaItem;
+use App\Domain\Processing\Models\PhotoSplitProposal;
 use App\Domain\Processing\Models\RestorationCandidate;
+use App\Domain\Processing\Services\PhotoSplitReviewService;
 use App\Domain\Processing\Services\RestorationReviewService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +19,13 @@ use Throwable;
 
 final class TrustedBatchReview
 {
-    public const DECISIONS = ['suggested_edit', 'original', 'hold', 'reject'];
+    public const DECISIONS = ['suggested_edit', 'original', 'split_photos', 'hold', 'reject'];
 
     public function __construct(
         private ApproveIncomingPhotoForRestoration $approver,
         private RestorationReviewService $reviews,
         private GeneratePhotoViewingDerivatives $derivatives,
+        private PhotoSplitReviewService $splits,
     ) {}
 
     public function session(string $sessionId, User $actor): object
@@ -92,6 +95,13 @@ final class TrustedBatchReview
                 $attention = $candidate instanceof RestorationCandidate
                     ? $this->candidateAttention($candidate)
                     : null;
+                try {
+                    if ($this->splits->analyzeItem($this->integer($item, 'id'), $actor) instanceof PhotoSplitProposal) {
+                        $attention = 'multiple_photos_detected';
+                    }
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
                 $this->markPrepared($this->integer($item, 'id'), $candidate?->id, $attention);
             } catch (Throwable $exception) {
                 report($exception);
@@ -233,6 +243,15 @@ final class TrustedBatchReview
             if ($mediaItem instanceof MediaItem) {
                 $this->setMediaState($mediaItem, MediaReviewStatus::Rejected, null);
             }
+        } elseif ($decision === 'split_photos') {
+            $proposal = PhotoSplitProposal::query()->where('cloud_import_item_id', $this->integer($item, 'id'))->first();
+            if (! $proposal instanceof PhotoSplitProposal) {
+                throw ValidationException::withMessages(['items' => 'Open the split editor and save the photo regions first.']);
+            }
+            $this->splits->publish($proposal, $actor);
+            if ($candidate instanceof RestorationCandidate && $candidate->review_state === 'pending') {
+                $this->reviews->decide($candidate, $actor, 'rejected', 'The preserved source was separated into independently reviewed photos.');
+            }
         } else {
             if (! $mediaItem instanceof MediaItem) {
                 throw ValidationException::withMessages(['items' => 'This item has no accepted immutable original.']);
@@ -265,7 +284,7 @@ final class TrustedBatchReview
             ->where('incoming_upload_id', $upload->id)
             ->update([
                 'status' => match ($decision) {
-                    'suggested_edit', 'original' => 'accepted',
+                    'suggested_edit', 'original', 'split_photos' => 'accepted',
                     'hold' => 'needs_info',
                     default => 'rejected',
                 },
@@ -273,6 +292,7 @@ final class TrustedBatchReview
                 'reviewer_note' => match ($decision) {
                     'suggested_edit' => 'Suggested edit accepted in batch review.',
                     'original' => 'Original accepted in batch review.',
+                    'split_photos' => 'Multi-photo source preserved and reviewed as separate photos.',
                     'hold' => 'Held for more information in batch review.',
                     default => 'Rejected in batch review.',
                 },

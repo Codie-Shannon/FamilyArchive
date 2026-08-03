@@ -11,26 +11,28 @@ review and discover shared history.
 
 **Live product:** [familyarchive.bayforgesystems.com](https://familyarchive.bayforgesystems.com)
 
-![Migration qualification dashboard](docs/screenshot-groups/screenshot-group-33/01_v380_Thirty_Thousand_Qualification.png)
+![Composite photo detection](docs/screenshot-groups/screenshot-group-34/01_v390_Multi_Photo_Detection.png)
 
 ## Release state
 
-- Current release: **v3.8.0 — Migration Qualification**
-- Official evidence: **33 approved and closed screenshot groups**
+- Current release: **v3.9.0 — Composite Photo Separation**
+- Official evidence: **34 approved and closed screenshot groups**
 - Media supported by the completed workflow: **photos**
 - Production services: Laravel Cloud, MySQL, Wasabi object storage and Google Maps
 - Migration qualification: a synthetic 30,000-entry run proved checkpoints,
   interruption recovery, isolated failures, idempotent replay and reconciliation
 - Real family migration: deliberately separate and not represented by public evidence
+- Composite scans: automatic border and borderless layout suggestions plus a
+  free-form, original-first manual split editor, proven by approved Group 34 evidence
 
-The product release is closed. The repository is in maintenance and migration
-readiness mode; new feature expansion requires an explicit new release boundary.
+The v3.9.0 composite-photo separation release is approved and closed.
 
 ## What the product demonstrates
 
 - Immutable, checksum-verified originals with no-overwrite storage boundaries
 - Quarantine, duplicate review, human acceptance and append-only audit history
 - Automatic and manual restoration from the verified original, with versioned lineage
+- Multi-photo scan detection and reversible separation into independently reviewed photos
 - Resumable batch intake designed for tens of thousands of photos
 - Delegated family roles, guided non-email access and owner-controlled exceptions
 - Albums, permission-aware search and privacy-reviewed interactive maps
@@ -125,7 +127,7 @@ closed. Never reuse demonstration credentials or data in production.
 - [Current maintenance boundary](docs/CURRENT_BUCKET.md)
 - [Capabilities](docs/CAPABILITIES.md)
 - [Release history](docs/RELEASE_HISTORY.md)
-- [v3.8.0 release notes](docs/release-notes/v3.8.0.md)
+- [v3.9.0 release notes](docs/release-notes/v3.9.0.md)
 - [Roadmap and closed groups](docs/ROADMAP.md)
 - [Build and evidence process](docs/BUILD_AND_EVIDENCE.md)
 - [Development process](docs/DEVELOPMENT_PROCESS.md)

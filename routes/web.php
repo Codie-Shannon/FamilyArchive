@@ -45,6 +45,8 @@ use App\Http\Controllers\ContributorSubmissionController;
 use App\Http\Controllers\FamilyMessageController;
 use App\Http\Controllers\Intake\BatchItemPreviewController;
 use App\Http\Controllers\Intake\BatchReviewController;
+use App\Http\Controllers\Intake\PhotoSplitEditorController;
+use App\Http\Controllers\Intake\PhotoSplitPreviewController;
 use App\Http\Controllers\Intake\RestorationEditorController;
 use App\Http\Controllers\MemberHomeController;
 use App\Http\Controllers\PublicConversationController;
@@ -126,6 +128,9 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
         Route::get('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'edit'])->name('items.editor');
         Route::post('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'update'])->name('items.editor.update');
+        Route::get('/batches/{sessionId}/items/{itemId}/split/photos', [PhotoSplitEditorController::class, 'edit'])->name('items.split');
+        Route::post('/batches/{sessionId}/items/{itemId}/split/photos', [PhotoSplitEditorController::class, 'update'])->name('items.split.update');
+        Route::get('/batches/{sessionId}/items/{itemId}/split/photos/{regionId}', PhotoSplitPreviewController::class)->name('items.split.preview');
     });
     Route::middleware('trusted.intake')->group(function (): void {
         Route::post('/archive/albums', [ArchiveAlbumController::class, 'store'])->name('archive.albums.store');

@@ -45,15 +45,15 @@ $releaseName = (string) ($state['releaseName'] ?? '');
 $groupCount = (int) ($state['officialScreenshotGroups'] ?? 0);
 $latestGroup = (int) ($state['latestScreenshotGroup'] ?? 0);
 
-$pass($version === '3.8.0', 'Canonical version must be 3.8.0.');
-$pass($releaseName === 'Migration Qualification', 'Canonical release name must be Migration Qualification.');
-$pass(($state['status'] ?? null) === 'closed', 'Canonical release status must be closed.');
-$pass($groupCount === 33 && $latestGroup === 33, 'Canonical screenshot-group state must close at SG33.');
+$pass($version === '3.9.0', 'Canonical version must be 3.9.0.');
+$pass($releaseName === 'Composite Photo Separation', 'Canonical release name must be Composite Photo Separation.');
+$pass(($state['status'] ?? null) === 'approved', 'Canonical release status must be approved.');
+$pass($groupCount === 34 && $latestGroup === 34, 'Canonical screenshot-group state must close at SG34.');
 $pass(($state['realFamilyMigrationCompleted'] ?? null) === false, 'The real family migration must remain explicitly incomplete.');
 $pass(($state['publicEvidenceUsesSyntheticData'] ?? null) === true, 'Public evidence must remain explicitly synthetic.');
 $pass(config('release.version') === $version, 'config/release.php version disagrees with project state.');
 $pass(config('release.name') === $releaseName, 'config/release.php release name disagrees with project state.');
-$pass(str_contains((string) config('release.status'), '33'), 'config/release.php does not identify SG33 as closed.');
+$pass(str_contains((string) config('release.status'), '34'), 'config/release.php does not identify SG34 as closed.');
 
 $requiredDocuments = [
     'README.md',
@@ -65,7 +65,7 @@ $requiredDocuments = [
     'docs/CAPABILITIES.md',
     'docs/RELEASE_HISTORY.md',
     'docs/THREAT_MODEL.md',
-    'docs/release-notes/v3.8.0.md',
+    'docs/release-notes/v3.9.0.md',
     'docs/screenshot-groups/README.md',
 ];
 
@@ -77,7 +77,7 @@ $readme = $read('README.md');
 $rights = $read('RIGHTS_AND_LICENSING.md');
 $roadmap = $read('docs/ROADMAP.md');
 $overview = $read('docs/architecture/SYSTEM_OVERVIEW.md');
-$releaseNotes = $read('docs/release-notes/v3.8.0.md');
+$releaseNotes = $read('docs/release-notes/v3.9.0.md');
 $composerJson = $read('composer.json');
 $composer = json_decode($composerJson, true);
 $pass(is_array($composer), 'composer.json is not valid JSON.');
@@ -92,8 +92,8 @@ $pass(str_contains($rights, 'All rights reserved'), 'Rights document does not re
 $pass(str_contains($rights, 'publicly viewable'), 'Rights document does not state the portfolio-review boundary.');
 
 foreach ([$readme, $roadmap, $overview, $releaseNotes] as $document) {
-    $pass(str_contains($document, '3.8.0'), 'A primary release document does not identify v3.8.0.');
-    $pass(str_contains($document, '33'), 'A primary release document does not identify SG33.');
+    $pass(str_contains($document, '3.9.0'), 'A primary release document does not identify v3.9.0.');
+    $pass(str_contains($document, '34'), 'A primary release document does not identify SG34.');
 }
 
 $pass(! str_contains($roadmap, 'Screenshot Groups 01-19 are closed'), 'Roadmap contains the stale SG01-19 closure statement.');

@@ -1,6 +1,6 @@
 # Capability Inventory
 
-Family Archive v3.8.0 supports photos through a complete preservation, review,
+Family Archive v3.9.0 supports photos through a complete preservation, review,
 discovery and controlled-sharing workflow.
 
 ## Preservation and intake
@@ -23,6 +23,9 @@ discovery and controlled-sharing workflow.
 - Manual rotate, straighten, crop, colour, exposure, denoise, sharpen and cleanup
 - Every edit recreated from the verified original and saved as a separate candidate
 - Human approval before a restoration becomes preferred
+- Confidence-based multi-photo scan detection with and without visible gutters
+- Free-form manual split regions rendered from the verified immutable original
+- Independently reviewable child photos with explicit source and region lineage
 
 Perspective correction, damage reconstruction and upscaling remain unavailable
 until supported processors and review contracts exist.

@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 33 completed and approved screenshot
+releases. The repository currently has 34 completed and approved screenshot
 groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
@@ -29,7 +29,7 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-33 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-34 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
 Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
 evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
@@ -901,3 +901,23 @@ The release:
 - provides dry-run-first, copy-only migration that never deletes local source
   objects and verifies matching remote objects before resuming; and
 - renders only safe aggregate provider facts in the verified Owner boundary.
+
+## Screenshot Group 34 Boundary
+
+Screenshot Group 34 is the corrective v3.9.0 Composite Photo Separation
+release.
+
+Implementation status: approved and closed.
+
+The release:
+
+- detects common two- and four-photo composite scans using confidence-based
+  continuous seams rather than requiring white borders;
+- routes uncertain layouts to review instead of silently splitting them;
+- gives authorized reviewers a free-form region editor with add, remove,
+  include, exclude, drag and resize controls;
+- renders every split candidate from a checksum-verified immutable original;
+- preserves the source bytes, hash and archive object without overwrite;
+- publishes accepted regions as independent approved photos with explicit
+  source-version and region-bound lineage; and
+- keeps the private 30,000-photo migration outside this synthetic evidence pack.

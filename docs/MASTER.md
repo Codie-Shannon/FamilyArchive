@@ -14,7 +14,7 @@ documentation.
 ## Release and evidence
 
 - [Release history](RELEASE_HISTORY.md)
-- [v3.8.0 release notes](release-notes/v3.8.0.md)
+- [v3.9.0 release notes](release-notes/v3.9.0.md)
 - [Roadmap](ROADMAP.md)
 - [Screenshot evidence guide](screenshot-groups/README.md)
 - [Build and evidence process](BUILD_AND_EVIDENCE.md)

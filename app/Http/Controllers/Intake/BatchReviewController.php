@@ -43,13 +43,23 @@ final class BatchReviewController extends Controller
             : 'pending';
         $query = DB::table('cloud_import_items as items')
             ->leftJoin('restoration_candidates as candidates', 'candidates.id', '=', 'items.restoration_candidate_id')
+            ->leftJoin('photo_split_proposals as splits', 'splits.cloud_import_item_id', '=', 'items.id')
             ->where('items.cloud_import_session_id', data_get($session, 'id'))
             ->where('items.state', 'retained')
             ->select([
                 'items.*',
                 'candidates.review_state as candidate_review_state',
                 'candidates.analysis as candidate_analysis',
+                'splits.id as split_proposal_id',
+                'splits.state as split_state',
+                'splits.confidence as split_confidence',
             ])
+            ->selectSub(function ($query): void {
+                $query->from('photo_split_regions as split_regions')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('split_regions.photo_split_proposal_id', 'splits.id')
+                    ->where('split_regions.review_state', 'included');
+            }, 'split_region_count')
             ->orderBy('items.position');
         match ($filter) {
             'attention' => $query->whereNotNull('items.attention_code'),

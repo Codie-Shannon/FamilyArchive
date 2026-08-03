@@ -1,6 +1,6 @@
 # Current Maintenance Boundary
 
-Family Archive v3.8.0 is product-complete and its 33 official screenshot groups
+Family Archive v3.9.0 is product-complete and its 34 official screenshot groups
 are approved and closed. Work now belongs to maintenance and migration readiness,
 not uncontrolled feature expansion.
 
@@ -15,7 +15,7 @@ not uncontrolled feature expansion.
 
 ## Out of scope without a new release boundary
 
-- A speculative Screenshot Group 34
+- Feature expansion without an explicit release boundary
 - New social-network features or unsupported media types
 - Public evidence containing real family data
 - Destructive source cleanup during migration
