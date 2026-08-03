@@ -1,5 +1,9 @@
 # Family Archive System Overview
 
+The current closed release is v3.8.0 Migration Qualification, with Screenshot
+Groups 01-33 approved. The real private family migration remains a separate
+operator-controlled activity.
+
 Family Archive is a standalone, archive-grade family media preservation
 platform. Its archive is private, while v1.0 also provides deliberately
 separated public-chat and anonymous-contact surfaces. It is built as a modular
@@ -226,7 +230,7 @@ Screenshot Group
 14 is implemented as v1.9.0 Wasabi Production Storage, with its five-file
 live evidence pack approved. Screenshot Group 15 is implemented as v2.0.0
 Hosted Production, with its four-file live evidence pack approved. Screenshot
-Groups 01-19 are closed. Screenshot Group 16 implements the v2.1.0 Unified
+Groups 01-33 are closed. Screenshot Group 16 implements the v2.1.0 Unified
 Member Experience with role-aware member navigation and approved evidence.
 Screenshot Group 17 implements the v2.2.0 Owner Command Centre with approved
 six-file evidence. Screenshot Group 18 implements the v2.3.0 Archive

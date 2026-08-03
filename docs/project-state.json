@@ -1,0 +1,14 @@
+{
+    "version": "3.8.0",
+    "releaseName": "Migration Qualification",
+    "status": "closed",
+    "officialScreenshotGroups": 33,
+    "latestScreenshotGroup": 33,
+    "mediaSupport": [
+        "photos"
+    ],
+    "hostedProductionVerified": true,
+    "wasabiStorageVerified": true,
+    "realFamilyMigrationCompleted": false,
+    "publicEvidenceUsesSyntheticData": true
+}

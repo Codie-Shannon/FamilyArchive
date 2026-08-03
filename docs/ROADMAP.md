@@ -29,7 +29,7 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-19 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-33 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
 Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
 evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
@@ -285,6 +285,7 @@ PDFs remain external artifacts and must not be committed.
 | 30 | Corrective everyday family experience | 3.5.0 | Everyday Family Experience |
 | 31 | Corrective embedded family messaging | 3.6.0 | Embedded Family Messaging |
 | 32 | Corrective migration preflight | 3.7.0 | Migration Preflight |
+| 33 | Corrective migration qualification | 3.8.0 | Migration Qualification |
 
 ## Screenshot Group 28 Boundary
 

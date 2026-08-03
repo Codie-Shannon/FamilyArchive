@@ -1,11 +1,17 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "bayforge-systems/family-archive",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "Privacy-first, preservation-grade family history platform.",
     "keywords": [
+        "family-archive",
+        "digital-preservation",
+        "family-history",
+        "photo-archive",
+        "privacy",
+        "provenance",
         "laravel",
-        "framework"
+        "livewire"
     ],
     "license": "MIT",
     "require": {
@@ -69,10 +75,14 @@
         "types:check": [
             "phpstan analyse --memory-limit=1G"
         ],
+        "release:verify": [
+            "@php tools/verify-release.php"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@lint:check",
             "@types:check",
+            "@release:verify",
             "@php artisan test"
         ],
         "post-autoload-dump": [
