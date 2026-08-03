@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'version' => env('FAMILY_ARCHIVE_VERSION', '3.9.0'),
-    'name' => env('FAMILY_ARCHIVE_RELEASE_NAME', 'Composite Photo Separation'),
-    'groups' => env('FAMILY_ARCHIVE_RELEASE_GROUPS', 'CORRECTIVE-COMPOSITE-PHOTO-SEPARATION'),
-    'status' => env('FAMILY_ARCHIVE_RELEASE_STATUS', 'Screenshot Group 34 approved and closed'),
+    'version' => env('FAMILY_ARCHIVE_VERSION', '4.0.0'),
+    'name' => env('FAMILY_ARCHIVE_RELEASE_NAME', 'Private Source Exclusion'),
+    'groups' => env('FAMILY_ARCHIVE_RELEASE_GROUPS', 'CORRECTIVE-PRIVATE-SOURCE-EXCLUSION'),
+    'status' => env('FAMILY_ARCHIVE_RELEASE_STATUS', 'Screenshot Group 35 approved and closed'),
 ];

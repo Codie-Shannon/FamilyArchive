@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 34 completed and approved screenshot
+releases. The repository currently has 35 completed and approved screenshot
 groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
@@ -29,7 +29,7 @@ closed. Screenshot Group 14 is the corrective v1.9.0 Wasabi Production Storage
 release. Its implementation and five-file live evidence pack are approved and
 closed. Screenshot Group 15 is the v2.0.0 Hosted Production boundary. Its
 implementation, live deployment evidence and manual approval are complete.
-Screenshot Groups 01-34 are closed. Screenshot Group 16 implements the v2.1.0
+Screenshot Groups 01-35 are closed. Screenshot Group 16 implements the v2.1.0
 Unified Member Experience with an approved seven-file evidence pack. Screenshot
 Group 17 implements the v2.2.0 Owner Command Centre with an approved six-file
 evidence pack. Screenshot Group 18 implements the v2.3.0 Archive Exploration
@@ -921,3 +921,20 @@ The release:
 - publishes accepted regions as independent approved photos with explicit
   source-version and region-bound lineage; and
 - keeps the private 30,000-photo migration outside this synthetic evidence pack.
+
+## Screenshot Group 35 Boundary
+
+Screenshot Group 35 is the corrective v4.0.0 Private Source Exclusion release.
+
+Implementation and evidence status: approved and closed.
+
+The release:
+
+- accepts repeatable excluded subtrees beneath an explicitly selected source;
+- resolves and validates every exclusion before discovery begins;
+- prunes excluded directories before opening or enumerating their contents;
+- rejects missing directories, the source root and paths outside the source;
+- persists no excluded filename, directory name or absolute path;
+- binds inventory identity to a keyed, non-reversible exclusion-policy fingerprint;
+- requires the identical exclusion policy for every resumed processing run; and
+- stops before retention when exclusion continuity cannot be proven.

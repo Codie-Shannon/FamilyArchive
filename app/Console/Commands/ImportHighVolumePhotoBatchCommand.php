@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 final class ImportHighVolumePhotoBatchCommand extends Command
 {
-    protected $signature = 'archive:batch-import {directory} {owner} {--batch=} {--limit=} {--chunk=500} {--inventory-only} {--until-complete} {--retry-failed=0}';
+    protected $signature = 'archive:batch-import {directory} {owner} {--exclude=* : Source subtree to prune before discovery; repeat the same exclusions when resuming} {--batch=} {--limit=} {--chunk=500} {--inventory-only} {--until-complete} {--retry-failed=0}';
 
     protected $description = 'Inventory or resume a large local photo batch without bypassing quarantine or review';
 
@@ -21,8 +21,9 @@ final class ImportHighVolumePhotoBatchCommand extends Command
             return self::FAILURE;
         }
         $batchId = $this->option('batch');
+        $excludedDirectories = array_values(array_map('strval', (array) $this->option('exclude')));
         if (! is_string($batchId) || $batchId === '') {
-            $planned = $batches->plan($owner, (string) $this->argument('directory'), (int) $this->option('chunk'));
+            $planned = $batches->plan($owner, (string) $this->argument('directory'), (int) $this->option('chunk'), $excludedDirectories);
             $batchId = $planned['session_id'];
             $this->info("Inventory planned: {$planned['selected_count']} files, {$planned['total_bytes']} bytes.");
             $this->line("Resume token: {$batchId}");
@@ -39,8 +40,8 @@ final class ImportHighVolumePhotoBatchCommand extends Command
         }
         $limit = $this->option('limit');
         $result = $this->option('until-complete')
-            ? $batches->runToCompletion($batchId, (string) $this->argument('directory'))
-            : $batches->process($batchId, (string) $this->argument('directory'), is_numeric($limit) ? (int) $limit : null);
+            ? $batches->runToCompletion($batchId, (string) $this->argument('directory'), $excludedDirectories)
+            : $batches->process($batchId, (string) $this->argument('directory'), is_numeric($limit) ? (int) $limit : null, $excludedDirectories);
         $this->info("Checkpoint: {$result['processed_count']} processed, {$result['retained_count']} retained, {$result['failed_count']} failed, {$result['remaining_count']} remaining.");
         $this->line("Batch state: {$result['state']}");
 

@@ -39,6 +39,7 @@ tests, documentation and approved evidence.
 | 32 | 3.7.0 | Migration Preflight |
 | 33 | 3.8.0 | Migration Qualification |
 | 34 | 3.9.0 | Composite Photo Separation |
+| 35 | 4.0.0 | Private Source Exclusion |
 
 The source of truth for the current release is
 [`docs/project-state.json`](project-state.json). Detailed boundaries remain in

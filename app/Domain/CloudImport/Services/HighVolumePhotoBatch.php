@@ -3,6 +3,7 @@
 namespace App\Domain\CloudImport\Services;
 
 use App\Domain\Access\Models\ContributorSubmission;
+use App\Domain\CloudImport\ValueObjects\SourceExclusionBoundary;
 use App\Domain\Intake\Services\CreateAndRetainIncomingPhoto;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -18,8 +19,11 @@ final class HighVolumePhotoBatch
         private PhotoBatchPreflight $preflight,
     ) {}
 
-    /** @return array{session_id:string,selected_count:int,total_bytes:int,inventory_sha256:string} */
-    public function plan(User $owner, string $directory, int $chunkSize = 500): array
+    /**
+     * @param  list<string>  $excludedDirectories
+     * @return array{session_id:string,selected_count:int,total_bytes:int,inventory_sha256:string}
+     */
+    public function plan(User $owner, string $directory, int $chunkSize = 500, array $excludedDirectories = []): array
     {
         if (! $owner->canManageTrustedIntake()) {
             throw new RuntimeException('A trusted intake account is required to plan a high-volume batch.');
@@ -28,7 +32,7 @@ final class HighVolumePhotoBatch
             throw new RuntimeException('The checkpoint chunk size must be between 25 and 1000.');
         }
 
-        $inventory = $this->preflight->scan($directory);
+        $inventory = $this->preflight->scan($directory, true, $excludedDirectories);
         if ($inventory['files'] === [] || count($inventory['files']) > 100000) {
             throw new RuntimeException('The batch must contain between 1 and 100,000 supported photos.');
         }
@@ -98,15 +102,24 @@ final class HighVolumePhotoBatch
         });
     }
 
-    /** @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int} */
-    public function process(string $sessionId, string $directory, ?int $limit = null): array
+    /**
+     * @param  list<string>  $excludedDirectories
+     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int}
+     */
+    public function process(string $sessionId, string $directory, ?int $limit = null, array $excludedDirectories = []): array
     {
         $session = DB::table('cloud_import_sessions')->where('session_id', $sessionId)->where('provider', 'manual_export')->first();
         if ($session === null) {
             throw new RuntimeException('The high-volume batch could not be found.');
         }
 
-        $inventory = $this->preflight->scan($directory, false);
+        $manifest = json_decode((string) $session->source_manifest, true) ?: [];
+        $plannedPolicy = $manifest['preflight_summary']['exclusion_policy_fingerprint'] ?? null;
+        $currentPolicy = SourceExclusionBoundary::forRoot($directory, $excludedDirectories)->fingerprint();
+        if (! is_string($plannedPolicy) || ! hash_equals($plannedPolicy, $currentPolicy)) {
+            throw new RuntimeException('The source exclusion policy changed after planning; processing stopped before retention.');
+        }
+        $inventory = $this->preflight->scan($directory, false, $excludedDirectories);
         if (! hash_equals((string) $session->inventory_sha256, $inventory['inventory_sha256'])) {
             throw new RuntimeException('The source inventory changed after planning; processing stopped before retention.');
         }
@@ -194,13 +207,16 @@ final class HighVolumePhotoBatch
         return $ids->count();
     }
 
-    /** @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int} */
-    public function runToCompletion(string $sessionId, string $directory): array
+    /**
+     * @param  list<string>  $excludedDirectories
+     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int}
+     */
+    public function runToCompletion(string $sessionId, string $directory, array $excludedDirectories = []): array
     {
         $maximumChunks = max(1, (int) config('archive.batch_preflight.maximum_unattended_chunks', 1000));
         $result = ['state' => 'paused', 'processed_count' => 0, 'retained_count' => 0, 'failed_count' => 0, 'remaining_count' => 1];
         for ($chunk = 0; $chunk < $maximumChunks && $result['remaining_count'] > 0; $chunk++) {
-            $result = $this->process($sessionId, $directory);
+            $result = $this->process($sessionId, $directory, null, $excludedDirectories);
         }
         if ($result['remaining_count'] > 0) {
             throw new RuntimeException('The unattended chunk safety limit was reached before completion.');

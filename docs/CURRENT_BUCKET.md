@@ -1,6 +1,6 @@
 # Current Maintenance Boundary
 
-Family Archive v3.9.0 is product-complete and its 34 official screenshot groups
+Family Archive v4.0.0 is product-complete and its 35 official screenshot groups
 are approved and closed. Work now belongs to maintenance and migration readiness,
 not uncontrolled feature expansion.
 

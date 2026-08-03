@@ -9,13 +9,13 @@ use RuntimeException;
 
 final class PreflightPhotoBatchCommand extends Command
 {
-    protected $signature = 'archive:batch-preflight {directory} {--json=} {--csv=}';
+    protected $signature = 'archive:batch-preflight {directory} {--exclude=* : Source subtree to prune before discovery; repeat for multiple directories} {--json=} {--csv=}';
 
     protected $description = 'Read and report a local photo inventory without retaining or modifying source files';
 
     public function handle(PhotoBatchPreflight $preflight): int
     {
-        $result = $preflight->scan((string) $this->argument('directory'));
+        $result = $preflight->scan((string) $this->argument('directory'), true, $this->excludedDirectories());
         $summary = $result['summary'];
         $this->info('Source-safe migration preflight complete. No source bytes were changed or retained.');
         $this->table(['Measure', 'Result'], [
@@ -23,6 +23,7 @@ final class PreflightPhotoBatchCommand extends Command
             ['Readable photos', number_format((int) $summary['valid_count'])],
             ['Unreadable photos', number_format((int) $summary['invalid_count'])],
             ['Ignored non-photo files', number_format((int) $summary['ignored_count'])],
+            ['Excluded source subtrees', number_format((int) $summary['excluded_subtree_count'])],
             ['Duplicate candidates', number_format((int) $summary['duplicate_files'])],
             ['Source bytes', $this->formatBytes((int) $summary['supported_bytes'])],
             ['Planned storage reserve', $this->formatBytes((int) $summary['estimated_total_bytes'])],
@@ -66,6 +67,12 @@ final class PreflightPhotoBatchCommand extends Command
         }
 
         return (int) $summary['invalid_count'] > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    /** @return list<string> */
+    private function excludedDirectories(): array
+    {
+        return array_values(array_map('strval', (array) $this->option('exclude')));
     }
 
     private function writeReport(string $path, string $contents): void

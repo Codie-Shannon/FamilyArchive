@@ -2,76 +2,92 @@
 
 namespace App\Domain\CloudImport\Services;
 
+use App\Domain\CloudImport\ValueObjects\SourceExclusionBoundary;
 use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 
 final class PhotoBatchPreflight
 {
     private const EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'tif', 'tiff'];
 
     /**
+     * @param  list<string>  $excludedDirectories
      * @return array{
      *     files:list<array{position:int,path:string,relative:string,relative_path_hash:string,name:string,extension:string,bytes:int,modified_at:int,content_sha256:?string,mime:?string,width:?int,height:?int,orientation:?int,captured_at:?string,valid:bool,failure_code:?string}>,
      *     summary:array<string,mixed>,
      *     inventory_sha256:string
      * }
      */
-    public function scan(string $directory, bool $deep = true): array
+    public function scan(string $directory, bool $deep = true, array $excludedDirectories = []): array
     {
-        $root = realpath($directory);
-        if (! is_string($root) || ! is_dir($root)) {
-            throw new RuntimeException('The batch source directory does not exist.');
-        }
-
-        $root = rtrim(str_replace('\\', '/', $root), '/');
+        $exclusionBoundary = SourceExclusionBoundary::forRoot($directory, $excludedDirectories);
+        $root = $exclusionBoundary->root();
         $files = [];
         $ignoredExtensions = [];
         $ignoredCount = 0;
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+        $pendingDirectories = [$root];
 
-        foreach ($iterator as $file) {
-            if (! $file->isFile() || $file->isLink()) {
-                continue;
+        while (($currentDirectory = array_pop($pendingDirectories)) !== null) {
+            $iterator = new FilesystemIterator(
+                $currentDirectory,
+                FilesystemIterator::SKIP_DOTS | FilesystemIterator::CURRENT_AS_FILEINFO | FilesystemIterator::KEY_AS_PATHNAME,
+            );
+            /** @var SplFileInfo $file */
+            foreach ($iterator as $file) {
+                $candidate = str_replace('\\', '/', $file->getPathname());
+                if ($file->isLink()) {
+                    continue;
+                }
+                if ($file->isDir()) {
+                    if (! $exclusionBoundary->excludes($candidate)) {
+                        $pendingDirectories[] = $candidate;
+                    }
+
+                    continue;
+                }
+                if (! $file->isFile()) {
+                    continue;
+                }
+
+                $extension = strtolower($file->getExtension());
+                if (! in_array($extension, self::EXTENSIONS, true)) {
+                    $ignoredCount++;
+                    $label = $extension !== '' ? $extension : '[none]';
+                    $ignoredExtensions[$label] = ($ignoredExtensions[$label] ?? 0) + 1;
+
+                    continue;
+                }
+
+                $resolvedPath = $file->getRealPath();
+                if (! is_string($resolvedPath)) {
+                    continue;
+                }
+                $path = str_replace('\\', '/', $resolvedPath);
+                if (! str_starts_with($path, $root.'/')) {
+                    throw new RuntimeException('A batch file escaped the selected directory boundary.');
+                }
+
+                $relative = substr($path, strlen($root) + 1);
+                $analysis = $deep ? $this->analysePhoto($path, $extension) : $this->emptyAnalysis();
+                $files[] = [
+                    'path' => $path,
+                    'relative' => $relative,
+                    'relative_path_hash' => hash('sha256', $relative),
+                    'name' => basename($relative),
+                    'extension' => $extension,
+                    'bytes' => $file->getSize(),
+                    'modified_at' => $file->getMTime(),
+                    ...$analysis,
+                ];
             }
-
-            $extension = strtolower($file->getExtension());
-            if (! in_array($extension, self::EXTENSIONS, true)) {
-                $ignoredCount++;
-                $label = $extension !== '' ? $extension : '[none]';
-                $ignoredExtensions[$label] = ($ignoredExtensions[$label] ?? 0) + 1;
-
-                continue;
-            }
-
-            $resolvedPath = $file->getRealPath();
-            if (! is_string($resolvedPath)) {
-                continue;
-            }
-            $path = str_replace('\\', '/', $resolvedPath);
-            if (! str_starts_with($path, $root.'/')) {
-                throw new RuntimeException('A batch file escaped the selected directory boundary.');
-            }
-
-            $relative = substr($path, strlen($root) + 1);
-            $analysis = $deep ? $this->analysePhoto($path, $extension) : $this->emptyAnalysis();
-            $files[] = [
-                'path' => $path,
-                'relative' => $relative,
-                'relative_path_hash' => hash('sha256', $relative),
-                'name' => basename($relative),
-                'extension' => $extension,
-                'bytes' => $file->getSize(),
-                'modified_at' => $file->getMTime(),
-                ...$analysis,
-            ];
         }
 
         usort($files, fn (array $left, array $right): int => strcmp($left['relative'], $right['relative']));
         ksort($ignoredExtensions);
 
         $manifest = hash_init('sha256');
+        hash_update($manifest, 'source-exclusion:'.$exclusionBoundary->fingerprint()."\n");
         $totalBytes = 0;
         $validCount = 0;
         $invalidCount = 0;
@@ -120,6 +136,10 @@ final class PhotoBatchPreflight
                 'estimated_total_bytes' => (int) ceil($totalBytes * (1 + $derivativeRatio + $workingRatio)),
                 'estimate_formula' => 'originals + derivative reserve + working reserve',
                 'paths_persisted' => false,
+                'excluded_paths_persisted' => false,
+                'excluded_subtree_count' => $exclusionBoundary->count(),
+                'exclusion_policy_fingerprint' => $exclusionBoundary->fingerprint(),
+                'exclusion_enforcement' => 'pruned_before_discovery',
                 'deep_scan' => $deep,
             ],
         ];

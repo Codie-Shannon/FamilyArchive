@@ -1,9 +1,9 @@
 {
-    "version": "3.9.0",
-    "releaseName": "Composite Photo Separation",
+    "version": "4.0.0",
+    "releaseName": "Private Source Exclusion",
     "status": "approved",
-    "officialScreenshotGroups": 34,
-    "latestScreenshotGroup": 34,
+    "officialScreenshotGroups": 35,
+    "latestScreenshotGroup": 35,
     "mediaSupport": [
         "photos"
     ],

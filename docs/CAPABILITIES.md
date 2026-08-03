@@ -1,6 +1,6 @@
 # Capability Inventory
 
-Family Archive v3.9.0 supports photos through a complete preservation, review,
+Family Archive v4.0.0 supports photos through a complete preservation, review,
 discovery and controlled-sharing workflow.
 
 ## Preservation and intake
@@ -12,6 +12,8 @@ discovery and controlled-sharing workflow.
 - Resumable browser and high-volume batch intake
 - Durable checkpoints, bounded retry and per-file failure isolation
 - Read-only preflight with relative-path hashes and capacity estimates
+- Repeatable source-subtree exclusions pruned before file discovery, with no
+  excluded name or path persisted and keyed policy continuity on resume
 - Synthetic 30,000-entry interruption, replay and reconciliation qualification
 
 ## Restoration and derivatives

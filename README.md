@@ -15,8 +15,8 @@ review and discover shared history.
 
 ## Release state
 
-- Current release: **v3.9.0 — Composite Photo Separation**
-- Official evidence: **34 approved and closed screenshot groups**
+- Current release: **v4.0.0 — Private Source Exclusion**
+- Official evidence: **35 approved and closed screenshot groups**
 - Media supported by the completed workflow: **photos**
 - Production services: Laravel Cloud, MySQL, Wasabi object storage and Google Maps
 - Migration qualification: a synthetic 30,000-entry run proved checkpoints,
@@ -24,8 +24,10 @@ review and discover shared history.
 - Real family migration: deliberately separate and not represented by public evidence
 - Composite scans: automatic border and borderless layout suggestions plus a
   free-form, original-first manual split editor, proven by approved Group 34 evidence
+- Private source exclusions: pre-discovery subtree pruning and fail-closed resume
+  continuity, proven by approved Group 35 evidence
 
-The v3.9.0 composite-photo separation release is approved and closed.
+The v4.0.0 private source-exclusion release is approved and closed.
 
 ## What the product demonstrates
 
@@ -34,6 +36,7 @@ The v3.9.0 composite-photo separation release is approved and closed.
 - Automatic and manual restoration from the verified original, with versioned lineage
 - Multi-photo scan detection and reversible separation into independently reviewed photos
 - Resumable batch intake designed for tens of thousands of photos
+- Strict source-subtree exclusions whose names and contents never enter discovery
 - Delegated family roles, guided non-email access and owner-controlled exceptions
 - Albums, permission-aware search and privacy-reviewed interactive maps
 - Embedded family messaging with participant-controlled mute, archive and block
@@ -127,7 +130,7 @@ closed. Never reuse demonstration credentials or data in production.
 - [Current maintenance boundary](docs/CURRENT_BUCKET.md)
 - [Capabilities](docs/CAPABILITIES.md)
 - [Release history](docs/RELEASE_HISTORY.md)
-- [v3.9.0 release notes](docs/release-notes/v3.9.0.md)
+- [v4.0.0 release notes](docs/release-notes/v4.0.0.md)
 - [Roadmap and closed groups](docs/ROADMAP.md)
 - [Build and evidence process](docs/BUILD_AND_EVIDENCE.md)
 - [Development process](docs/DEVELOPMENT_PROCESS.md)
