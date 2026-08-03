@@ -1,9 +1,9 @@
 # Screenshot Evidence
 
 The approved release evidence consists of `screenshot-group-01` through
-`screenshot-group-35`. Each closed directory contains a README, an evidence
-index and approved PNG files. Group 35 closes the v4.0.0 Private Source
-Exclusion evidence boundary.
+`screenshot-group-36`. Each closed directory contains a README, an evidence
+index and approved PNG files. Group 36 closes the v4.1.0 Clipping-Safe Photo
+Separation evidence boundary.
 
 The older `group-XX` directories are retained as legacy build-group and
 corrective evidence. They are useful for traceability but are not counted as

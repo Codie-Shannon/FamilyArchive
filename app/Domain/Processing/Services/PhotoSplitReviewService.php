@@ -29,6 +29,7 @@ final class PhotoSplitReviewService
 {
     public function __construct(
         private MultiPhotoLayoutDetector $detector,
+        private PhotoSplitCandidateRenderer $candidateRenderer,
         private ArchiveIdGenerator $archiveIds,
         private ArchiveStoragePath $paths,
         private GeneratePhotoViewingDerivatives $derivatives,
@@ -38,7 +39,20 @@ final class PhotoSplitReviewService
     {
         $existing = PhotoSplitProposal::query()->with(['regions.candidateVersion', 'sourceVersion'])->where('cloud_import_item_id', $itemId)->first();
         if ($existing instanceof PhotoSplitProposal) {
-            return $existing;
+            if ($existing->state === 'dismissed') {
+                return null;
+            }
+            if ($existing->state !== 'suggested' || $this->detector->isHighConfidenceAnalysis($existing->analysis)) {
+                return $existing;
+            }
+
+            $existing->forceFill([
+                'state' => 'dismissed',
+                'reviewed_by' => $actor->id,
+                'reviewed_at' => now(),
+            ])->save();
+
+            return null;
         }
 
         [$item, $source] = $this->itemAndSource($itemId);
@@ -75,6 +89,7 @@ final class PhotoSplitReviewService
                     'y_basis_points' => $region['y'],
                     'width_basis_points' => $region['width'],
                     'height_basis_points' => $region['height'],
+                    'rotation_degrees' => 0,
                     'confidence' => $region['confidence'],
                     'source' => 'detected',
                     'review_state' => 'included',
@@ -95,8 +110,11 @@ final class PhotoSplitReviewService
         if ($proposal->state === 'published') {
             throw ValidationException::withMessages(['regions' => 'Published split regions cannot be changed.']);
         }
-        if (! array_is_list($regions) || count($regions) < 2 || count($regions) > 12) {
-            throw ValidationException::withMessages(['regions' => 'Define between 2 and 12 photos.']);
+        $maximumRegions = max(2, (int) config('archive.multi_photo.maximum_regions', 32));
+        if (! array_is_list($regions) || count($regions) < 2 || count($regions) > $maximumRegions) {
+            throw ValidationException::withMessages([
+                'regions' => "Define between 2 and {$maximumRegions} photos.",
+            ]);
         }
 
         $normalized = [];
@@ -129,6 +147,7 @@ final class PhotoSplitReviewService
                     'y_basis_points' => $input['y'],
                     'width_basis_points' => $input['width'],
                     'height_basis_points' => $input['height'],
+                    'rotation_degrees' => $input['rotation_degrees'],
                     'confidence' => 1.0,
                     'source' => 'manual',
                     'review_state' => $input['included'] ? 'included' : 'excluded',
@@ -222,6 +241,7 @@ final class PhotoSplitReviewService
                         'region_id' => $region->region_id,
                         'source_sha256' => $proposal->sourceVersion->sha256,
                         'bounds_basis_points' => $this->regionArray($region),
+                        'candidate_pipeline' => $candidate->generation_recipe,
                     ],
                     'is_preferred' => true,
                 ]);
@@ -253,30 +273,27 @@ final class PhotoSplitReviewService
 
     private function renderCandidate(PhotoSplitProposal $proposal, PhotoSplitRegion $region, MediaFileVersion $source, string $bytes): MediaFileVersion
     {
-        $image = @imagecreatefromstring($bytes);
-        if ($image === false) {
+        $dimensions = @getimagesizefromstring($bytes);
+        if (! is_array($dimensions)) {
             throw new RuntimeException('The immutable source could not be decoded for split rendering.');
         }
-        $sourceWidth = imagesx($image);
-        $sourceHeight = imagesy($image);
+        $sourceWidth = (int) $dimensions[0];
+        $sourceHeight = (int) $dimensions[1];
         $x = (int) floor($sourceWidth * ($region->x_basis_points / 10000));
         $y = (int) floor($sourceHeight * ($region->y_basis_points / 10000));
         $width = max(1, (int) ceil($sourceWidth * ($region->width_basis_points / 10000)));
         $height = max(1, (int) ceil($sourceHeight * ($region->height_basis_points / 10000)));
         $width = min($width, $sourceWidth - $x);
         $height = min($height, $sourceHeight - $y);
-        $crop = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $width, 'height' => $height]);
-        unset($image);
-        if ($crop === false) {
-            throw new RuntimeException('A split region could not be rendered.');
-        }
-        ob_start();
-        $encoded = imagewebp($crop, null, 90);
-        $output = ob_get_clean();
-        unset($crop);
-        if (! $encoded || $output === '') {
-            throw new RuntimeException('A split region could not be encoded.');
-        }
+        $rendered = $this->candidateRenderer->render(
+            $bytes,
+            $x,
+            $y,
+            $width,
+            $height,
+            $region->rotation_degrees,
+        );
+        $output = $rendered->bytes;
 
         $path = 'split-candidates/'.substr($source->sha256, 0, 12).'/proposal-'.$proposal->id.'/'.$region->region_id.'-'.Str::uuid().'.webp';
         Storage::disk('archive_derivatives')->put($path, $output);
@@ -290,8 +307,8 @@ final class PhotoSplitReviewService
             'mime_type' => 'image/webp',
             'extension' => 'webp',
             'file_size_bytes' => strlen($output),
-            'width' => $width,
-            'height' => $height,
+            'width' => $rendered->width,
+            'height' => $rendered->height,
             'sha256' => hash('sha256', $output),
             'generation_status' => GenerationStatus::Ready,
             'generation_recipe' => [
@@ -300,6 +317,7 @@ final class PhotoSplitReviewService
                 'region_id' => $region->region_id,
                 'source_sha256' => $source->sha256,
                 'bounds_basis_points' => $this->regionArray($region),
+                ...$rendered->recipe,
             ],
             'is_preferred' => false,
         ]);
@@ -336,7 +354,7 @@ final class PhotoSplitReviewService
         return $bytes;
     }
 
-    /** @return array{x:int,y:int,width:int,height:int,included:bool,region_id?:string} */
+    /** @return array{x:int,y:int,width:int,height:int,rotation_degrees:int,included:bool,region_id?:string} */
     private function normalizeRegion(mixed $region): array
     {
         if (! is_array($region)) {
@@ -352,11 +370,17 @@ final class PhotoSplitReviewService
             throw ValidationException::withMessages(['regions' => 'Split regions must stay inside the original and retain a usable size.']);
         }
 
+        $rotation = $region['rotation_degrees'] ?? 0;
+        if (! is_int($rotation) || ! in_array($rotation, [0, 90, 180, 270], true)) {
+            throw ValidationException::withMessages(['regions' => 'Photo rotation must be 0, 90, 180 or 270 degrees.']);
+        }
+
         $normalized = [
             'x' => $region['x'],
             'y' => $region['y'],
             'width' => $region['width'],
             'height' => $region['height'],
+            'rotation_degrees' => $rotation,
             'included' => ($region['included'] ?? false) === true,
         ];
         if (isset($region['region_id']) && is_string($region['region_id'])) {
@@ -366,7 +390,7 @@ final class PhotoSplitReviewService
         return $normalized;
     }
 
-    /** @return array{x:int,y:int,width:int,height:int} */
+    /** @return array{x:int,y:int,width:int,height:int,rotation_degrees:int} */
     private function regionArray(PhotoSplitRegion $region): array
     {
         return [
@@ -374,6 +398,7 @@ final class PhotoSplitReviewService
             'y' => $region->y_basis_points,
             'width' => $region->width_basis_points,
             'height' => $region->height_basis_points,
+            'rotation_degrees' => $region->rotation_degrees,
         ];
     }
 }

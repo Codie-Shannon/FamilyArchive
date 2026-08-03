@@ -120,6 +120,48 @@ it('regenerates only unreviewed suggestions while preserving immutable originals
     }
 });
 
+it('reclassifies a withheld crop as eligible without making a review decision', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+    $directory = storage_path('framework/testing/reclassify-batch-'.str()->random(10));
+    File::ensureDirectoryExists($directory);
+    $photo = UploadedFile::fake()->image('uncertain-frame.jpg', 900, 650);
+    File::copy($photo->getRealPath(), $directory.'/uncertain-frame.jpg');
+
+    try {
+        $planned = app(HighVolumePhotoBatch::class)->plan($trusted, $directory, 25);
+        app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 1);
+        app(TrustedBatchReview::class)->prepare($planned['session_id'], $trusted, 25);
+
+        $item = DB::table('cloud_import_items')->first();
+        $candidate = RestorationCandidate::query()->findOrFail((int) $item->restoration_candidate_id);
+        $analysis = $candidate->analysis ?? [];
+        $analysis['crop'] = [
+            'applied' => false,
+            'quality_gate_passed' => false,
+            'requires_review' => true,
+            'confidence' => 0.18,
+            'area_ratio' => 0.34,
+            'aspect_ratio_delta' => 0.7,
+            'margin_balance' => 0.9,
+        ];
+        $candidate->forceFill(['analysis' => $analysis])->save();
+        DB::table('cloud_import_items')->where('id', $item->id)->update(['attention_code' => 'crop_check']);
+
+        $result = app(TrustedBatchReview::class)->reclassifyPending($planned['session_id'], $trusted, 25);
+        $freshItem = DB::table('cloud_import_items')->where('id', $item->id)->first();
+
+        expect($result['reclassified'])->toBe(1)
+            ->and($result['failed'])->toBe(0)
+            ->and($result['eligible'])->toBe(1)
+            ->and($freshItem->attention_code)->toBeNull()
+            ->and($freshItem->review_decision)->toBeNull()
+            ->and($candidate->fresh()->review_state)->toBe('pending')
+            ->and(MediaItem::query()->firstOrFail()->review_status)->toBe(MediaReviewStatus::PendingReview);
+    } finally {
+        File::deleteDirectory($directory);
+    }
+});
+
 it('lets trusted reviewers create a manual candidate without changing the immutable original', function (): void {
     $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
     $directory = storage_path('framework/testing/manual-editor-'.str()->random(10));

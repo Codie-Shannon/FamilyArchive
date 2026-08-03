@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $y_basis_points
  * @property int $width_basis_points
  * @property int $height_basis_points
+ * @property int $rotation_degrees
  * @property string $review_state
  * @property int|null $candidate_version_id
  * @property int|null $output_media_item_id
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'y_basis_points',
     'width_basis_points',
     'height_basis_points',
+    'rotation_degrees',
     'confidence',
     'source',
     'review_state',
@@ -46,6 +48,7 @@ final class PhotoSplitRegion extends Model
             'y_basis_points' => 'integer',
             'width_basis_points' => 'integer',
             'height_basis_points' => 'integer',
+            'rotation_degrees' => 'integer',
             'confidence' => 'float',
         ];
     }

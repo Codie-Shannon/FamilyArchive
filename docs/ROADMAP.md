@@ -938,3 +938,20 @@ The release:
 - binds inventory identity to a keyed, non-reversible exclusion-policy fingerprint;
 - requires the identical exclusion policy for every resumed processing run; and
 - stops before retention when exclusion continuity cannot be proven.
+
+## Screenshot Group 36 Boundary
+
+Screenshot Group 36 is the corrective v4.1.0 Clipping-Safe Photo Separation
+release.
+
+Implementation status: approved and closed.
+
+The release:
+
+- copies each selected photo onto an independently padded working canvas;
+- applies per-photo rotation or conservative deskew before calculating a final crop;
+- prevents rotated corners from being lost by a tight pre-rotation crop;
+- records the complete processing order in derivative lineage;
+- supports reviewer-controlled 90-degree orientation overrides per photo;
+- keeps sibling-photo rotation independent within the same composite scan; and
+- preserves the immutable source bytes, hash and storage object.
