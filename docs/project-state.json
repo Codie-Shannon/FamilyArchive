@@ -1,9 +1,9 @@
 {
-    "version": "4.0.0",
-    "releaseName": "Private Source Exclusion",
+    "version": "4.1.0",
+    "releaseName": "Clipping-Safe Photo Separation",
     "status": "approved",
-    "officialScreenshotGroups": 35,
-    "latestScreenshotGroup": 35,
+    "officialScreenshotGroups": 36,
+    "latestScreenshotGroup": 36,
     "mediaSupport": [
         "photos"
     ],
