@@ -68,6 +68,33 @@ it('fails closed when the source inventory changes after planning', function ():
     }
 });
 
+it('excludes byte-identical photos before retention when exact deduplication is enabled', function (): void {
+    Storage::fake('archive_quarantine');
+    $owner = User::factory()->create(['role' => 'owner']);
+    $directory = sg20Directory(1);
+
+    try {
+        File::copy($directory.'/fictional-1.jpg', $directory.'/fictional-copy.jpg');
+
+        $planned = app(HighVolumePhotoBatch::class)->plan($owner, $directory, 25, [], true);
+        expect($planned)->toMatchArray(['selected_count' => 2, 'exact_duplicate_count' => 1])
+            ->and(DB::table('cloud_import_items')->where('state', 'selected')->count())->toBe(1)
+            ->and(DB::table('cloud_import_items')->where('state', 'duplicate_candidate')->count())->toBe(1);
+
+        $result = app(HighVolumePhotoBatch::class)->runToCompletion($planned['session_id'], $directory);
+        expect($result)->toMatchArray([
+            'state' => 'complete',
+            'processed_count' => 2,
+            'retained_count' => 1,
+            'duplicate_count' => 1,
+            'failed_count' => 0,
+            'remaining_count' => 0,
+        ])->and(Storage::disk('archive_quarantine')->allFiles())->toHaveCount(1);
+    } finally {
+        File::deleteDirectory($directory);
+    }
+});
+
 it('keeps the high-volume progress view owner only and path safe', function (): void {
     $this->withoutVite();
     $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
