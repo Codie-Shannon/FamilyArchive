@@ -15,9 +15,8 @@ review and discover shared history.
 
 ## Release state
 
-- Current candidate: **v4.1.0 — Clipping-Safe Photo Separation**
-- Last closed release: **v4.0.0 — Private Source Exclusion**
-- Official evidence: **36 approved and closed screenshot groups**
+- Current release: **v4.2.0 — Batch Content Safeguards**
+- Official evidence: **37 approved and closed screenshot groups**
 - Media supported by the completed workflow: **photos**
 - Production services: Laravel Cloud, MySQL, Wasabi object storage and Google Maps
 - Migration qualification: a synthetic 30,000-entry run proved checkpoints,
@@ -29,8 +28,12 @@ review and discover shared history.
   final cropping in that order, with manual 90-degree overrides in Group 36
 - Private source exclusions: pre-discovery subtree pruning and fail-closed resume
   continuity, proven by approved Group 35 evidence
+- Batch content safeguards: identification-document and sensitive-minor holds are
+  enabled by default, owner-configurable per batch and enforced by single and bulk
+  decisions; suspected illegal or exploitative material remains permanently blocked
 
-The v4.1.0 clipping-safe photo-separation release is approved and closed.
+The v4.2.0 Batch Content Safeguards release is approved and closed by Screenshot
+Group 37 evidence.
 
 ## What the product demonstrates
 
@@ -41,6 +44,7 @@ The v4.1.0 clipping-safe photo-separation release is approved and closed.
 - Clipping-safe child rendering that rotates or deskews before calculating the final crop
 - Resumable batch intake designed for tens of thousands of photos
 - Strict source-subtree exclusions whose names and contents never enter discovery
+- Manual, per-batch safety classification with fail-closed approval enforcement
 - Delegated family roles, guided non-email access and owner-controlled exceptions
 - Albums, permission-aware search and privacy-reviewed interactive maps
 - Embedded family messaging with participant-controlled mute, archive and block

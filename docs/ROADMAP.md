@@ -1,7 +1,7 @@
 # Family Archive Roadmap
 
 Family Archive has 46 official build groups plus corrective implementation
-releases. The repository currently has 35 completed and approved screenshot
+releases. The repository currently has 37 completed and approved screenshot
 groups.
 Screenshot Group 01, covering Build Groups 13–20, is closed with approved
 v0.20.0 Archive Knowledge evidence. Screenshot Group 02 covers Build Groups
@@ -955,3 +955,24 @@ The release:
 - supports reviewer-controlled 90-degree orientation overrides per photo;
 - keeps sibling-photo rotation independent within the same composite scan; and
 - preserves the immutable source bytes, hash and storage object.
+
+## Screenshot Group 37 Boundary
+
+Screenshot Group 37 is the corrective v4.2.0 Batch Content Safeguards release.
+
+Implementation status: approved and closed.
+
+The release:
+
+- records explicit human reviewer classifications rather than claiming automatic
+  identification-document or sensitive-content detection;
+- enables identification-document and sensitive-minor-image holds by default for
+  every new or legacy batch;
+- permits the owner to change those two optional controls per batch;
+- applies the same policy before single-item and bulk acceptance decisions;
+- permanently prevents suspected illegal or exploitative material from approval
+  or preservation, regardless of batch settings;
+- permits only the owner to preserve a definitely historical identity document
+  privately, never as ordinary family-visible media; and
+- treats year-only dates of 1965 and uncertain dates as held in 2026, requiring
+  1964 or earlier to satisfy the 61-year historical exception.

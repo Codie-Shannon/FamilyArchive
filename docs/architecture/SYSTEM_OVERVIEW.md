@@ -1,8 +1,8 @@
 # Family Archive System Overview
 
-The current release is v4.1.0 Clipping-Safe Photo Separation, closed by
-approved Screenshot Group 36 evidence. The real private family migration
-remains a separate operator-controlled activity.
+The current release is v4.2.0 Batch Content Safeguards, closed by approved
+Screenshot Group 37 evidence. The real private family migration remains a
+separate operator-controlled activity.
 
 The v4.0.0 boundary adds strict source-subtree exclusions. Excluded
 directories are validated and pruned before discovery; only a keyed policy
@@ -14,6 +14,15 @@ edge crop is calculated. This prevents tight pre-rotation crops from discarding
 corners, preserves the immutable source and records the processing order in the
 candidate generation recipe. Reviewers can override orientation in 90-degree
 steps without altering sibling photos from the same scan.
+
+The v4.2.0 intake boundary records reviewer-supplied safety classifications and
+enforces them before both single and bulk acceptance. Identification documents
+and sensitive-minor images are held by default with owner-controlled per-batch
+overrides. Suspected illegal or exploitative content is never approvable.
+Identity documents definitively older than 61 years may only be preserved in an
+owner-authorized, administrator-restricted private state; in 2026, year-only dates must be 1964 or earlier, while
+1965 and uncertain dates remain held. This is a human-classification safeguard,
+not an automated content-detection claim.
 
 Family Archive is a standalone, archive-grade family media preservation
 platform. Its archive is private, while v1.0 also provides deliberately
@@ -163,6 +172,7 @@ Owner or approved contributor upload
   -> private quarantine retention
   -> SHA-256 and byte verification
   -> exact-duplicate candidate detection
+  -> reviewer content-safety classification and policy enforcement
   -> trusted contributor or administrator batch review
   -> verified original promotion
   -> private derivative generation

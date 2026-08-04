@@ -4,6 +4,7 @@ use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Models\MediaFileVersion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -23,6 +24,22 @@ it('streams an authorized private derivative with safe headers', function () {
         ->toContain('private')
         ->toContain('no-store')
         ->toContain('max-age=0');
+});
+
+it('streams an integrity-verified local proof derivative when the configured provider does not contain it', function () {
+    $owner = group10Owner();
+    $item = group10Item($owner);
+    $original = group10Original($item);
+    $web = group10Derivative($item, $original, MediaFileVersionType::WebDisplay, 'local-proof-pixels');
+
+    Storage::disk('archive_derivatives')->delete($web->storage_path);
+    Storage::fake('archive_local_derivatives');
+    Storage::disk('archive_local_derivatives')->put($web->storage_path, 'local-proof-pixels');
+
+    $this->actingAs($owner)
+        ->get(route('archive.derivatives.preview', $web))
+        ->assertOk()
+        ->assertContent('local-proof-pixels');
 });
 
 it('rejects original thumbnail misuse and unrelated derivatives', function () {

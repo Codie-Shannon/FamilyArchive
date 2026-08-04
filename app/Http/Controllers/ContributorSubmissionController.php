@@ -122,7 +122,20 @@ final class ContributorSubmissionController extends Controller
     {
         abort_unless($session->user_id === $request->user()->id || $request->user()->isArchiveAdministrator(), 403);
 
-        return view('contributor.show', ['session' => $session->load('submissions.incomingUpload')]);
+        $reviewBatchAvailable = $session->cloud_import_session_id !== null
+            ? DB::table('cloud_import_sessions')
+                ->where('id', $session->cloud_import_session_id)
+                ->where('provider', 'manual_export')
+                ->exists()
+            : DB::table('cloud_import_sessions')
+                ->where('session_id', $session->session_id)
+                ->where('provider', 'manual_export')
+                ->exists();
+
+        return view('contributor.show', [
+            'session' => $session->load('submissions.incomingUpload'),
+            'reviewBatchAvailable' => $reviewBatchAvailable,
+        ]);
     }
 
     public function upload(Request $request, UploadSession $session, CreateAndRetainIncomingPhoto $creator, BrowserUploadBatch $batches): RedirectResponse

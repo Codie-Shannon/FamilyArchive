@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Storage::fake('archive_quarantine');
@@ -76,6 +77,27 @@ it('lets a contributor finish early while delegating review to an administrator'
         ->get(route('intake.batches.show', $session->session_id))
         ->assertOk()
         ->assertSeeText('Review batch');
+});
+
+it('shows a completed upload session safely after its review record is removed', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor']);
+    $session = UploadSession::query()->create([
+        'session_id' => Str::uuid()->toString(),
+        'user_id' => $trusted->id,
+        'title' => 'Retained family photos',
+        'source_context' => 'Previously retained source files.',
+        'automation_preferences' => [],
+        'expected_files' => 1,
+        'received_files' => 1,
+        'status' => 'complete',
+        'expires_at' => now()->addDay(),
+    ]);
+
+    $this->actingAs($trusted)
+        ->get(route('contributor.sessions.show', $session))
+        ->assertOk()
+        ->assertSeeText('Review record unavailable')
+        ->assertDontSeeText('Review this batch');
 });
 
 it('posts routine family conversation messages without owner approval', function (): void {

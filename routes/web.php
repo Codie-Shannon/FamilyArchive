@@ -124,6 +124,9 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::get('/batches/{sessionId}', [BatchReviewController::class, 'show'])->name('batches.show');
         Route::post('/batches/{sessionId}/prepare', [BatchReviewController::class, 'prepare'])->name('batches.prepare');
         Route::post('/batches/{sessionId}/regenerate', [BatchReviewController::class, 'regenerate'])->name('batches.regenerate');
+        Route::patch('/batches/{sessionId}/safety-policy', [BatchReviewController::class, 'updateSafetyPolicy'])
+            ->middleware('owner')
+            ->name('batches.safety-policy');
         Route::patch('/batches/{sessionId}/review', [BatchReviewController::class, 'decide'])->name('batches.review');
         Route::get('/batches/{sessionId}/items/{itemId}/{side}', BatchItemPreviewController::class)->name('items.preview');
         Route::get('/batches/{sessionId}/items/{itemId}/edit/original', [RestorationEditorController::class, 'edit'])->name('items.editor');

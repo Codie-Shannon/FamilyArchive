@@ -2,7 +2,11 @@
 <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-7 p-4 md:p-8">
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><a href="{{ route('contributor.index') }}" class="text-sm text-emerald-300">← Contributor intake</a><h1 class="mt-3 text-3xl font-semibold text-white">{{ $session->title }}</h1><p class="mt-2 text-zinc-400">{{ $session->received_files }} of {{ $session->expected_files }} photos retained · {{ $session->status }}</p></div>
-        @if($session->status === 'complete' && auth()->user()->canManageTrustedIntake())<a href="{{ route('intake.batches.show', $session->session_id) }}" class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950">Review this batch →</a>@endif
+        @if($session->status === 'complete' && auth()->user()->canManageTrustedIntake() && $reviewBatchAvailable)
+            <a href="{{ route('intake.batches.show', $session->session_id) }}" class="rounded-xl bg-emerald-500 px-5 py-3 text-center text-sm font-semibold text-zinc-950">Review this batch →</a>
+        @elseif($session->status === 'complete' && auth()->user()->canManageTrustedIntake())
+            <span class="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-center text-sm text-zinc-400">Review record unavailable</span>
+        @endif
     </header>
     @if(session('status'))<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 text-emerald-100">{{ session('status') }}</div>@endif
     @if($session->status !== 'complete')

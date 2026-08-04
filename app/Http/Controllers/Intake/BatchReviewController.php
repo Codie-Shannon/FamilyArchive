@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Intake;
 
+use App\Domain\CloudImport\Services\BatchContentSafety;
 use App\Domain\CloudImport\Services\TrustedBatchReview;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
@@ -35,8 +36,12 @@ final class BatchReviewController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $sessionId, TrustedBatchReview $reviews): View
-    {
+    public function show(
+        Request $request,
+        string $sessionId,
+        TrustedBatchReview $reviews,
+        BatchContentSafety $safety,
+    ): View {
         $session = $reviews->session($sessionId, $request->user());
         $filter = in_array($request->string('filter')->toString(), ['all', 'attention', 'pending', 'reviewed'], true)
             ? $request->string('filter')->toString()
@@ -68,14 +73,28 @@ final class BatchReviewController extends Controller
             default => null,
         };
         $items = $query->paginate(24)->withQueryString();
+        $safetyByItem = $items->getCollection()
+            ->mapWithKeys(fn (object $item): array => [(int) data_get($item, 'id') => $safety->classification($item)])
+            ->all();
         $preparedCount = DB::table('cloud_import_items')
             ->where('cloud_import_session_id', data_get($session, 'id'))
             ->where('state', 'retained')
             ->whereNotNull('prepared_at')
             ->count();
         $manifest = json_decode((string) data_get($session, 'source_manifest', ''), true) ?: [];
+        $safetyPolicy = $safety->policy($session);
+        $safetyLabels = BatchContentSafety::labels();
 
-        return view('intake.batch-review', compact('session', 'manifest', 'items', 'filter', 'preparedCount'));
+        return view('intake.batch-review', compact(
+            'session',
+            'manifest',
+            'items',
+            'filter',
+            'preparedCount',
+            'safetyPolicy',
+            'safetyLabels',
+            'safetyByItem',
+        ));
     }
 
     public function prepare(Request $request, string $sessionId, TrustedBatchReview $reviews): RedirectResponse
@@ -92,13 +111,43 @@ final class BatchReviewController extends Controller
         return back()->with('status', "Regenerated {$result['regenerated']} pending suggestions; {$result['failed']} failed and {$result['attention']} need attention.");
     }
 
-    public function decide(Request $request, string $sessionId, TrustedBatchReview $reviews): RedirectResponse
-    {
+    public function updateSafetyPolicy(
+        Request $request,
+        string $sessionId,
+        TrustedBatchReview $reviews,
+        BatchContentSafety $safety,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'block_identification_documents' => ['required', 'boolean'],
+            'block_sensitive_minor_images' => ['required', 'boolean'],
+        ]);
+        $session = $reviews->session($sessionId, $request->user());
+        $safety->updatePolicy(
+            $session,
+            $request->user(),
+            (bool) $validated['block_identification_documents'],
+            (bool) $validated['block_sensitive_minor_images'],
+        );
+
+        return back()->with('status', 'Batch safety policy updated. The permanent illegal-content safeguard remains enabled.');
+    }
+
+    public function decide(
+        Request $request,
+        string $sessionId,
+        TrustedBatchReview $reviews,
+        BatchContentSafety $safety,
+    ): RedirectResponse {
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*' => ['integer', 'distinct'],
             'decision' => ['required', 'in:'.implode(',', TrustedBatchReview::DECISIONS)],
+            'safety' => ['sometimes', 'array'],
+            'safety.*.classification' => ['nullable', 'in:'.implode(',', BatchContentSafety::classifications())],
+            'safety.*.document_year' => ['nullable', 'integer', 'min:1800', 'max:'.now()->year],
         ]);
+        $session = $reviews->session($sessionId, $request->user());
+        $safety->classifySelected($session, $request->user(), $validated['safety'] ?? [], $validated['items']);
         $result = $reviews->decide($sessionId, $request->user(), $validated['items'], $validated['decision']);
 
         return back()->with('status', "Reviewed {$result['reviewed']} items; {$result['failed']} were isolated for attention.");

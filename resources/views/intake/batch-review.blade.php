@@ -16,6 +16,31 @@
 
     @if(session('status'))<div class="rounded-xl border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100">{{ session('status') }}</div>@endif
 
+    <section class="rounded-2xl border border-zinc-700 bg-zinc-900 p-4 sm:p-5">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div class="max-w-3xl">
+                <p class="text-sm font-semibold text-white">Batch content safeguards</p>
+                <p class="mt-1 text-sm leading-6 text-zinc-400">Identification documents and sensitive images involving minors are held by default. Suspected illegal or exploitative content is always blocked and cannot be approved, even when optional safeguards are disabled.</p>
+                <p class="mt-2 text-xs leading-5 text-zinc-500">Historical identity records dated {{ $safetyPolicy->historicalCutoffYear() - 1 }} or earlier may be retained privately by the owner. Records dated {{ $safetyPolicy->historicalCutoffYear() }} or with an uncertain year remain held for review.</p>
+            </div>
+            @if(auth()->user()->role === 'owner')
+                <form method="POST" action="{{ route('intake.batches.safety-policy', $session->session_id) }}" class="w-full space-y-3 rounded-xl border border-zinc-700 bg-zinc-950 p-4 xl:max-w-xl">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="block_identification_documents" value="0">
+                    <label class="flex items-start gap-3 text-sm text-zinc-200"><input type="checkbox" name="block_identification_documents" value="1" class="mt-1 size-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500" {{ $safetyPolicy->blockIdentificationDocuments ? 'checked' : '' }}><span><strong class="font-semibold text-white">Block identification documents</strong><span class="mt-1 block text-xs leading-5 text-zinc-500">Modern or uncertain identity records cannot be approved while enabled.</span></span></label>
+                    <input type="hidden" name="block_sensitive_minor_images" value="0">
+                    <label class="flex items-start gap-3 text-sm text-zinc-200"><input type="checkbox" name="block_sensitive_minor_images" value="1" class="mt-1 size-4 rounded border-zinc-600 bg-zinc-900 text-emerald-500" {{ $safetyPolicy->blockSensitiveMinorImages ? 'checked' : '' }}><span><strong class="font-semibold text-white">Block sensitive images involving minors</strong><span class="mt-1 block text-xs leading-5 text-zinc-500">Potentially private family images cannot be approved while enabled.</span></span></label>
+                    <button class="w-full rounded-xl border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-200 sm:w-auto">Save batch safeguards</button>
+                </form>
+            @else
+                <div class="grid w-full gap-2 rounded-xl border border-zinc-700 bg-zinc-950 p-4 text-sm text-zinc-300 xl:max-w-md">
+                    <span>Identification documents: <strong class="text-white">{{ $safetyPolicy->blockIdentificationDocuments ? 'blocked' : 'owner override' }}</strong></span>
+                    <span>Sensitive minor images: <strong class="text-white">{{ $safetyPolicy->blockSensitiveMinorImages ? 'blocked' : 'owner override' }}</strong></span>
+                </div>
+            @endif
+        </div>
+    </section>
+
     <section class="grid grid-cols-2 gap-3 xl:grid-cols-5">
         <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-3 sm:p-4"><p class="text-[11px] uppercase text-zinc-500 sm:text-xs">Retained</p><p class="mt-1 text-xl font-semibold text-white sm:text-2xl">{{ number_format($session->imported_count) }}</p></article>
         <article class="rounded-xl border border-zinc-700 bg-zinc-900 p-3 sm:p-4"><p class="text-[11px] uppercase text-zinc-500 sm:text-xs">Prepared</p><p class="mt-1 text-xl font-semibold text-white sm:text-2xl">{{ number_format($preparedCount) }}</p></article>
@@ -46,6 +71,14 @@
                             <div class="grid place-items-center p-6 text-center text-sm text-zinc-500">No suggested edit is available. Choose original, hold or reject.</div>
                         @endif
                     </div>
+                    <div class="grid gap-3 border-t border-zinc-700 bg-zinc-900 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                        @if(!$item->review_decision)
+                            <label class="text-xs font-semibold text-zinc-300">Safety classification<select name="safety[{{ $item->id }}][classification]" class="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-white">@foreach($safetyLabels as $value => $label)<option value="{{ $value }}" {{ $safetyByItem[$item->id]['classification'] === $value ? 'selected' : '' }}>{{ $label }}</option>@endforeach</select></label>
+                            <label class="text-xs font-semibold text-zinc-300">Document year<input name="safety[{{ $item->id }}][document_year]" type="number" min="1800" max="{{ now()->year }}" value="{{ $safetyByItem[$item->id]['document_year'] }}" placeholder="If known" class="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-white"></label>
+                        @else
+                            <p class="text-xs text-zinc-400 sm:col-span-2">Safety classification: <strong class="font-semibold text-zinc-200">{{ $safetyLabels[$safetyByItem[$item->id]['classification']] }}</strong>@if($safetyByItem[$item->id]['document_year']) · {{ $safetyByItem[$item->id]['document_year'] }}@endif</p>
+                        @endif
+                    </div>
                     <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs text-zinc-400">
                         <span>Position {{ number_format($item->position) }} · Original retained</span>
                         @if(!$item->review_decision)
@@ -62,7 +95,7 @@
         </section>
 
         @if($items->count() > 0)
-            <div id="decision-bar" class="sticky bottom-4 z-20 hidden items-center justify-between gap-3 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-4 shadow-2xl backdrop-blur"><p class="text-sm text-zinc-300">Apply one decision to every checked item</p><div class="flex flex-wrap gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Use suggested edits</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-4 py-2 text-sm font-semibold text-white">Use originals</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-4 py-2 text-sm font-semibold text-sky-200">Use split photos</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-4 py-2 text-sm font-semibold text-red-200">Reject</button></div></div>
+            <div id="decision-bar" class="sticky bottom-4 z-20 hidden items-center justify-between gap-3 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-4 shadow-2xl backdrop-blur"><p class="text-sm text-zinc-300">Apply one decision to every checked item</p><div class="flex flex-wrap gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950">Use suggested edits</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-4 py-2 text-sm font-semibold text-white">Use originals</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-4 py-2 text-sm font-semibold text-sky-200">Use split photos</button>@if(auth()->user()->role === 'owner')<button name="decision" value="preserve_private" class="rounded-xl border border-violet-700 px-4 py-2 text-sm font-semibold text-violet-200">Preserve privately</button>@endif<button name="decision" value="hold" class="rounded-xl border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-4 py-2 text-sm font-semibold text-red-200">Reject</button></div></div>
         @endif
     </form>
 
@@ -95,6 +128,15 @@
                         <a data-mobile-preview="suggested" target="_blank" href="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" class="hidden bg-zinc-950"><img src="{{ route('intake.items.preview', [$session->session_id, $item->id, 'suggested']) }}" alt="Suggested edit" class="aspect-[4/3] w-full object-contain"></a>
                     @endif
 
+                    <div class="grid gap-3 border-t border-zinc-700 bg-zinc-900 px-4 py-3">
+                        @if(!$item->review_decision)
+                            <label class="text-xs font-semibold text-zinc-300">Safety classification<select name="safety[{{ $item->id }}][classification]" class="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-3 text-sm text-white">@foreach($safetyLabels as $value => $label)<option value="{{ $value }}" {{ $safetyByItem[$item->id]['classification'] === $value ? 'selected' : '' }}>{{ $label }}</option>@endforeach</select></label>
+                            <label class="text-xs font-semibold text-zinc-300">Document year<input name="safety[{{ $item->id }}][document_year]" type="number" min="1800" max="{{ now()->year }}" value="{{ $safetyByItem[$item->id]['document_year'] }}" placeholder="If known" class="mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-3 text-sm text-white"></label>
+                        @else
+                            <p class="text-xs text-zinc-400">Safety classification: <strong class="font-semibold text-zinc-200">{{ $safetyLabels[$safetyByItem[$item->id]['classification']] }}</strong>@if($safetyByItem[$item->id]['document_year']) · {{ $safetyByItem[$item->id]['document_year'] }}@endif</p>
+                        @endif
+                    </div>
+
                     <div class="space-y-2 px-4 py-3 text-xs text-zinc-400"><div class="flex items-center justify-between gap-3"><span>Original retained</span>@if(!$item->review_decision)<a href="{{ route('intake.items.editor', [$session->session_id, $item->id]) }}" class="rounded-lg border border-zinc-600 px-3 py-2 font-semibold text-zinc-200">Edit photo</a>@else<span>Edit remains reversible</span>@endif</div>@if(!$item->review_decision)<a href="{{ route('intake.items.split', [$session->session_id, $item->id]) }}" class="block rounded-lg border {{ $item->split_proposal_id ? 'border-amber-600 bg-amber-950/30 text-amber-100' : 'border-emerald-700 text-emerald-200' }} px-3 py-3 text-center font-semibold">{{ $item->split_proposal_id ? 'Review '.$item->split_region_count.' detected photos' : 'Separate multiple photos' }}</a>@endif</div>
                 </article>
             @empty
@@ -106,7 +148,7 @@
             <div id="mobile-reviewed-state" class="fixed inset-x-2 bottom-2 z-20 hidden rounded-2xl border border-emerald-800 bg-emerald-950/95 p-4 text-center text-sm font-semibold text-emerald-100 shadow-2xl backdrop-blur">This photo has already been reviewed.</div>
             <div id="mobile-decision-bar" class="fixed inset-x-2 bottom-2 z-20 rounded-2xl border border-zinc-600 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur">
                 <p class="mb-2 text-xs text-zinc-300">Decision for the current photo</p>
-                <div class="grid grid-cols-2 gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-3 py-3 text-xs font-semibold text-zinc-950">Use suggested edit</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-3 py-3 text-xs font-semibold text-white">Use original</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-3 py-3 text-xs font-semibold text-sky-200">Use split photos</button><button name="decision" value="hold" class="rounded-xl border border-amber-700 px-3 py-3 text-xs font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="col-span-2 rounded-xl border border-red-800 px-3 py-3 text-xs font-semibold text-red-200">Reject</button></div>
+                <div class="grid grid-cols-2 gap-2"><button name="decision" value="suggested_edit" class="rounded-xl bg-emerald-500 px-3 py-3 text-xs font-semibold text-zinc-950">Use suggested edit</button><button name="decision" value="original" class="rounded-xl border border-zinc-600 px-3 py-3 text-xs font-semibold text-white">Use original</button><button name="decision" value="split_photos" class="rounded-xl border border-sky-700 px-3 py-3 text-xs font-semibold text-sky-200">Use split photos</button>@if(auth()->user()->role === 'owner')<button name="decision" value="preserve_private" class="rounded-xl border border-violet-700 px-3 py-3 text-xs font-semibold text-violet-200">Preserve privately</button>@endif<button name="decision" value="hold" class="rounded-xl border border-amber-700 px-3 py-3 text-xs font-semibold text-amber-200">Hold</button><button name="decision" value="reject" class="rounded-xl border border-red-800 px-3 py-3 text-xs font-semibold text-red-200">Reject</button></div>
             </div>
         @endif
     </form>
