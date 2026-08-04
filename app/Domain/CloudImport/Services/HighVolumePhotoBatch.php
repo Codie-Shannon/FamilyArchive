@@ -3,6 +3,7 @@
 namespace App\Domain\CloudImport\Services;
 
 use App\Domain\Access\Models\ContributorSubmission;
+use App\Domain\CloudImport\ValueObjects\BatchSafetyPolicy;
 use App\Domain\CloudImport\ValueObjects\SourceExclusionBoundary;
 use App\Domain\Intake\Services\CreateAndRetainIncomingPhoto;
 use App\Models\User;
@@ -62,6 +63,7 @@ final class HighVolumePhotoBatch
                     'approval_mode' => 'exception_first_batch_review',
                     'trust_level' => 'trusted_intake',
                     'preflight_summary' => $inventory['summary'],
+                    'content_safety' => BatchSafetyPolicy::defaults()->toArray(),
                 ], JSON_THROW_ON_ERROR),
                 'created_at' => now(),
                 'updated_at' => now(),

@@ -1,9 +1,9 @@
 {
-    "version": "4.1.0",
-    "releaseName": "Clipping-Safe Photo Separation",
+    "version": "4.2.0",
+    "releaseName": "Batch Content Safeguards",
     "status": "approved",
-    "officialScreenshotGroups": 36,
-    "latestScreenshotGroup": 36,
+    "officialScreenshotGroups": 37,
+    "latestScreenshotGroup": 37,
     "mediaSupport": [
         "photos"
     ],

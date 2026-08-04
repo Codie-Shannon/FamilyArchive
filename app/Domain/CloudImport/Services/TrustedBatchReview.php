@@ -6,6 +6,8 @@ use App\Domain\Derivatives\Actions\GeneratePhotoViewingDerivatives;
 use App\Domain\Intake\Actions\ApproveIncomingPhotoForRestoration;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\MediaReviewStatus;
+use App\Domain\Media\Enums\MediaVisibility;
+use App\Domain\Media\Enums\SensitivityStatus;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Processing\Models\PhotoSplitProposal;
 use App\Domain\Processing\Models\RestorationCandidate;
@@ -19,13 +21,14 @@ use Throwable;
 
 final class TrustedBatchReview
 {
-    public const DECISIONS = ['suggested_edit', 'original', 'split_photos', 'hold', 'reject'];
+    public const DECISIONS = ['suggested_edit', 'original', 'split_photos', 'preserve_private', 'hold', 'reject'];
 
     public function __construct(
         private ApproveIncomingPhotoForRestoration $approver,
         private RestorationReviewService $reviews,
         private GeneratePhotoViewingDerivatives $derivatives,
         private PhotoSplitReviewService $splits,
+        private BatchContentSafety $safety,
     ) {}
 
     public function session(string $sessionId, User $actor): object
@@ -36,7 +39,7 @@ final class TrustedBatchReview
             ->first();
 
         if ($session === null) {
-            throw new RuntimeException('The intake batch could not be found.');
+            abort(404, 'The intake batch could not be found.');
         }
 
         abort_unless(
@@ -52,9 +55,7 @@ final class TrustedBatchReview
     public function prepare(string $sessionId, User $actor, int $limit = 25): array
     {
         $session = $this->session($sessionId, $actor);
-        if (data_get($session, 'state') !== 'complete') {
-            throw ValidationException::withMessages(['batch' => 'Finish the upload batch before preparing review previews.']);
-        }
+        $this->assertReviewableCheckpoint($session, 'preparing review previews');
         $items = DB::table('cloud_import_items')
             ->where('cloud_import_session_id', $this->integer($session, 'id'))
             ->where('state', 'retained')
@@ -116,9 +117,7 @@ final class TrustedBatchReview
     public function regeneratePending(string $sessionId, User $actor, int $limit = 25): array
     {
         $session = $this->session($sessionId, $actor);
-        if (data_get($session, 'state') !== 'complete') {
-            throw ValidationException::withMessages(['batch' => 'Finish the upload batch before regenerating review previews.']);
-        }
+        $this->assertReviewableCheckpoint($session, 'regenerating review previews');
 
         $items = DB::table('cloud_import_items')
             ->where('cloud_import_session_id', $this->integer($session, 'id'))
@@ -249,6 +248,10 @@ final class TrustedBatchReview
             abort(403, 'One or more selected items are outside this batch.');
         }
 
+        foreach ($items as $item) {
+            $this->safety->assertDecisionAllowed($session, $item, $actor, $decision);
+        }
+
         $reviewed = 0;
         $failed = 0;
         foreach ($items as $item) {
@@ -309,6 +312,20 @@ final class TrustedBatchReview
             if ($mediaItem instanceof MediaItem) {
                 $this->setMediaState($mediaItem, MediaReviewStatus::Rejected, null);
             }
+        } elseif ($decision === 'preserve_private') {
+            if (! $mediaItem instanceof MediaItem) {
+                throw ValidationException::withMessages(['items' => 'This item has no accepted immutable original.']);
+            }
+            if ($candidate instanceof RestorationCandidate && $candidate->review_state === 'pending') {
+                $this->reviews->decide($candidate, $actor, 'rejected', 'The original was retained privately under the batch safety policy.');
+            }
+            $mediaItem->forceFill([
+                'review_status' => MediaReviewStatus::Approved,
+                'visibility' => MediaVisibility::AdminOnly,
+                'sensitivity_status' => SensitivityStatus::Restricted,
+                'approved_by' => $actor->id,
+                'approved_at' => now(),
+            ])->save();
         } elseif ($decision === 'split_photos') {
             $proposal = PhotoSplitProposal::query()->where('cloud_import_item_id', $this->integer($item, 'id'))->first();
             if (! $proposal instanceof PhotoSplitProposal) {
@@ -350,7 +367,7 @@ final class TrustedBatchReview
             ->where('incoming_upload_id', $upload->id)
             ->update([
                 'status' => match ($decision) {
-                    'suggested_edit', 'original', 'split_photos' => 'accepted',
+                    'suggested_edit', 'original', 'split_photos', 'preserve_private' => 'accepted',
                     'hold' => 'needs_info',
                     default => 'rejected',
                 },
@@ -359,6 +376,7 @@ final class TrustedBatchReview
                     'suggested_edit' => 'Suggested edit accepted in batch review.',
                     'original' => 'Original accepted in batch review.',
                     'split_photos' => 'Multi-photo source preserved and reviewed as separate photos.',
+                    'preserve_private' => 'Safety-classified original retained privately for owner or administrator access.',
                     'hold' => 'Held for more information in batch review.',
                     default => 'Rejected in batch review.',
                 },
@@ -424,6 +442,26 @@ final class TrustedBatchReview
         }
 
         return (int) $value;
+    }
+
+    private function assertReviewableCheckpoint(object $session, string $action): void
+    {
+        $state = (string) data_get($session, 'state');
+        if (! in_array($state, ['paused', 'complete'], true)) {
+            throw ValidationException::withMessages([
+                'batch' => "Pause or finish the upload batch before {$action}.",
+            ]);
+        }
+
+        $retained = DB::table('cloud_import_items')
+            ->where('cloud_import_session_id', $this->integer($session, 'id'))
+            ->where('state', 'retained')
+            ->exists();
+        if (! $retained) {
+            throw ValidationException::withMessages([
+                'batch' => 'Retain at least one photo checkpoint before opening review.',
+            ]);
+        }
     }
 
     /** @return array{prepared:int,attention:int,remaining:int} */

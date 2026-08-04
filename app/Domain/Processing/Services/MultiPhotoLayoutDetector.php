@@ -83,6 +83,12 @@ final class MultiPhotoLayoutDetector
             : ($selectedSignals === []
                 ? max($vertical['confidence'], $horizontal['confidence'])
                 : min(array_column($selectedSignals, 'confidence')));
+        $automaticReviewEligible = $this->passesAutomaticReviewGeometry(
+            $regions,
+            $adaptiveSelected,
+            count($verticalSeams),
+            count($horizontalSeams),
+        );
 
         return [
             'detected' => count($regions) >= 2,
@@ -101,6 +107,7 @@ final class MultiPhotoLayoutDetector
                 'adaptive_splits' => $adaptiveLayout['splits'],
                 'adaptive_layout_selected' => $adaptiveSelected,
                 'layout_validated' => count($regions) >= 2,
+                'automatic_review_eligible' => $automaticReviewEligible,
             ],
         ];
     }
@@ -112,9 +119,25 @@ final class MultiPhotoLayoutDetector
         if (! is_array($signals)) {
             return false;
         }
-        if (($signals['layout_validated'] ?? false) === true) {
-            return ($analysis['detected'] ?? false) === true
-                && count(is_array($analysis['regions'] ?? null) ? $analysis['regions'] : []) >= 2;
+        if (($analysis['detected'] ?? false) !== true) {
+            return false;
+        }
+
+        if (is_bool($signals['automatic_review_eligible'] ?? null)) {
+            return $signals['automatic_review_eligible'];
+        }
+
+        $regions = is_array($analysis['regions'] ?? null) ? array_values($analysis['regions']) : [];
+        if ($regions !== []) {
+            $selectedVertical = is_array($signals['selected_vertical'] ?? null) ? $signals['selected_vertical'] : [];
+            $selectedHorizontal = is_array($signals['selected_horizontal'] ?? null) ? $signals['selected_horizontal'] : [];
+
+            return $this->passesAutomaticReviewGeometry(
+                $regions,
+                ($signals['adaptive_layout_selected'] ?? false) === true,
+                count($selectedVertical),
+                count($selectedHorizontal),
+            );
         }
 
         $vertical = is_array($signals['vertical'] ?? null) ? $signals['vertical'] : [];
@@ -125,6 +148,59 @@ final class MultiPhotoLayoutDetector
         return ($verticalGrid && $horizontalGrid)
             || ($verticalGrid && $this->axisHighConfidence($vertical, 'single'))
             || ($horizontalGrid && $this->axisHighConfidence($horizontal, 'single'));
+    }
+
+    /**
+     * This gate is deliberately stricter than detection. Detection can surface a
+     * possible layout in the manual editor; only conservative geometry may
+     * interrupt a high-volume batch for automatic review.
+     *
+     * @param  list<mixed>  $regions
+     */
+    private function passesAutomaticReviewGeometry(
+        array $regions,
+        bool $adaptiveSelected,
+        int $verticalSeamCount,
+        int $horizontalSeamCount,
+    ): bool {
+        $settings = (array) $this->setting('archive.multi_photo.automatic_review', []);
+        $regionCount = count($regions);
+        $maximumRegions = max(2, (int) ($settings['maximum_regions'] ?? 10));
+        if ($regionCount < 2 || $regionCount > $maximumRegions) {
+            return false;
+        }
+
+        $minimumArea = max(1, (int) ($settings['minimum_region_area_basis_points_squared'] ?? 2000000));
+        if ($regionCount === 2) {
+            $minimumArea = max(
+                $minimumArea,
+                (int) ($settings['minimum_two_region_area_basis_points_squared'] ?? 25000000),
+            );
+        }
+
+        $minimumSpan = PHP_INT_MAX;
+        foreach ($regions as $region) {
+            if (! is_array($region)) {
+                return false;
+            }
+            $width = (int) ($region['width'] ?? 0);
+            $height = (int) ($region['height'] ?? 0);
+            if ($width < 1 || $height < 1 || ($width * $height) < $minimumArea) {
+                return false;
+            }
+            $minimumSpan = min($minimumSpan, $width, $height);
+        }
+
+        $singleAxisGrid = ! $adaptiveSelected
+            && $regionCount > 2
+            && (($verticalSeamCount > 0) xor ($horizontalSeamCount > 0));
+        if ($singleAxisGrid) {
+            $requiredSpan = max(1, (int) ($settings['minimum_single_axis_span_basis_points'] ?? 1000));
+
+            return $minimumSpan >= $requiredSpan;
+        }
+
+        return true;
     }
 
     /**

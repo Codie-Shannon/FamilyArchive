@@ -58,7 +58,7 @@ final class PhotoSplitReviewService
         [$item, $source] = $this->itemAndSource($itemId);
         $bytes = $this->verifiedBytes($source);
         $analysis = $this->detector->analyze($bytes);
-        if (! $analysis['detected'] && ! $createWhenUndetected) {
+        if (! $createWhenUndetected && ! $this->detector->isHighConfidenceAnalysis($analysis)) {
             return null;
         }
 

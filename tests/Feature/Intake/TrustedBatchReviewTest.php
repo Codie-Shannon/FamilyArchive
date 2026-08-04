@@ -11,12 +11,46 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Storage::fake('archive_quarantine');
     Storage::fake('archive_originals');
     Storage::fake('archive_derivatives');
     Storage::fake('archive_manifests');
+});
+
+it('returns a not-found response for a removed intake batch', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+
+    $this->actingAs($trusted)
+        ->get(route('intake.batches.show', Str::uuid()->toString()))
+        ->assertNotFound();
+});
+
+it('prepares retained photos from a paused checkpoint without completing discovery', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+    $directory = storage_path('framework/testing/paused-review-'.str()->random(10));
+    File::ensureDirectoryExists($directory);
+    $first = UploadedFile::fake()->image('first.jpg', 800, 600);
+    $second = UploadedFile::fake()->image('second.jpg', 800, 600);
+    File::copy($first->getRealPath(), $directory.'/first.jpg');
+    File::copy($second->getRealPath(), $directory.'/second.jpg');
+
+    try {
+        $planned = app(HighVolumePhotoBatch::class)->plan($trusted, $directory, 25);
+        app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 1);
+
+        expect(DB::table('cloud_import_sessions')->value('state'))->toBe('paused');
+
+        $prepared = app(TrustedBatchReview::class)->prepare($planned['session_id'], $trusted, 25);
+
+        expect($prepared['prepared'])->toBe(1)
+            ->and(DB::table('cloud_import_sessions')->value('state'))->toBe('paused')
+            ->and(DB::table('cloud_import_items')->whereNotNull('prepared_at')->count())->toBe(1);
+    } finally {
+        File::deleteDirectory($directory);
+    }
 });
 
 it('gives owner admin and trusted contributors the consolidated intake workspace', function (): void {

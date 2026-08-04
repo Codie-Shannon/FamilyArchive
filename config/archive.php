@@ -55,6 +55,12 @@ return [
         'minimum_seam_spacing' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_SEAM_SPACING', 0.08),
         'maximum_axis_seams' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_AXIS_SEAMS', 7),
         'maximum_regions' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_REGIONS', 32),
+        'automatic_review' => [
+            'maximum_regions' => (int) env('ARCHIVE_MULTI_PHOTO_AUTOMATIC_MAXIMUM_REGIONS', 10),
+            'minimum_region_area_basis_points_squared' => (int) env('ARCHIVE_MULTI_PHOTO_AUTOMATIC_MINIMUM_REGION_AREA', 2000000),
+            'minimum_two_region_area_basis_points_squared' => (int) env('ARCHIVE_MULTI_PHOTO_AUTOMATIC_MINIMUM_TWO_REGION_AREA', 25000000),
+            'minimum_single_axis_span_basis_points' => (int) env('ARCHIVE_MULTI_PHOTO_AUTOMATIC_MINIMUM_SINGLE_AXIS_SPAN', 1000),
+        ],
         'candidate_rendering' => [
             'memory_limit' => env('ARCHIVE_MULTI_PHOTO_MEMORY_LIMIT', '512M'),
             'padding_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_PADDING_RATIO', 0.08),

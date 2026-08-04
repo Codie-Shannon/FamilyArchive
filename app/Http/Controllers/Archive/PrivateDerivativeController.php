@@ -47,15 +47,7 @@ final class PrivateDerivativeController extends Controller
             abort(404);
         }
 
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk('archive_derivatives');
-        if (! $disk->exists($mediaFileVersion->storage_path)) {
-            abort(404);
-        }
-        $bytes = $disk->get($mediaFileVersion->storage_path);
-        if (strlen($bytes) !== $mediaFileVersion->file_size_bytes || ! hash_equals(strtolower($mediaFileVersion->sha256), hash('sha256', $bytes))) {
-            throw new DerivativeGenerationException('The private derivative preview failed integrity verification.');
-        }
+        $bytes = $this->verifiedDerivativeBytes($mediaFileVersion);
 
         return response($bytes, 200, [
             'Content-Type' => 'image/webp',
@@ -64,5 +56,45 @@ final class PrivateDerivativeController extends Controller
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    private function verifiedDerivativeBytes(MediaFileVersion $mediaFileVersion): string
+    {
+        $diskNames = [$mediaFileVersion->storage_disk];
+
+        // Local proof imports can deliberately pin writes to the stable local
+        // archive while the long-running web process remains configured for
+        // production storage. Keep that fallback local-only and integrity
+        // verify the bytes before serving them.
+        if (app()->environment('local', 'testing')) {
+            array_unshift($diskNames, 'archive_local_derivatives');
+        }
+
+        $foundCandidate = false;
+
+        foreach (array_unique($diskNames) as $diskName) {
+            /** @var FilesystemAdapter $disk */
+            $disk = Storage::disk($diskName);
+
+            if (! $disk->exists($mediaFileVersion->storage_path)) {
+                continue;
+            }
+
+            $foundCandidate = true;
+            $bytes = $disk->get($mediaFileVersion->storage_path);
+
+            if (
+                strlen($bytes) === $mediaFileVersion->file_size_bytes
+                && hash_equals(strtolower($mediaFileVersion->sha256), hash('sha256', $bytes))
+            ) {
+                return $bytes;
+            }
+        }
+
+        if ($foundCandidate) {
+            throw new DerivativeGenerationException('The private derivative preview failed integrity verification.');
+        }
+
+        abort(404);
     }
 }

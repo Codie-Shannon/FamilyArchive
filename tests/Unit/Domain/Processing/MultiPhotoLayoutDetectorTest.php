@@ -80,7 +80,10 @@ function ordinarySceneFixture(): string
     return $bytes;
 }
 
-/** @param list<int> $columnWidths @param list<int> $rowHeights */
+/**
+ * @param  non-empty-list<positive-int>  $columnWidths
+ * @param  non-empty-list<positive-int>  $rowHeights
+ */
 function variableGridFixture(array $columnWidths, array $rowHeights): string
 {
     $width = array_sum($columnWidths);
@@ -209,4 +212,80 @@ it('rejects legacy weak split signals during reclassification', function (): voi
     ];
 
     expect(app(MultiPhotoLayoutDetector::class)->isHighConfidenceAnalysis($analysis))->toBeFalse();
+});
+
+it('keeps narrow single-axis layouts out of automatic review', function (): void {
+    $analysis = [
+        'detected' => true,
+        'regions' => [
+            ['x' => 0, 'y' => 0, 'width' => 7680, 'height' => 10000],
+            ['x' => 7680, 'y' => 0, 'width' => 939, 'height' => 10000],
+            ['x' => 8619, 'y' => 0, 'width' => 1381, 'height' => 10000],
+        ],
+        'signals' => [
+            'layout_validated' => true,
+            'adaptive_layout_selected' => false,
+            'selected_vertical' => [['ratio' => 0.768], ['ratio' => 0.8619]],
+            'selected_horizontal' => [],
+        ],
+    ];
+
+    expect(app(MultiPhotoLayoutDetector::class)->isHighConfidenceAnalysis($analysis))->toBeFalse();
+});
+
+it('accepts balanced two-photo geometry for automatic review', function (): void {
+    $analysis = [
+        'detected' => true,
+        'regions' => [
+            ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000],
+            ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000],
+        ],
+        'signals' => [
+            'layout_validated' => true,
+            'adaptive_layout_selected' => false,
+            'selected_vertical' => [['ratio' => 0.5]],
+            'selected_horizontal' => [],
+        ],
+    ];
+
+    expect(app(MultiPhotoLayoutDetector::class)->isHighConfidenceAnalysis($analysis))->toBeTrue();
+});
+
+it('rejects imbalanced two-photo geometry from automatic review', function (): void {
+    $analysis = [
+        'detected' => true,
+        'regions' => [
+            ['x' => 0, 'y' => 0, 'width' => 1708, 'height' => 10000],
+            ['x' => 1708, 'y' => 0, 'width' => 8292, 'height' => 10000],
+        ],
+        'signals' => [
+            'layout_validated' => true,
+            'adaptive_layout_selected' => true,
+            'selected_vertical' => [],
+            'selected_horizontal' => [],
+        ],
+    ];
+
+    expect(app(MultiPhotoLayoutDetector::class)->isHighConfidenceAnalysis($analysis))->toBeFalse();
+});
+
+it('rejects over-segmented and tiny-region layouts from automatic review', function (): void {
+    $detector = app(MultiPhotoLayoutDetector::class);
+    $overSegmented = [
+        'detected' => true,
+        'regions' => array_fill(0, 11, ['x' => 0, 'y' => 0, 'width' => 2000, 'height' => 2000]),
+        'signals' => ['layout_validated' => true, 'adaptive_layout_selected' => true],
+    ];
+    $tinyRegion = [
+        'detected' => true,
+        'regions' => [
+            ['x' => 0, 'y' => 0, 'width' => 8000, 'height' => 10000],
+            ['x' => 8000, 'y' => 0, 'width' => 1160, 'height' => 1208],
+            ['x' => 9160, 'y' => 0, 'width' => 840, 'height' => 10000],
+        ],
+        'signals' => ['layout_validated' => true, 'adaptive_layout_selected' => true],
+    ];
+
+    expect($detector->isHighConfidenceAnalysis($overSegmented))->toBeFalse()
+        ->and($detector->isHighConfidenceAnalysis($tinyRegion))->toBeFalse();
 });

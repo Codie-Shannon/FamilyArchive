@@ -1,7 +1,8 @@
 # Capability Inventory
 
-Family Archive v4.0.0 supports photos through a complete preservation, review,
-discovery and controlled-sharing workflow.
+Family Archive v4.2.0 supports photos through a complete preservation, review,
+discovery and controlled-sharing workflow, including approved batch content
+safeguards.
 
 ## Preservation and intake
 
@@ -17,6 +18,12 @@ discovery and controlled-sharing workflow.
 - Repeatable source-subtree exclusions pruned before file discovery, with no
   excluded name or path persisted and keyed policy continuity on resume
 - Synthetic 30,000-entry interruption, replay and reconciliation qualification
+- Manual content-safety classification enforced across single and bulk decisions:
+  identification documents and sensitive-minor images are held by default, while
+  suspected illegal or exploitative content is permanently blocked
+- Owner-controlled per-batch overrides for the two optional holds, plus an
+  owner-only private-preservation path for identity documents definitively older
+  than 61 years; 1965 and uncertain dates remain held in 2026
 
 ## Restoration and derivatives
 
@@ -83,4 +90,6 @@ Exact archive coordinates are never sent to the public map.
 - External providers require operator-owned accounts, billing, credentials and
   monitoring.
 - Public evidence proves synthetic scenarios, not the private family migration.
+- Content-safety labels are human review decisions, not automated detection or a
+  substitute for legal or safeguarding expertise.
 - Human acceptance, custodianship and recovery drills remain operational duties.
