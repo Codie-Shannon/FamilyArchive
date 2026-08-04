@@ -80,10 +80,10 @@ function ordinarySceneFixture(): string
     return $bytes;
 }
 
-    /**
-     * @param  non-empty-list<positive-int>  $columnWidths
-     * @param  non-empty-list<positive-int>  $rowHeights
-     */
+/**
+ * @param  non-empty-list<positive-int>  $columnWidths
+ * @param  non-empty-list<positive-int>  $rowHeights
+ */
 function variableGridFixture(array $columnWidths, array $rowHeights): string
 {
     $width = array_sum($columnWidths);
