@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
+/** @phpstan-type BatchSession array{id:int,session_id:string,user_id:int,source_manifest:string,inventory_sha256:string,chunk_size:int} */
 final class HighVolumePhotoBatch
 {
     public function __construct(
@@ -22,9 +23,9 @@ final class HighVolumePhotoBatch
 
     /**
      * @param  list<string>  $excludedDirectories
-     * @return array{session_id:string,selected_count:int,total_bytes:int,inventory_sha256:string}
+     * @return array{session_id:string,selected_count:int,total_bytes:int,inventory_sha256:string,exact_duplicate_count:int}
      */
-    public function plan(User $owner, string $directory, int $chunkSize = 500, array $excludedDirectories = []): array
+    public function plan(User $owner, string $directory, int $chunkSize = 500, array $excludedDirectories = [], bool $deduplicateExact = false): array
     {
         if (! $owner->canManageTrustedIntake()) {
             throw new RuntimeException('A trusted intake account is required to plan a high-volume batch.');
@@ -38,7 +39,24 @@ final class HighVolumePhotoBatch
             throw new RuntimeException('The batch must contain between 1 and 100,000 supported photos.');
         }
 
-        return DB::transaction(function () use ($owner, $directory, $chunkSize, $inventory): array {
+        $seenChecksums = [];
+        $duplicatePositions = [];
+        if ($deduplicateExact) {
+            foreach ($inventory['files'] as $file) {
+                $checksum = $file['content_sha256'];
+                if (! $file['valid'] || ! is_string($checksum) || $checksum === '') {
+                    continue;
+                }
+                if (isset($seenChecksums[$checksum])) {
+                    $duplicatePositions[$file['position']] = true;
+                } else {
+                    $seenChecksums[$checksum] = $file['position'];
+                }
+            }
+        }
+        $duplicateCount = count($duplicatePositions);
+
+        return DB::transaction(function () use ($owner, $directory, $chunkSize, $inventory, $duplicatePositions, $duplicateCount, $deduplicateExact): array {
             $sessionId = (string) Str::uuid();
             $invalidCount = (int) $inventory['summary']['invalid_count'];
             $sessionKey = DB::table('cloud_import_sessions')->insertGetId([
@@ -50,8 +68,8 @@ final class HighVolumePhotoBatch
                 'imported_count' => 0,
                 'failed_count' => $invalidCount,
                 'total_bytes' => $inventory['summary']['supported_bytes'],
-                'processed_count' => $invalidCount,
-                'checkpoint_position' => $invalidCount,
+                'processed_count' => $invalidCount + $duplicateCount,
+                'checkpoint_position' => $invalidCount + $duplicateCount,
                 'chunk_size' => $chunkSize,
                 'inventory_sha256' => $inventory['inventory_sha256'],
                 'source_manifest' => json_encode([
@@ -63,6 +81,8 @@ final class HighVolumePhotoBatch
                     'approval_mode' => 'exception_first_batch_review',
                     'trust_level' => 'trusted_intake',
                     'preflight_summary' => $inventory['summary'],
+                    'exact_deduplication' => $deduplicateExact,
+                    'exact_duplicate_count' => $duplicateCount,
                     'content_safety' => BatchSafetyPolicy::defaults()->toArray(),
                 ], JSON_THROW_ON_ERROR),
                 'created_at' => now(),
@@ -87,7 +107,7 @@ final class HighVolumePhotoBatch
                         'orientation' => $file['orientation'],
                         'captured_at' => $file['captured_at'],
                     ], JSON_THROW_ON_ERROR),
-                    'state' => $file['valid'] ? 'selected' : 'failed',
+                    'state' => ! $file['valid'] ? 'failed' : (isset($duplicatePositions[$file['position']]) ? 'duplicate_candidate' : 'selected'),
                     'attempt_count' => 0,
                     'failure_code' => $file['failure_code'],
                     'created_at' => now(),
@@ -100,13 +120,14 @@ final class HighVolumePhotoBatch
                 'selected_count' => count($inventory['files']),
                 'total_bytes' => (int) $inventory['summary']['supported_bytes'],
                 'inventory_sha256' => $inventory['inventory_sha256'],
+                'exact_duplicate_count' => $duplicateCount,
             ];
         });
     }
 
     /**
      * @param  list<string>  $excludedDirectories
-     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int}
+     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,duplicate_count:int,remaining_count:int}
      */
     public function process(string $sessionId, string $directory, ?int $limit = null, array $excludedDirectories = []): array
     {
@@ -114,15 +135,28 @@ final class HighVolumePhotoBatch
         if ($session === null) {
             throw new RuntimeException('The high-volume batch could not be found.');
         }
+        $sessionData = $this->sessionData($session);
 
-        $manifest = json_decode((string) $session->source_manifest, true) ?: [];
+        $paths = $this->verifiedPaths($sessionData, $directory, $excludedDirectories);
+
+        return $this->processVerifiedSession($sessionData, $paths, $limit);
+    }
+
+    /**
+     * @param  BatchSession  $session
+     * @param  list<string>  $excludedDirectories
+     * @return array<string, string>
+     */
+    private function verifiedPaths(array $session, string $directory, array $excludedDirectories): array
+    {
+        $manifest = json_decode($session['source_manifest'], true) ?: [];
         $plannedPolicy = $manifest['preflight_summary']['exclusion_policy_fingerprint'] ?? null;
         $currentPolicy = SourceExclusionBoundary::forRoot($directory, $excludedDirectories)->fingerprint();
         if (! is_string($plannedPolicy) || ! hash_equals($plannedPolicy, $currentPolicy)) {
             throw new RuntimeException('The source exclusion policy changed after planning; processing stopped before retention.');
         }
         $inventory = $this->preflight->scan($directory, false, $excludedDirectories);
-        if (! hash_equals((string) $session->inventory_sha256, $inventory['inventory_sha256'])) {
+        if (! hash_equals($session['inventory_sha256'], $inventory['inventory_sha256'])) {
             throw new RuntimeException('The source inventory changed after planning; processing stopped before retention.');
         }
 
@@ -131,11 +165,22 @@ final class HighVolumePhotoBatch
             $paths[$file['relative_path_hash']] = $file['path'];
         }
 
-        $this->checkpoint((int) $session->id);
-        $items = DB::table('cloud_import_items')->where('cloud_import_session_id', $session->id)->where('state', 'selected')
-            ->orderBy('position')->limit(max(1, min($limit ?? (int) $session->chunk_size, 1000)))->get();
-        $owner = User::query()->whereKey($session->user_id)->firstOrFail();
-        DB::table('cloud_import_sessions')->where('id', $session->id)->update(['state' => 'importing', 'updated_at' => now()]);
+        return $paths;
+    }
+
+    /**
+     * @param  BatchSession  $session
+     * @param  array<string, string>  $paths
+     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,duplicate_count:int,remaining_count:int}
+     */
+    private function processVerifiedSession(array $session, array $paths, ?int $limit = null): array
+    {
+        $sessionId = $session['session_id'];
+        $this->checkpoint($session['id']);
+        $items = DB::table('cloud_import_items')->where('cloud_import_session_id', $session['id'])->where('state', 'selected')
+            ->orderBy('position')->limit(max(1, min($limit ?? $session['chunk_size'], 1000)))->get();
+        $owner = User::query()->whereKey($session['user_id'])->firstOrFail();
+        DB::table('cloud_import_sessions')->where('id', $session['id'])->update(['state' => 'importing', 'updated_at' => now()]);
 
         foreach ($items as $item) {
             try {
@@ -182,7 +227,7 @@ final class HighVolumePhotoBatch
             }
         }
 
-        return $this->checkpoint((int) $session->id);
+        return $this->checkpoint($session['id']);
     }
 
     public function retryFailed(string $sessionId, int $maximum = 100): int
@@ -211,14 +256,20 @@ final class HighVolumePhotoBatch
 
     /**
      * @param  list<string>  $excludedDirectories
-     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int}
+     * @return array{state:string,processed_count:int,retained_count:int,failed_count:int,duplicate_count:int,remaining_count:int}
      */
     public function runToCompletion(string $sessionId, string $directory, array $excludedDirectories = []): array
     {
+        $session = DB::table('cloud_import_sessions')->where('session_id', $sessionId)->where('provider', 'manual_export')->first();
+        if ($session === null) {
+            throw new RuntimeException('The high-volume batch could not be found.');
+        }
+        $sessionData = $this->sessionData($session);
+        $paths = $this->verifiedPaths($sessionData, $directory, $excludedDirectories);
         $maximumChunks = max(1, (int) config('archive.batch_preflight.maximum_unattended_chunks', 1000));
-        $result = ['state' => 'paused', 'processed_count' => 0, 'retained_count' => 0, 'failed_count' => 0, 'remaining_count' => 1];
+        $result = ['state' => 'paused', 'processed_count' => 0, 'retained_count' => 0, 'failed_count' => 0, 'duplicate_count' => 0, 'remaining_count' => 1];
         for ($chunk = 0; $chunk < $maximumChunks && $result['remaining_count'] > 0; $chunk++) {
-            $result = $this->process($sessionId, $directory, null, $excludedDirectories);
+            $result = $this->processVerifiedSession($sessionData, $paths);
         }
         if ($result['remaining_count'] > 0) {
             throw new RuntimeException('The unattended chunk safety limit was reached before completion.');
@@ -227,28 +278,50 @@ final class HighVolumePhotoBatch
         return $result;
     }
 
-    /** @return array{state:string,processed_count:int,retained_count:int,failed_count:int,remaining_count:int} */
+    /** @return BatchSession */
+    private function sessionData(\stdClass $session): array
+    {
+        $values = (array) $session;
+        foreach (['id', 'session_id', 'user_id', 'source_manifest', 'inventory_sha256', 'chunk_size'] as $field) {
+            if (! array_key_exists($field, $values)) {
+                throw new RuntimeException('The high-volume batch record is incomplete.');
+            }
+        }
+
+        return [
+            'id' => (int) $values['id'],
+            'session_id' => (string) $values['session_id'],
+            'user_id' => (int) $values['user_id'],
+            'source_manifest' => (string) $values['source_manifest'],
+            'inventory_sha256' => (string) $values['inventory_sha256'],
+            'chunk_size' => (int) $values['chunk_size'],
+        ];
+    }
+
+    /** @return array{state:string,processed_count:int,retained_count:int,failed_count:int,duplicate_count:int,remaining_count:int} */
     private function checkpoint(int $sessionKey): array
     {
         $counts = DB::table('cloud_import_items')->where('cloud_import_session_id', $sessionKey)
             ->selectRaw("SUM(CASE WHEN state = 'retained' THEN 1 ELSE 0 END) AS retained_count")
             ->selectRaw("SUM(CASE WHEN state = 'failed' THEN 1 ELSE 0 END) AS failed_count")
+            ->selectRaw("SUM(CASE WHEN state = 'duplicate_candidate' THEN 1 ELSE 0 END) AS duplicate_count")
             ->selectRaw("SUM(CASE WHEN state = 'selected' THEN 1 ELSE 0 END) AS remaining_count")->first();
         $retained = (int) ($counts->retained_count ?? 0);
         $failed = (int) ($counts->failed_count ?? 0);
+        $duplicates = (int) ($counts->duplicate_count ?? 0);
         $remaining = (int) ($counts->remaining_count ?? 0);
         $state = $remaining === 0 ? ($failed > 0 ? 'failed' : 'complete') : 'paused';
         DB::table('cloud_import_sessions')->where('id', $sessionKey)->update([
             'state' => $state,
             'imported_count' => $retained,
             'failed_count' => $failed,
-            'processed_count' => $retained + $failed,
-            'checkpoint_position' => $retained + $failed,
+            'processed_count' => $retained + $failed + $duplicates,
+            'checkpoint_position' => $retained + $failed + $duplicates,
             'last_checkpoint_at' => now(),
             'updated_at' => now(),
         ]);
 
-        return ['state' => $state, 'processed_count' => $retained + $failed, 'retained_count' => $retained, 'failed_count' => $failed, 'remaining_count' => $remaining];
+        return ['state' => $state, 'processed_count' => $retained + $failed + $duplicates, 'retained_count' => $retained, 'failed_count' => $failed, 'duplicate_count' => $duplicates, 'remaining_count' => $remaining];
     }
 
     private function failureCode(Throwable $exception): string

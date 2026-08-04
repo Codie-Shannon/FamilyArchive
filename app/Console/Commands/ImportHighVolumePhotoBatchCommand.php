@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 final class ImportHighVolumePhotoBatchCommand extends Command
 {
-    protected $signature = 'archive:batch-import {directory} {owner} {--exclude=* : Source subtree to prune before discovery; repeat the same exclusions when resuming} {--batch=} {--limit=} {--chunk=500} {--inventory-only} {--until-complete} {--retry-failed=0}';
+    protected $signature = 'archive:batch-import {directory} {owner} {--exclude=* : Source subtree to prune before discovery; repeat the same exclusions when resuming} {--batch=} {--limit=} {--chunk=500} {--inventory-only} {--until-complete} {--retry-failed=0} {--deduplicate-exact : Retain only the first file for each byte-identical SHA-256 checksum}';
 
     protected $description = 'Inventory or resume a large local photo batch without bypassing quarantine or review';
 
@@ -23,10 +23,13 @@ final class ImportHighVolumePhotoBatchCommand extends Command
         $batchId = $this->option('batch');
         $excludedDirectories = array_values(array_map('strval', (array) $this->option('exclude')));
         if (! is_string($batchId) || $batchId === '') {
-            $planned = $batches->plan($owner, (string) $this->argument('directory'), (int) $this->option('chunk'), $excludedDirectories);
+            $planned = $batches->plan($owner, (string) $this->argument('directory'), (int) $this->option('chunk'), $excludedDirectories, (bool) $this->option('deduplicate-exact'));
             $batchId = $planned['session_id'];
             $this->info("Inventory planned: {$planned['selected_count']} files, {$planned['total_bytes']} bytes.");
             $this->line("Resume token: {$batchId}");
+            if ($planned['exact_duplicate_count'] > 0) {
+                $this->line("Exact duplicates excluded before retention: {$planned['exact_duplicate_count']}.");
+            }
         }
         if ($this->option('inventory-only')) {
             $this->comment('Inventory only. No source bytes were retained.');
@@ -42,7 +45,7 @@ final class ImportHighVolumePhotoBatchCommand extends Command
         $result = $this->option('until-complete')
             ? $batches->runToCompletion($batchId, (string) $this->argument('directory'), $excludedDirectories)
             : $batches->process($batchId, (string) $this->argument('directory'), is_numeric($limit) ? (int) $limit : null, $excludedDirectories);
-        $this->info("Checkpoint: {$result['processed_count']} processed, {$result['retained_count']} retained, {$result['failed_count']} failed, {$result['remaining_count']} remaining.");
+        $this->info("Checkpoint: {$result['processed_count']} processed, {$result['retained_count']} retained, {$result['duplicate_count']} exact duplicates excluded, {$result['failed_count']} failed, {$result['remaining_count']} remaining.");
         $this->line("Batch state: {$result['state']}");
 
         return $result['state'] === 'failed' ? self::FAILURE : self::SUCCESS;
