@@ -101,6 +101,33 @@ it('prepares a trusted batch once and applies a bulk original decision', functio
     }
 });
 
+it('routes oversized retained photos to manual review without failing batch preparation', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+    $directory = storage_path('framework/testing/oversized-review-'.str()->random(10));
+    File::ensureDirectoryExists($directory);
+    $photo = UploadedFile::fake()->image('large-family-photo.jpg', 900, 650);
+    File::copy($photo->getRealPath(), $directory.'/large-family-photo.jpg');
+
+    try {
+        $planned = app(HighVolumePhotoBatch::class)->plan($trusted, $directory, 25);
+        app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 1);
+        config()->set('archive.restoration.max_source_pixels', 100_000);
+
+        $prepared = app(TrustedBatchReview::class)->prepare($planned['session_id'], $trusted, 25);
+        $item = DB::table('cloud_import_items')->first();
+
+        expect($prepared['prepared'])->toBe(1)
+            ->and($prepared['attention'])->toBe(1)
+            ->and($item->prepared_at)->not->toBeNull()
+            ->and($item->attention_code)->toBe('manual_restoration_required')
+            ->and($item->restoration_candidate_id)->toBeNull()
+            ->and(MediaItem::query()->firstOrFail()->review_status)->toBe(MediaReviewStatus::PendingReview)
+            ->and(DB::table('processing_jobs')->value('state'))->toBe('queued');
+    } finally {
+        File::deleteDirectory($directory);
+    }
+});
+
 it('prevents a trusted contributor from opening another account batch', function (): void {
     $owner = User::factory()->create(['role' => 'owner', 'email_verified_at' => now()]);
     $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
