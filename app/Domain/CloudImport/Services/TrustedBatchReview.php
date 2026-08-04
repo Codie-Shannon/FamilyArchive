@@ -9,6 +9,7 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Enums\SensitivityStatus;
 use App\Domain\Media\Models\MediaItem;
+use App\Domain\Processing\Exceptions\RestorationProcessingBoundaryException;
 use App\Domain\Processing\Models\PhotoSplitProposal;
 use App\Domain\Processing\Models\RestorationCandidate;
 use App\Domain\Processing\Services\PhotoSplitReviewService;
@@ -104,6 +105,19 @@ final class TrustedBatchReview
                     report($exception);
                 }
                 $this->markPrepared($this->integer($item, 'id'), $candidate?->id, $attention);
+            } catch (RestorationProcessingBoundaryException) {
+                $upload = IncomingUpload::query()
+                    ->with('archivePromotion.mediaItem')
+                    ->find($this->integer($item, 'incoming_upload_id'));
+                $mediaItem = $upload?->archivePromotion?->mediaItem;
+                if ($mediaItem instanceof MediaItem) {
+                    $mediaItem->forceFill([
+                        'review_status' => MediaReviewStatus::PendingReview,
+                        'approved_by' => null,
+                        'approved_at' => null,
+                    ])->save();
+                }
+                $this->markPrepared($this->integer($item, 'id'), null, 'manual_restoration_required');
             } catch (Throwable $exception) {
                 report($exception);
                 $this->markPrepared($this->integer($item, 'id'), null, 'preparation_failed');
@@ -176,7 +190,14 @@ final class TrustedBatchReview
             ->limit(max(1, min($limit, 50)))
             ->get();
 
-        $hardStops = ['exact_duplicate', 'preparation_failed', 'regeneration_failed', 'review_failed', 'multi_photo_ready'];
+        $hardStops = [
+            'exact_duplicate',
+            'manual_restoration_required',
+            'preparation_failed',
+            'regeneration_failed',
+            'review_failed',
+            'multi_photo_ready',
+        ];
         $reclassified = 0;
         $failed = 0;
         $eligible = 0;

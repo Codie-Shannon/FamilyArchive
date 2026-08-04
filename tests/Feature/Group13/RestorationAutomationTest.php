@@ -8,6 +8,7 @@ use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
+use App\Domain\Processing\Exceptions\RestorationProcessingBoundaryException;
 use App\Domain\Processing\Models\ProcessingJob;
 use App\Domain\Processing\Models\ProcessingJobEvent;
 use App\Domain\Processing\Services\GdRestorationCandidateProcessor;
@@ -202,6 +203,24 @@ it('fails closed when the immutable source bytes no longer match', function () {
     expect(fn () => app(GdRestorationCandidateProcessor::class)->process($job, $owner))
         ->toThrow(DerivativeGenerationException::class)
         ->and($job->fresh()->state)->toBe('queued')
+        ->and(MediaFileVersion::query()->where('version_type', MediaFileVersionType::EditedFull)->count())->toBe(0);
+});
+
+it('routes oversized originals to the lower-memory review workflow before decoding', function () {
+    [$owner, $source] = sg13Source();
+    $source->forceFill(['width' => 7016, 'height' => 5100])->save();
+    config()->set('archive.restoration.max_source_pixels', 24000000);
+
+    $workflow = app(RestorationWorkflow::class);
+    $preferences = sg13Preferences();
+    $recipe = $workflow->createFromPreferences('Oversized source example', $preferences, $owner);
+    $jobId = $workflow->queue($source, $recipe, $owner, $preferences);
+    $job = ProcessingJob::query()->where('job_id', $jobId)->firstOrFail();
+
+    expect(fn () => app(GdRestorationCandidateProcessor::class)->process($job, $owner))
+        ->toThrow(RestorationProcessingBoundaryException::class)
+        ->and($job->fresh()->state)->toBe('queued')
+        ->and($job->fresh()->attempts)->toBe(0)
         ->and(MediaFileVersion::query()->where('version_type', MediaFileVersionType::EditedFull)->count())->toBe(0);
 });
 

@@ -9,6 +9,7 @@ use App\Domain\Derivatives\ValueObjects\WrittenDerivativeObject;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Models\MediaFileVersion;
+use App\Domain\Processing\Exceptions\RestorationProcessingBoundaryException;
 use App\Domain\Processing\Models\ProcessingJob;
 use App\Domain\Processing\Models\ProcessingJobEvent;
 use App\Domain\Processing\Models\ProcessingRecipe;
@@ -42,6 +43,7 @@ final class GdRestorationCandidateProcessor
             throw new DerivativeGenerationException('The restoration job has no immutable source.');
         }
 
+        $this->assertWithinProcessingBoundary($source);
         $sourceBytes = $this->readAndVerifySource($source);
         $sourceHash = hash('sha256', $sourceBytes);
         $job->forceFill([
@@ -54,7 +56,6 @@ final class GdRestorationCandidateProcessor
 
         $written = null;
         try {
-            $this->assertWithinProcessingBoundary($source);
             $recipe = ProcessingRecipe::query()->find($job->processing_recipe_id);
             if (! $recipe instanceof ProcessingRecipe || ! $recipe->is_active) {
                 throw new DerivativeGenerationException('The restoration recipe is unavailable.');
@@ -176,9 +177,9 @@ final class GdRestorationCandidateProcessor
     {
         $width = (int) ($source->width ?? 0);
         $height = (int) ($source->height ?? 0);
-        $maximumPixels = (int) config('archive.restoration.max_source_pixels', 45000000);
+        $maximumPixels = (int) config('archive.restoration.max_source_pixels', 24000000);
         if ($width > 0 && $height > 0 && $width > intdiv(max(1, $maximumPixels), $height)) {
-            throw new DerivativeGenerationException(
+            throw new RestorationProcessingBoundaryException(
                 'The source exceeds the safe restoration-processing boundary and requires a lower-memory workflow.',
             );
         }
