@@ -244,6 +244,53 @@ def command_decide_page(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def command_page_template(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    pages = {record["page"]: record for record in read_jsonl(arguments.review_manifest)}
+    page = pages.get(arguments.page)
+    if page is None:
+        raise ValueError("The visual-review page is not present in the current manifest")
+    page_path = arguments.review_sheets / arguments.page
+    if not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+        raise ValueError("The visual-review page bytes do not match the current manifest")
+
+    template: list[dict[str, Any]] = []
+    for manifest_item in page.get("items", []):
+        item_id = int(manifest_item["item_id"])
+        census_record = census.get(item_id)
+        if census_record is None or (
+            manifest_item.get("thumbnail_sha256") != census_record.get("thumbnail_sha256")
+            or manifest_item.get("engine_version") != census_record.get("engine_version")
+            or manifest_item.get("proposal_digest") != review_proposal_digest(census_record)
+        ):
+            raise ValueError(f"Item {item_id} no longer matches the rendered visual-review page")
+        proposed_regions = census_record.get("regions", [])
+        template.append(
+            {
+                "item_id": item_id,
+                "decision": "multi" if len(proposed_regions) >= 2 else "review_required",
+                "regions": proposed_regions if len(proposed_regions) >= 2 else [],
+                "note": "",
+            }
+        )
+
+    write_jsonl(arguments.output, template)
+    unresolved = sum(record["decision"] == "review_required" for record in template)
+    print(
+        json.dumps(
+            {
+                "page": arguments.page,
+                "output": str(arguments.output),
+                "item_count": len(template),
+                "prefilled_multi_count": len(template) - unresolved,
+                "review_required_count": unresolved,
+            },
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def command_summary(arguments: argparse.Namespace) -> int:
     census = read_jsonl(arguments.census)
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
@@ -316,6 +363,12 @@ def command_review_evidence_summary(arguments: argparse.Namespace) -> int:
         else:
             stale_decision_ids.add(item_id)
 
+    unresolved_item_ids = visual_item_ids - current_decision_ids
+    pending_pages = [
+        page["page"]
+        for page in pages
+        if any(int(item["item_id"]) in unresolved_item_ids for item in page.get("items", []))
+    ]
     output = {
         "page_count": len(pages),
         "visual_source_count": len(visual_item_ids),
@@ -326,11 +379,13 @@ def command_review_evidence_summary(arguments: argparse.Namespace) -> int:
         "duplicate_manifest_item_count": len(duplicate_item_ids),
         "stale_manifest_item_count": len(stale_manifest_item_ids),
         "page_byte_mismatch_count": len(page_byte_mismatches),
+        "pending_page_count": len(pending_pages),
         "pending_item_ids": sorted(visual_item_ids - current_decision_ids - stale_decision_ids)[:100],
         "stale_decision_item_ids": sorted(stale_decision_ids)[:100],
         "duplicate_manifest_item_ids": sorted(duplicate_item_ids)[:100],
         "stale_manifest_item_ids": sorted(stale_manifest_item_ids)[:100],
         "page_byte_mismatches": page_byte_mismatches[:100],
+        "pending_pages": pending_pages[:100],
     }
     print(json.dumps(output, separators=(",", ":")))
     return 0
@@ -463,6 +518,13 @@ def parser() -> argparse.ArgumentParser:
     decide_page.add_argument("--page", required=True)
     decide_page.add_argument("--input", type=Path, required=True)
     decide_page.set_defaults(handler=command_decide_page)
+    page_template = subcommands.add_parser("page-template")
+    page_template.add_argument("--census", type=Path, required=True)
+    page_template.add_argument("--review-manifest", type=Path, required=True)
+    page_template.add_argument("--review-sheets", type=Path, required=True)
+    page_template.add_argument("--page", required=True)
+    page_template.add_argument("--output", type=Path, required=True)
+    page_template.set_defaults(handler=command_page_template)
     summary = subcommands.add_parser("summary")
     summary.add_argument("--census", type=Path, required=True)
     summary.add_argument("--decisions", type=Path, required=True)
