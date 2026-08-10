@@ -88,6 +88,69 @@ def command_decide(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def command_batch_decide(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    submitted = read_jsonl(arguments.input)
+    if not submitted:
+        raise ValueError("The batch decision input is empty")
+
+    item_ids = [int(record["item_id"]) for record in submitted]
+    if len(item_ids) != len(set(item_ids)):
+        raise ValueError("The batch decision input contains duplicate item IDs")
+
+    prepared: dict[int, dict[str, Any]] = {}
+    reviewed_at = datetime.now(timezone.utc).isoformat()
+    for record in submitted:
+        item_id = int(record["item_id"])
+        if item_id not in census:
+            raise ValueError(f"Item {item_id} is not present in the census ledger")
+
+        census_record = census[item_id]
+        expected_thumbnail_sha256 = str(record.get("census_thumbnail_sha256", ""))
+        if expected_thumbnail_sha256 != census_record["thumbnail_sha256"]:
+            raise ValueError(f"Item {item_id} is not bound to the current census thumbnail")
+
+        decision = str(record.get("decision", ""))
+        if decision not in {"single", "multi", "exclude"}:
+            raise ValueError(f"Item {item_id} has an unsupported decision")
+        evidence = str(record.get("evidence", "")).strip()
+        if not evidence:
+            raise ValueError(f"Item {item_id} is missing visual-review evidence")
+
+        regions: list[dict[str, Any]] = []
+        if decision == "multi":
+            regions = validate_regions(record.get("regions", census_record.get("regions")))
+        elif record.get("regions"):
+            raise ValueError(f"Item {item_id} supplies regions for a non-multi decision")
+
+        prepared[item_id] = {
+            "item_id": item_id,
+            "decision": decision,
+            "regions": regions,
+            "reviewed_at": reviewed_at,
+            "reviewer": "codex_visual_review",
+            "evidence": evidence,
+            "note": str(record.get("note", "")),
+            "census_thumbnail_sha256": census_record["thumbnail_sha256"],
+        }
+
+    existing = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    existing.update(prepared)
+    write_jsonl(arguments.decisions, list(existing.values()))
+    print(
+        json.dumps(
+            {
+                "applied": len(prepared),
+                "total_decisions": len(existing),
+                "first_item_id": min(prepared),
+                "last_item_id": max(prepared),
+            },
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def command_summary(arguments: argparse.Namespace) -> int:
     census = read_jsonl(arguments.census)
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
@@ -205,6 +268,11 @@ def parser() -> argparse.ArgumentParser:
     decide.add_argument("--evidence", required=True)
     decide.add_argument("--note", default="")
     decide.set_defaults(handler=command_decide)
+    batch_decide = subcommands.add_parser("batch-decide")
+    batch_decide.add_argument("--census", type=Path, required=True)
+    batch_decide.add_argument("--decisions", type=Path, required=True)
+    batch_decide.add_argument("--input", type=Path, required=True)
+    batch_decide.set_defaults(handler=command_batch_decide)
     summary = subcommands.add_parser("summary")
     summary.add_argument("--census", type=Path, required=True)
     summary.add_argument("--decisions", type=Path, required=True)
