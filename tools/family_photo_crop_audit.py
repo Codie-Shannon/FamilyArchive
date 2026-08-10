@@ -270,6 +270,12 @@ def summary(arguments: argparse.Namespace) -> int:
             stale_audit_item_ids.append(item_id)
     failed = sorted(item_id for item_id, audit in current.items() if audit.get("result") == "fail")
     pending = sorted(item_id for item_id in decisions if item_id not in current)
+    pending_set = set(pending)
+    pending_pages = [
+        page["page"]
+        for page in pages
+        if any(int(item_id) in pending_set for item_id in page.get("item_ids", []))
+    ]
     output = {
         "multi_source_count": len(decisions),
         "passed_count": sum(audit.get("result") == "pass" for audit in current.values()),
@@ -279,11 +285,13 @@ def summary(arguments: argparse.Namespace) -> int:
         "stale_audit_count": len(stale_audit_item_ids),
         "duplicate_manifest_item_count": len(duplicate_manifest_item_ids),
         "page_byte_mismatch_count": len(page_byte_mismatches),
+        "pending_page_count": len(pending_pages),
         "failed_item_ids": failed[:100],
         "pending_item_ids": pending[:100],
         "stale_audit_item_ids": sorted(stale_audit_item_ids)[:100],
         "duplicate_manifest_item_ids": sorted(duplicate_manifest_item_ids)[:100],
         "page_byte_mismatches": page_byte_mismatches[:100],
+        "pending_pages": pending_pages[:100],
     }
     print(json.dumps(output, separators=(",", ":")))
     return 0
