@@ -369,6 +369,9 @@ def command_audit_page(arguments: argparse.Namespace) -> int:
     if arguments.page not in manifest:
         raise ValueError("The audit page is not present in the deterministic manifest")
     page = manifest[arguments.page]
+    page_path = arguments.audit_sheets / arguments.page
+    if not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+        raise ValueError("The automatic-single audit page bytes do not match the manifest")
     page_ids = {int(item["item_id"]) for item in page["items"]}
     false_negatives = {
         int(value) for value in arguments.false_negative_item_ids.split(",") if value.strip()
@@ -393,10 +396,18 @@ def command_audit_summary(arguments: argparse.Namespace) -> int:
     pages = {record["page"]: record for record in read_jsonl(arguments.audit_manifest)}
     audits = {record["page"]: record for record in read_jsonl(arguments.audit_ledger)}
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    page_byte_mismatches = {
+        page_name
+        for page_name, page in pages.items()
+        if not (arguments.audit_sheets / page_name).is_file()
+        or file_sha256(arguments.audit_sheets / page_name) != page.get("page_sha256")
+    }
     current = {
         page_name: audit
         for page_name, audit in audits.items()
-        if page_name in pages and audit.get("page_digest") == audit_page_digest(pages[page_name])
+        if page_name in pages
+        and page_name not in page_byte_mismatches
+        and audit.get("page_digest") == audit_page_digest(pages[page_name])
     }
     false_negatives = sorted(
         {
@@ -418,7 +429,9 @@ def command_audit_summary(arguments: argparse.Namespace) -> int:
         "reviewed_source_count": reviewed_items,
         "false_negative_count": len(false_negatives),
         "unresolved_false_negative_count": len(unresolved),
+        "page_byte_mismatch_count": len(page_byte_mismatches),
         "pending_pages": sorted(set(pages) - set(current)),
+        "page_byte_mismatches": sorted(page_byte_mismatches),
         "unresolved_item_ids": unresolved[:100],
     }
     print(json.dumps(output, separators=(",", ":")))
@@ -467,6 +480,7 @@ def parser() -> argparse.ArgumentParser:
     audit_page = subcommands.add_parser("audit-page")
     audit_page.add_argument("--audit-manifest", type=Path, required=True)
     audit_page.add_argument("--audit-ledger", type=Path, required=True)
+    audit_page.add_argument("--audit-sheets", type=Path, required=True)
     audit_page.add_argument("--page", required=True)
     audit_page.add_argument("--false-negative-item-ids", default="")
     audit_page.add_argument("--note", default="")
@@ -474,6 +488,7 @@ def parser() -> argparse.ArgumentParser:
     audit_summary = subcommands.add_parser("audit-summary")
     audit_summary.add_argument("--audit-manifest", type=Path, required=True)
     audit_summary.add_argument("--audit-ledger", type=Path, required=True)
+    audit_summary.add_argument("--audit-sheets", type=Path, required=True)
     audit_summary.add_argument("--decisions", type=Path, required=True)
     audit_summary.set_defaults(handler=command_audit_summary)
     return result

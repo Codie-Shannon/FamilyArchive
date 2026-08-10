@@ -592,6 +592,7 @@ def automatic_single_audit_sheets(
                 json.dumps(
                     {
                         "page": f"audit-{page_index + 1:05d}.jpg",
+                        "page_sha256": image_sha256(destination / f"audit-{page_index + 1:05d}.jpg"),
                         "items": [
                             {
                                 "item_id": int(record["item_id"]),
