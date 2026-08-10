@@ -16,6 +16,7 @@ import math
 import os
 import sys
 import tempfile
+import time
 import urllib.request
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -135,24 +136,30 @@ def prepare_large_batch(request_path: Path, workers: int) -> int:
         temp_directory = Path(record["temp_directory"])
         temp_directory.mkdir(parents=True, exist_ok=True)
         temporary = temp_directory / f"{item_id}.source.partial"
-        digest = hashlib.sha256()
-        received = 0
-        try:
-            with urllib.request.urlopen(str(record["source_download_url"]), timeout=180) as response:
-                with temporary.open("wb") as stream:
-                    while True:
-                        chunk = response.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        stream.write(chunk)
-                        digest.update(chunk)
-                        received += len(chunk)
-            if received != expected_size or digest.hexdigest() != expected_sha:
-                raise RuntimeError(f"source integrity mismatch for item {item_id}")
-            result = create_analysis_thumbnail(temporary, output, int(record["maximum_dimension"]))
-            return {"item_id": item_id, **result}
-        finally:
-            temporary.unlink(missing_ok=True)
+        for attempt in range(1, 4):
+            digest = hashlib.sha256()
+            received = 0
+            try:
+                with urllib.request.urlopen(str(record["source_download_url"]), timeout=180) as response:
+                    with temporary.open("wb") as stream:
+                        while True:
+                            chunk = response.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            stream.write(chunk)
+                            digest.update(chunk)
+                            received += len(chunk)
+                if received != expected_size or digest.hexdigest() != expected_sha:
+                    raise RuntimeError(f"source integrity mismatch for item {item_id}")
+                result = create_analysis_thumbnail(temporary, output, int(record["maximum_dimension"]))
+                return {"item_id": item_id, **result}
+            except Exception:
+                if attempt >= 3:
+                    raise
+                time.sleep(2 ** attempt)
+            finally:
+                temporary.unlink(missing_ok=True)
+        raise RuntimeError(f"large-source retry loop exhausted for item {item_id}")
 
     results: list[dict[str, Any]] = []
     with ThreadPoolExecutor(max_workers=max(1, min(8, workers))) as executor:
