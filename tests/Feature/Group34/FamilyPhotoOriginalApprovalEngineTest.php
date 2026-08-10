@@ -68,6 +68,17 @@ it('approves a canonical-held original with verified derivatives and replays saf
             ->where('parent_version_id', $source->id)
             ->whereIn('version_type', [MediaFileVersionType::WebDisplay, MediaFileVersionType::Thumbnail])
             ->get();
+        User::factory()->create([
+            'role' => 'viewer',
+            'account_state' => 'approved',
+            'email_verified_at' => now(),
+        ]);
+        $liveVerifier = require base_path('tools/family_photo_live_verify.php');
+        $liveResult = $liveVerifier([
+            'session_id' => $planned['session_id'],
+            'after_id' => 0,
+            'limit' => 100,
+        ]);
 
         expect($approved)->toMatchArray([
             'approved' => [(int) $item->id],
@@ -86,7 +97,10 @@ it('approves a canonical-held original with verified derivatives and replays saf
             ->and($versions->every(fn (MediaFileVersion $version): bool => $version->generation_status === GenerationStatus::Ready
                 && $version->is_preferred
                 && Storage::disk('archive_derivatives')->exists($version->storage_path)
-                && hash_equals(strtolower($version->sha256), hash('sha256', Storage::disk('archive_derivatives')->get($version->storage_path)))))->toBeTrue();
+                && hash_equals(strtolower($version->sha256), hash('sha256', Storage::disk('archive_derivatives')->get($version->storage_path)))))->toBeTrue()
+            ->and($liveResult['ids'])->toBe([$sourceItem->id])
+            ->and($liveResult['verified'])->toBe([$sourceItem->id])
+            ->and($liveResult['failed'])->toBe([]);
     } finally {
         File::deleteDirectory($directory);
     }
