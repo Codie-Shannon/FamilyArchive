@@ -105,6 +105,8 @@ def command_decide(arguments: argparse.Namespace) -> int:
         "evidence": arguments.evidence,
         "note": arguments.note,
         "census_thumbnail_sha256": census_record["thumbnail_sha256"],
+        "census_source_version_id": census_record["source_version_id"],
+        "census_source_sha256": census_record["source_sha256"],
     }
     write_jsonl(arguments.decisions, list(existing.values()))
     print(json.dumps(existing[arguments.item_id], separators=(",", ":")))
@@ -155,6 +157,8 @@ def command_batch_decide(arguments: argparse.Namespace) -> int:
             "evidence": evidence,
             "note": str(record.get("note", "")),
             "census_thumbnail_sha256": census_record["thumbnail_sha256"],
+            "census_source_version_id": census_record["source_version_id"],
+            "census_source_sha256": census_record["source_sha256"],
         }
 
     existing = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
@@ -226,6 +230,8 @@ def command_decide_page(arguments: argparse.Namespace) -> int:
             "evidence": arguments.page,
             "note": str(submitted_record.get("note", "")),
             "census_thumbnail_sha256": census_record["thumbnail_sha256"],
+            "census_source_version_id": census_record["source_version_id"],
+            "census_source_sha256": census_record["source_sha256"],
             "review_page": arguments.page,
             "review_page_sha256": page["page_sha256"],
             "review_page_digest": current_page_digest,
@@ -326,6 +332,8 @@ def command_prepare_page_templates(arguments: argparse.Namespace) -> int:
                 and decision.get("review_page_digest") == current_page_digest
                 and decision.get("review_proposal_digest") == manifest_item.get("proposal_digest")
                 and decision.get("census_thumbnail_sha256") == census_record.get("thumbnail_sha256")
+                and decision.get("census_source_version_id") == census_record.get("source_version_id")
+                and decision.get("census_source_sha256") == census_record.get("source_sha256")
                 and decision.get("decision") in {"single", "multi", "exclude"}
             )
             page_is_current = page_is_current and decision_is_current
@@ -451,6 +459,8 @@ def command_review_evidence_summary(arguments: argparse.Namespace) -> int:
             and decision.get("review_page_digest") == binding["page_digest"]
             and decision.get("review_proposal_digest") == binding["proposal_digest"]
             and decision.get("census_thumbnail_sha256") == census[item_id].get("thumbnail_sha256")
+            and decision.get("census_source_version_id") == census[item_id].get("source_version_id")
+            and decision.get("census_source_sha256") == census[item_id].get("source_sha256")
             and decision.get("decision") in {"single", "multi", "exclude"}
         ):
             current_decision_ids.add(item_id)
@@ -504,6 +514,8 @@ def command_materialize_automatic(arguments: argparse.Namespace) -> int:
             "evidence": "family_photo_census_engine_v2",
             "note": "High-confidence single-photo geometry; no split regions detected.",
             "census_thumbnail_sha256": record["thumbnail_sha256"],
+            "census_source_version_id": record["source_version_id"],
+            "census_source_sha256": record["source_sha256"],
         }
         added += 1
     write_jsonl(arguments.decisions, list(existing.values()))
