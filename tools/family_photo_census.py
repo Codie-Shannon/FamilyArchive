@@ -415,12 +415,10 @@ def analyze_one(metadata: dict[str, Any], thumbnail: Path) -> dict[str, Any]:
 
 
 def bind_source_identity(record: dict[str, Any], metadata: dict[str, Any]) -> None:
-    """Bind census output to the retained source and suppress exact duplicate work."""
+    """Bind census output to the retained source and its canonical original."""
     record["source_version_id"] = int(metadata["source_version_id"])
     record["source_sha256"] = str(metadata["source_sha256"])
     record["canonical_duplicate"] = bool(metadata.get("canonical_duplicate", False))
-    if record["canonical_duplicate"]:
-        record["review_state"] = "automatic_exact_duplicate"
 
 
 def apply_templates(records: list[dict[str, Any]], thumbnails: Path) -> int:
@@ -578,11 +576,7 @@ def automatic_single_audit_sheets(
     page_size: int = 20,
 ) -> int:
     singles = sorted(
-        (
-            record
-            for record in records
-            if record["classification"] == "single_high" and not record.get("canonical_duplicate", False)
-        ),
+        (record for record in records if record["classification"] == "single_high"),
         key=lambda record: int(record["position"]),
     )
     sample = [record for record in singles if int(record["thumbnail_sha256"][:8], 16) % 20 == 0]
@@ -699,7 +693,7 @@ def run_analyze(arguments: argparse.Namespace) -> int:
         "automatic_single_count": sum(
             1
             for record in records
-            if record["classification"] == "single_high" and not record.get("canonical_duplicate", False)
+            if record["classification"] == "single_high"
         ),
         "canonical_duplicate_count": sum(1 for record in records if record.get("canonical_duplicate", False)),
         "conceptual_output_count": sum(max(1, len(record["regions"])) for record in records),
