@@ -579,16 +579,8 @@ def automatic_single_audit_sheets(
         (record for record in records if record["classification"] == "single_high"),
         key=lambda record: int(record["position"]),
     )
-    sample = [record for record in singles if int(record["thumbnail_sha256"][:8], 16) % 20 == 0]
-    if singles and len(sample) < min(50, len(singles)):
-        existing = {int(record["item_id"]) for record in sample}
-        for record in sorted(singles, key=lambda value: value["thumbnail_sha256"]):
-            if int(record["item_id"]) in existing:
-                continue
-            sample.append(record)
-            existing.add(int(record["item_id"]))
-            if len(sample) >= min(50, len(singles)):
-                break
+    required = min(len(singles), max(50, math.ceil(len(singles) * 0.05))) if singles else 0
+    sample = sorted(singles, key=lambda value: (value["thumbnail_sha256"], int(value["item_id"])))[:required]
     rendered = render_contact_sheets(sample, thumbnails, destination, page_size, "audit")
     manifest.parent.mkdir(parents=True, exist_ok=True)
     temporary = manifest.with_suffix(manifest.suffix + ".tmp")
