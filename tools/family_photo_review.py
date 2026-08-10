@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import tempfile
@@ -24,7 +25,12 @@ def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
     handle, temporary = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
-            for record in sorted(records, key=lambda value: int(value["item_id"])):
+            for record in sorted(
+                records,
+                key=lambda value: (0, int(value["item_id"]))
+                if "item_id" in value
+                else (1, str(value.get("page", ""))),
+            ):
                 stream.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
         os.replace(temporary, path)
     finally:
@@ -122,6 +128,71 @@ def command_materialize_automatic(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def audit_page_digest(page: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(page, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def command_audit_page(arguments: argparse.Namespace) -> int:
+    manifest = {record["page"]: record for record in read_jsonl(arguments.audit_manifest)}
+    if arguments.page not in manifest:
+        raise ValueError("The audit page is not present in the deterministic manifest")
+    page = manifest[arguments.page]
+    page_ids = {int(item["item_id"]) for item in page["items"]}
+    false_negatives = {
+        int(value) for value in arguments.false_negative_item_ids.split(",") if value.strip()
+    }
+    if not false_negatives.issubset(page_ids):
+        raise ValueError("A false-negative item is not present on the audited page")
+    existing = {record["page"]: record for record in read_jsonl(arguments.audit_ledger)}
+    existing[arguments.page] = {
+        "page": arguments.page,
+        "page_digest": audit_page_digest(page),
+        "reviewed_at": datetime.now(timezone.utc).isoformat(),
+        "reviewer": "codex_automatic_single_visual_audit",
+        "false_negative_item_ids": sorted(false_negatives),
+        "note": arguments.note,
+    }
+    write_jsonl(arguments.audit_ledger, list(existing.values()))
+    print(json.dumps(existing[arguments.page], separators=(",", ":")))
+    return 0
+
+
+def command_audit_summary(arguments: argparse.Namespace) -> int:
+    pages = {record["page"]: record for record in read_jsonl(arguments.audit_manifest)}
+    audits = {record["page"]: record for record in read_jsonl(arguments.audit_ledger)}
+    decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    current = {
+        page_name: audit
+        for page_name, audit in audits.items()
+        if page_name in pages and audit.get("page_digest") == audit_page_digest(pages[page_name])
+    }
+    false_negatives = sorted(
+        {
+            int(item_id)
+            for audit in current.values()
+            for item_id in audit.get("false_negative_item_ids", [])
+        }
+    )
+    unresolved = [
+        item_id
+        for item_id in false_negatives
+        if decisions.get(item_id, {}).get("decision") != "multi"
+    ]
+    reviewed_items = sum(len(pages[page_name]["items"]) for page_name in current)
+    output = {
+        "page_count": len(pages),
+        "reviewed_page_count": len(current),
+        "sampled_source_count": sum(len(page["items"]) for page in pages.values()),
+        "reviewed_source_count": reviewed_items,
+        "false_negative_count": len(false_negatives),
+        "unresolved_false_negative_count": len(unresolved),
+        "pending_pages": sorted(set(pages) - set(current)),
+        "unresolved_item_ids": unresolved[:100],
+    }
+    print(json.dumps(output, separators=(",", ":")))
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser()
     subcommands = result.add_subparsers(dest="command", required=True)
@@ -142,6 +213,18 @@ def parser() -> argparse.ArgumentParser:
     automatic.add_argument("--census", type=Path, required=True)
     automatic.add_argument("--decisions", type=Path, required=True)
     automatic.set_defaults(handler=command_materialize_automatic)
+    audit_page = subcommands.add_parser("audit-page")
+    audit_page.add_argument("--audit-manifest", type=Path, required=True)
+    audit_page.add_argument("--audit-ledger", type=Path, required=True)
+    audit_page.add_argument("--page", required=True)
+    audit_page.add_argument("--false-negative-item-ids", default="")
+    audit_page.add_argument("--note", default="")
+    audit_page.set_defaults(handler=command_audit_page)
+    audit_summary = subcommands.add_parser("audit-summary")
+    audit_summary.add_argument("--audit-manifest", type=Path, required=True)
+    audit_summary.add_argument("--audit-ledger", type=Path, required=True)
+    audit_summary.add_argument("--decisions", type=Path, required=True)
+    audit_summary.set_defaults(handler=command_audit_summary)
     return result
 
 

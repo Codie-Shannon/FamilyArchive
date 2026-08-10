@@ -505,7 +505,11 @@ def contact_sheets(records: list[dict[str, Any]], thumbnails: Path, destination:
 
 
 def automatic_single_audit_sheets(
-    records: list[dict[str, Any]], thumbnails: Path, destination: Path, page_size: int = 20
+    records: list[dict[str, Any]],
+    thumbnails: Path,
+    destination: Path,
+    manifest: Path,
+    page_size: int = 20,
 ) -> int:
     singles = [record for record in records if record["classification"] == "single_high"]
     sample = [record for record in singles if int(record["thumbnail_sha256"][:8], 16) % 20 == 0]
@@ -518,7 +522,32 @@ def automatic_single_audit_sheets(
             existing.add(int(record["item_id"]))
             if len(sample) >= min(50, len(singles)):
                 break
-    return render_contact_sheets(sample, thumbnails, destination, page_size, "audit")
+    rendered = render_contact_sheets(sample, thumbnails, destination, page_size, "audit")
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    temporary = manifest.with_suffix(manifest.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8", newline="\n") as stream:
+        for page_index in range(math.ceil(len(sample) / page_size)):
+            page = sample[page_index * page_size : (page_index + 1) * page_size]
+            stream.write(
+                json.dumps(
+                    {
+                        "page": f"audit-{page_index + 1:05d}.jpg",
+                        "items": [
+                            {
+                                "item_id": int(record["item_id"]),
+                                "thumbnail_sha256": record["thumbnail_sha256"],
+                                "engine_version": record["engine_version"],
+                            }
+                            for record in page
+                        ],
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+    os.replace(temporary, manifest)
+    return rendered
 
 
 def run_analyze(arguments: argparse.Namespace) -> int:
@@ -569,6 +598,7 @@ def run_analyze(arguments: argparse.Namespace) -> int:
         records,
         arguments.thumbnails,
         arguments.audit_sheets,
+        arguments.audit_manifest,
         arguments.page_size,
     )
     counts = Counter(record["classification"] for record in records)
@@ -636,6 +666,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--state", type=Path)
     result.add_argument("--contact-sheets", type=Path)
     result.add_argument("--audit-sheets", type=Path)
+    result.add_argument("--audit-manifest", type=Path)
     result.add_argument("--page-size", type=int, default=20)
     result.add_argument("--workers", type=int, default=4)
     return result
@@ -652,6 +683,7 @@ def main() -> int:
         arguments.state,
         arguments.contact_sheets,
         arguments.audit_sheets,
+        arguments.audit_manifest,
     ]
     if any(value is None for value in required):
         raise SystemExit("manifest, thumbnails, ledger, state, and contact-sheets are required")
