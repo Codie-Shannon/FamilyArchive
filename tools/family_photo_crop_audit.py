@@ -162,6 +162,49 @@ def decide(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def decide_page(arguments: argparse.Namespace) -> int:
+    decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    pages = {record["page"]: record for record in read_jsonl(arguments.manifest)}
+    page = pages.get(arguments.page)
+    if page is None:
+        raise ValueError("The crop-audit page is not present in the current manifest")
+
+    item_ids = [int(item_id) for item_id in page.get("item_ids", [])]
+    if not item_ids or len(item_ids) != len(set(item_ids)):
+        raise ValueError("The crop-audit page has no items or contains duplicate item IDs")
+
+    expected_digests = page.get("decision_digests", {})
+    prepared: dict[int, dict[str, Any]] = {}
+    reviewed_at = datetime.now(timezone.utc).isoformat()
+    for item_id in item_ids:
+        decision = decisions.get(item_id)
+        if decision is None or decision.get("decision") != "multi":
+            raise ValueError(f"Item {item_id} is not a reviewed multi-photo decision")
+        current_digest = decision_digest(decision)
+        if expected_digests.get(str(item_id)) != current_digest:
+            raise ValueError(f"Item {item_id} no longer matches the rendered crop-audit page")
+        prepared[item_id] = {
+            "item_id": item_id,
+            "result": arguments.result,
+            "decision_digest": current_digest,
+            "reviewed_at": reviewed_at,
+            "reviewer": "codex_crop_visual_audit",
+            "evidence": arguments.page,
+            "note": arguments.note,
+        }
+
+    audits = {int(record["item_id"]): record for record in read_jsonl(arguments.audit)}
+    audits.update(prepared)
+    write_jsonl(arguments.audit, list(audits.values()))
+    print(
+        json.dumps(
+            {"page": arguments.page, "recorded": len(prepared), "result": arguments.result},
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def summary(arguments: argparse.Namespace) -> int:
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions) if record.get("decision") == "multi"}
     audits = {int(record["item_id"]): record for record in read_jsonl(arguments.audit)}
@@ -203,6 +246,14 @@ def parser() -> argparse.ArgumentParser:
     decide_command.add_argument("--evidence", required=True)
     decide_command.add_argument("--note", default="")
     decide_command.set_defaults(handler=decide)
+    decide_page_command = commands.add_parser("decide-page")
+    decide_page_command.add_argument("--decisions", type=Path, required=True)
+    decide_page_command.add_argument("--audit", type=Path, required=True)
+    decide_page_command.add_argument("--manifest", type=Path, required=True)
+    decide_page_command.add_argument("--page", required=True)
+    decide_page_command.add_argument("--result", choices=["pass", "fail"], required=True)
+    decide_page_command.add_argument("--note", default="")
+    decide_page_command.set_defaults(handler=decide_page)
     summary_command = commands.add_parser("summary")
     summary_command.add_argument("--decisions", type=Path, required=True)
     summary_command.add_argument("--audit", type=Path, required=True)
