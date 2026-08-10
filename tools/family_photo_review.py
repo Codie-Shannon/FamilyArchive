@@ -384,11 +384,20 @@ def command_prepare_page_templates(arguments: argparse.Namespace) -> int:
 def command_summary(arguments: argparse.Namespace) -> int:
     census = read_jsonl(arguments.census)
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
-    auto_single = sum(record["classification"] == "single_high" for record in census)
-    pending = [record for record in census if record["classification"] != "single_high" and int(record["item_id"]) not in decisions]
+    auto_single = sum(
+        record["classification"] == "single_high" and not record.get("canonical_duplicate", False)
+        for record in census
+    )
+    automatic_duplicates = sum(bool(record.get("canonical_duplicate", False)) for record in census)
+    pending = [
+        record
+        for record in census
+        if record.get("review_state") == "pending_visual_review" and int(record["item_id"]) not in decisions
+    ]
     summary = {
         "census_count": len(census),
         "automatic_single_count": auto_single,
+        "automatic_exact_duplicate_count": automatic_duplicates,
         "visual_decision_count": len(decisions),
         "pending_visual_count": len(pending),
         "pending_item_ids": [int(record["item_id"]) for record in pending[:100]],
@@ -487,7 +496,22 @@ def command_materialize_automatic(arguments: argparse.Namespace) -> int:
     added = 0
     for record in census:
         item_id = int(record["item_id"])
-        if record["classification"] != "single_high" or item_id in existing:
+        if item_id in existing:
+            continue
+        if record.get("canonical_duplicate", False):
+            existing[item_id] = {
+                "item_id": item_id,
+                "decision": "exclude",
+                "regions": [],
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
+                "reviewer": "automatic_exact_duplicate",
+                "evidence": "retained_sha256_matches_canonical_original",
+                "note": "Exact retained-byte duplicate is represented by its canonical archive original.",
+                "census_thumbnail_sha256": record["thumbnail_sha256"],
+            }
+            added += 1
+            continue
+        if record["classification"] != "single_high":
             continue
         existing[item_id] = {
             "item_id": item_id,
