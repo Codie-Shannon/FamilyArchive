@@ -291,6 +291,96 @@ def command_page_template(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def command_prepare_page_templates(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    pages = read_jsonl(arguments.review_manifest)
+    arguments.output.mkdir(parents=True, exist_ok=True)
+    generated: list[str] = []
+    preserved: list[str] = []
+    pending_pages: list[str] = []
+
+    for page in pages:
+        page_name = str(page.get("page", ""))
+        page_path = arguments.review_sheets / page_name
+        if not page_name or not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+            raise ValueError(f"The visual-review page bytes do not match the manifest: {page_name}")
+        current_page_digest = review_page_digest(page)
+        template: list[dict[str, Any]] = []
+        page_is_current = True
+        for manifest_item in page.get("items", []):
+            item_id = int(manifest_item["item_id"])
+            census_record = census.get(item_id)
+            if census_record is None or (
+                manifest_item.get("thumbnail_sha256") != census_record.get("thumbnail_sha256")
+                or manifest_item.get("engine_version") != census_record.get("engine_version")
+                or manifest_item.get("proposal_digest") != review_proposal_digest(census_record)
+            ):
+                raise ValueError(f"Item {item_id} no longer matches the rendered visual-review page")
+
+            decision = decisions.get(item_id)
+            decision_is_current = decision is not None and (
+                decision.get("reviewer") == "codex_visual_review"
+                and decision.get("review_page") == page_name
+                and decision.get("review_page_sha256") == page.get("page_sha256")
+                and decision.get("review_page_digest") == current_page_digest
+                and decision.get("review_proposal_digest") == manifest_item.get("proposal_digest")
+                and decision.get("census_thumbnail_sha256") == census_record.get("thumbnail_sha256")
+                and decision.get("decision") in {"single", "multi", "exclude"}
+            )
+            page_is_current = page_is_current and decision_is_current
+            if decision_is_current:
+                template.append(
+                    {
+                        "item_id": item_id,
+                        "decision": decision["decision"],
+                        "regions": decision.get("regions", []),
+                        "note": decision.get("note", ""),
+                    }
+                )
+                continue
+
+            proposed_regions = census_record.get("regions", [])
+            template.append(
+                {
+                    "item_id": item_id,
+                    "decision": "multi" if len(proposed_regions) >= 2 else "review_required",
+                    "regions": proposed_regions if len(proposed_regions) >= 2 else [],
+                    "note": "",
+                }
+            )
+
+        if page_is_current:
+            continue
+        pending_pages.append(page_name)
+        output_name = (
+            f"{Path(page_name).stem}.{str(page['page_sha256'])[:12]}."
+            f"{current_page_digest[:12]}.jsonl"
+        )
+        output_path = arguments.output / output_name
+        if output_path.exists():
+            preserved.append(str(output_path))
+        else:
+            write_jsonl(output_path, template)
+            generated.append(str(output_path))
+
+    print(
+        json.dumps(
+            {
+                "page_count": len(pages),
+                "pending_page_count": len(pending_pages),
+                "generated_template_count": len(generated),
+                "preserved_template_count": len(preserved),
+                "pending_pages": pending_pages[:100],
+                "generated_templates": generated[:100],
+                "preserved_templates": preserved[:100],
+            },
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def command_summary(arguments: argparse.Namespace) -> int:
     census = read_jsonl(arguments.census)
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
@@ -525,6 +615,13 @@ def parser() -> argparse.ArgumentParser:
     page_template.add_argument("--page", required=True)
     page_template.add_argument("--output", type=Path, required=True)
     page_template.set_defaults(handler=command_page_template)
+    prepare_templates = subcommands.add_parser("prepare-page-templates")
+    prepare_templates.add_argument("--census", type=Path, required=True)
+    prepare_templates.add_argument("--decisions", type=Path, required=True)
+    prepare_templates.add_argument("--review-manifest", type=Path, required=True)
+    prepare_templates.add_argument("--review-sheets", type=Path, required=True)
+    prepare_templates.add_argument("--output", type=Path, required=True)
+    prepare_templates.set_defaults(handler=command_prepare_page_templates)
     summary = subcommands.add_parser("summary")
     summary.add_argument("--census", type=Path, required=True)
     summary.add_argument("--decisions", type=Path, required=True)
