@@ -33,8 +33,7 @@ return static function (array $input): array {
                     $source = \App\Domain\Media\Models\MediaFileVersion::query()
                         ->find($promotion->original_media_file_version_id);
                 } else {
-                    $upload = \App\Domain\Intake\Models\IncomingUpload::query()
-                        ->find($item->incoming_upload_id);
+                    $upload = \App\Domain\Intake\Models\IncomingUpload::query()->find($item->incoming_upload_id);
                     $source = $upload === null ? null : \App\Domain\Media\Models\MediaFileVersion::query()
                         ->where('version_type', 'original')
                         ->where('sha256', $upload->sha256)
@@ -48,14 +47,15 @@ return static function (array $input): array {
                     || ! preg_match('/^[a-f0-9]{64}$/', $expectedSource['sha256'])
                     || (int) $source->id !== $expectedSource['version_id']
                     || ! hash_equals($expectedSource['sha256'], strtolower((string) $source->sha256))) {
-                    throw new RuntimeException('The reviewed exclusion no longer matches its immutable census source.');
+                    throw new RuntimeException('The reviewed single decision no longer matches its immutable census source.');
                 }
+
                 $proposal = \App\Domain\Processing\Models\PhotoSplitProposal::query()
                     ->where('cloud_import_item_id', $itemId)
                     ->lockForUpdate()
                     ->first();
                 if ($proposal?->state === 'published') {
-                    throw new RuntimeException('A published split cannot be excluded.');
+                    throw new RuntimeException('A published split cannot be changed to single.');
                 }
                 if ($proposal) {
                     $proposal->forceFill([
@@ -64,20 +64,10 @@ return static function (array $input): array {
                         'reviewed_at' => now(),
                     ])->save();
                 }
-                $mediaItem = $source === null ? null : \App\Domain\Media\Models\MediaItem::query()->find($source->media_item_id);
-                if ($mediaItem) {
-                    $mediaItem->forceFill([
-                        'review_status' => \App\Domain\Media\Enums\MediaReviewStatus::Hidden,
-                        'visibility' => \App\Domain\Media\Enums\MediaVisibility::PrivateArchive,
-                        'approved_by' => null,
-                        'approved_at' => null,
-                    ])->save();
-                }
                 \Illuminate\Support\Facades\DB::table('cloud_import_items')->where('id', $itemId)->update([
-                    'review_decision' => 'hold',
-                    'attention_code' => 'split_review_excluded',
-                    'reviewed_by' => $actor->id,
-                    'reviewed_at' => now(),
+                    'attention_code' => in_array($item->attention_code, ['multiple_photos_detected', 'multi_photo_ready'], true)
+                        ? null
+                        : $item->attention_code,
                     'updated_at' => now(),
                 ]);
 
