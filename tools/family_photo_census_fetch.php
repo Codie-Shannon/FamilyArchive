@@ -19,7 +19,7 @@ return static function (array $input): array {
         ->leftJoinSub($canonicalVersions, 'canonical_index', static function ($join): void {
             $join->on('canonical_index.sha256', '=', 'iu.sha256');
         })
-        ->join('media_file_versions as src', static function ($join): void {
+        ->leftJoin('media_file_versions as src', static function ($join): void {
             $join->on('src.id', '=', \Illuminate\Support\Facades\DB::raw('COALESCE(ap.original_media_file_version_id, canonical_index.id)'));
         })
         ->where('ci.cloud_import_session_id', $session->id)
@@ -44,6 +44,9 @@ return static function (array $input): array {
     $rows = [];
     foreach ($items as $item) {
         try {
+            if ($item->source_version_id === null) {
+                throw new RuntimeException('No canonical original version represents this retained source.');
+            }
             $bytes = \Illuminate\Support\Facades\Storage::disk('archive_quarantine')->get($item->incoming_path);
             if (strlen($bytes) !== (int) $item->retained_bytes
                 || ! hash_equals(strtolower((string) $item->retained_sha256), hash('sha256', $bytes))) {
