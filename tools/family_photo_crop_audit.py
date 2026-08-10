@@ -56,6 +56,18 @@ def decision_digest(decision: dict[str, Any]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def audit_page_digest(page: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(page, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
 def crop(image: np.ndarray, region: dict[str, Any]) -> np.ndarray:
     height, width = image.shape[:2]
     x1 = max(0, min(width - 1, round(int(region["x"]) / 10000 * width)))
@@ -131,6 +143,7 @@ def render(arguments: argparse.Namespace) -> int:
         manifest.append(
             {
                 "page": page_path.name,
+                "page_sha256": file_sha256(page_path),
                 "item_ids": item_ids,
                 "decision_digests": {str(int(record["item_id"])): decision_digest(record) for record in page},
             }
@@ -168,6 +181,9 @@ def decide_page(arguments: argparse.Namespace) -> int:
     page = pages.get(arguments.page)
     if page is None:
         raise ValueError("The crop-audit page is not present in the current manifest")
+    page_path = arguments.sheets / arguments.page
+    if not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+        raise ValueError("The crop-audit page bytes do not match the current manifest")
 
     item_ids = [int(item_id) for item_id in page.get("item_ids", [])]
     if not item_ids or len(item_ids) != len(set(item_ids)):
@@ -191,6 +207,9 @@ def decide_page(arguments: argparse.Namespace) -> int:
             "reviewer": "codex_crop_visual_audit",
             "evidence": arguments.page,
             "note": arguments.note,
+            "audit_page": arguments.page,
+            "audit_page_sha256": page["page_sha256"],
+            "audit_page_digest": audit_page_digest(page),
         }
 
     audits = {int(record["item_id"]): record for record in read_jsonl(arguments.audit)}
@@ -208,11 +227,47 @@ def decide_page(arguments: argparse.Namespace) -> int:
 def summary(arguments: argparse.Namespace) -> int:
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions) if record.get("decision") == "multi"}
     audits = {int(record["item_id"]): record for record in read_jsonl(arguments.audit)}
-    current = {
-        item_id: audit
-        for item_id, audit in audits.items()
-        if item_id in decisions and audit.get("decision_digest") == decision_digest(decisions[item_id])
-    }
+    pages = read_jsonl(arguments.manifest)
+    bindings: dict[int, dict[str, Any]] = {}
+    duplicate_manifest_item_ids: set[int] = set()
+    page_byte_mismatches: list[str] = []
+    for page in pages:
+        page_name = str(page.get("page", ""))
+        page_path = arguments.sheets / page_name
+        if not page_name or not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+            page_byte_mismatches.append(page_name)
+        binding = {
+            "page": page_name,
+            "page_sha256": page.get("page_sha256"),
+            "page_digest": audit_page_digest(page),
+            "decision_digests": page.get("decision_digests", {}),
+        }
+        for raw_item_id in page.get("item_ids", []):
+            item_id = int(raw_item_id)
+            if item_id in bindings:
+                duplicate_manifest_item_ids.add(item_id)
+            bindings[item_id] = binding
+
+    current: dict[int, dict[str, Any]] = {}
+    stale_audit_item_ids: list[int] = []
+    for item_id, audit in audits.items():
+        decision = decisions.get(item_id)
+        binding = bindings.get(item_id)
+        if decision is None or binding is None:
+            stale_audit_item_ids.append(item_id)
+            continue
+        current_decision_digest = decision_digest(decision)
+        if (
+            audit.get("decision_digest") == current_decision_digest
+            and binding["decision_digests"].get(str(item_id)) == current_decision_digest
+            and audit.get("audit_page") == binding["page"]
+            and audit.get("audit_page_sha256") == binding["page_sha256"]
+            and audit.get("audit_page_digest") == binding["page_digest"]
+            and binding["page"] not in page_byte_mismatches
+        ):
+            current[item_id] = audit
+        else:
+            stale_audit_item_ids.append(item_id)
     failed = sorted(item_id for item_id, audit in current.items() if audit.get("result") == "fail")
     pending = sorted(item_id for item_id in decisions if item_id not in current)
     output = {
@@ -220,8 +275,15 @@ def summary(arguments: argparse.Namespace) -> int:
         "passed_count": sum(audit.get("result") == "pass" for audit in current.values()),
         "failed_count": len(failed),
         "pending_count": len(pending),
+        "manifest_source_count": len(bindings),
+        "stale_audit_count": len(stale_audit_item_ids),
+        "duplicate_manifest_item_count": len(duplicate_manifest_item_ids),
+        "page_byte_mismatch_count": len(page_byte_mismatches),
         "failed_item_ids": failed[:100],
         "pending_item_ids": pending[:100],
+        "stale_audit_item_ids": sorted(stale_audit_item_ids)[:100],
+        "duplicate_manifest_item_ids": sorted(duplicate_manifest_item_ids)[:100],
+        "page_byte_mismatches": page_byte_mismatches[:100],
     }
     print(json.dumps(output, separators=(",", ":")))
     return 0
@@ -250,6 +312,7 @@ def parser() -> argparse.ArgumentParser:
     decide_page_command.add_argument("--decisions", type=Path, required=True)
     decide_page_command.add_argument("--audit", type=Path, required=True)
     decide_page_command.add_argument("--manifest", type=Path, required=True)
+    decide_page_command.add_argument("--sheets", type=Path, required=True)
     decide_page_command.add_argument("--page", required=True)
     decide_page_command.add_argument("--result", choices=["pass", "fail"], required=True)
     decide_page_command.add_argument("--note", default="")
@@ -257,6 +320,8 @@ def parser() -> argparse.ArgumentParser:
     summary_command = commands.add_parser("summary")
     summary_command.add_argument("--decisions", type=Path, required=True)
     summary_command.add_argument("--audit", type=Path, required=True)
+    summary_command.add_argument("--manifest", type=Path, required=True)
+    summary_command.add_argument("--sheets", type=Path, required=True)
     summary_command.set_defaults(handler=summary)
     return result
 
