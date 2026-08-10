@@ -3,7 +3,7 @@
 return static function (array $input): array {
     $sessionId = (string) ($input['session_id'] ?? '');
     $after = max(0, (int) ($input['after'] ?? 0));
-    $limit = max(1, min(30, (int) ($input['limit'] ?? 10)));
+    $limit = max(1, min(100, (int) ($input['limit'] ?? 100)));
     $maximum = max(320, min(1200, (int) ($input['maximum_dimension'] ?? 720)));
 
     $session = \Illuminate\Support\Facades\DB::table('cloud_import_sessions')
