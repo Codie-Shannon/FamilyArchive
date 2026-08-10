@@ -47,42 +47,11 @@ return static function (array $input): array {
             if ($item->source_version_id === null) {
                 throw new RuntimeException('No canonical original version represents this retained source.');
             }
-            $bytes = \Illuminate\Support\Facades\Storage::disk('archive_quarantine')->get($item->incoming_path);
-            if (strlen($bytes) !== (int) $item->retained_bytes
-                || ! hash_equals(strtolower((string) $item->retained_sha256), hash('sha256', $bytes))) {
-                throw new RuntimeException('Retained source integrity check failed.');
-            }
-
-            $source = @imagecreatefromstring($bytes);
-            if (! $source) {
-                throw new RuntimeException('Source decode failed.');
-            }
-            $width = imagesx($source);
-            $height = imagesy($source);
-            $scale = min(1, $maximum / max($width, $height));
-            $targetWidth = max(1, (int) round($width * $scale));
-            $targetHeight = max(1, (int) round($height * $scale));
-            $thumbnailImage = imagecreatetruecolor($targetWidth, $targetHeight);
-            imagecopyresampled(
-                $thumbnailImage,
-                $source,
-                0,
-                0,
-                0,
-                0,
-                $targetWidth,
-                $targetHeight,
-                $width,
-                $height
-            );
-            ob_start();
-            $encoded = imagewebp($thumbnailImage, null, 78);
-            $thumbnail = ob_get_clean();
-            imagedestroy($thumbnailImage);
-            imagedestroy($source);
-            if (! $encoded || ! is_string($thumbnail)) {
-                throw new RuntimeException('Thumbnail encode failed.');
-            }
+            // Keep the remote command bounded: it returns only short-lived private
+            // object URLs and metadata. The local worker downloads in parallel,
+            // verifies every byte count and SHA, then performs reduced-scale decode.
+            $sourceDownloadUrl = \Illuminate\Support\Facades\Storage::disk('archive_quarantine')
+                ->temporaryUrl($item->incoming_path, now()->addMinutes(15));
 
             $proposal = \App\Domain\Processing\Models\PhotoSplitProposal::with('regions')
                 ->where('cloud_import_item_id', $item->item_id)
@@ -116,13 +85,16 @@ return static function (array $input): array {
                 'attention_code' => $item->attention_code,
                 'source_version_id' => (int) $item->source_version_id,
                 'source_sha256' => (string) $item->retained_sha256,
+                'source_bytes' => (int) $item->retained_bytes,
                 'canonical_duplicate' => $item->promotion_id === null,
                 'width' => (int) $item->width,
                 'height' => (int) $item->height,
                 'content_classification' => (string) ($sourceMetadata['content_safety']['classification'] ?? 'clear'),
                 'split_proposal' => $proposalData,
-                'thumbnail_sha256' => hash('sha256', $thumbnail),
-                'thumbnail_base64' => base64_encode($thumbnail),
+                'thumbnail_sha256' => null,
+                'thumbnail_base64' => null,
+                'local_thumbnail_required' => true,
+                'source_download_url' => $sourceDownloadUrl,
             ];
         } catch (Throwable $exception) {
             $rows[] = [

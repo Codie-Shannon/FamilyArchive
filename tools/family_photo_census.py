@@ -16,6 +16,7 @@ import math
 import os
 import sys
 import tempfile
+import urllib.request
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -29,7 +30,7 @@ if LOCAL_DEPENDENCIES.is_dir():
 import cv2
 import numpy as np
 
-ENGINE_VERSION = 5
+ENGINE_VERSION = 6
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,82 @@ def image_sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def create_analysis_thumbnail(source: Path, output: Path, maximum_dimension: int) -> dict[str, Any]:
+    if maximum_dimension < 320 or maximum_dimension > 1200:
+        raise ValueError("maximum dimension must be between 320 and 1200")
+    with source.open("rb") as stream:
+        is_jpeg = stream.read(2) == b"\xff\xd8"
+    image = cv2.imread(
+        str(source),
+        cv2.IMREAD_REDUCED_COLOR_8 if is_jpeg else cv2.IMREAD_COLOR,
+    )
+    if image is None:
+        raise RuntimeError(f"Unable to decode verified source {source.name}")
+    height, width = image.shape[:2]
+    scale = min(1.0, maximum_dimension / max(width, height))
+    target_width = max(1, round(width * scale))
+    target_height = max(1, round(height * scale))
+    if (target_width, target_height) != (width, height):
+        image = cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_AREA)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    if not cv2.imwrite(str(output), image, [cv2.IMWRITE_WEBP_QUALITY, 78]):
+        raise RuntimeError(f"Unable to encode analysis thumbnail {output.name}")
+    return {
+        "width": target_width,
+        "height": target_height,
+        "sha256": image_sha256(output),
+    }
+
+
+def resize_verified_source(source: Path, output: Path, maximum_dimension: int) -> int:
+    print(json.dumps(create_analysis_thumbnail(source, output, maximum_dimension), sort_keys=True))
+    return 0
+
+
+def prepare_large_batch(request_path: Path, workers: int) -> int:
+    requests = json.loads(request_path.read_text(encoding="utf-8"))
+    if not isinstance(requests, list) or not requests:
+        raise ValueError("large-source request must contain at least one item")
+
+    def prepare(record: dict[str, Any]) -> dict[str, Any]:
+        item_id = int(record["item_id"])
+        expected_size = int(record["source_bytes"])
+        expected_sha = str(record["source_sha256"]).lower()
+        output = Path(record["output"])
+        temp_directory = Path(record["temp_directory"])
+        temp_directory.mkdir(parents=True, exist_ok=True)
+        temporary = temp_directory / f"{item_id}.source.partial"
+        digest = hashlib.sha256()
+        received = 0
+        try:
+            with urllib.request.urlopen(str(record["source_download_url"]), timeout=180) as response:
+                with temporary.open("wb") as stream:
+                    while True:
+                        chunk = response.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        stream.write(chunk)
+                        digest.update(chunk)
+                        received += len(chunk)
+            if received != expected_size or digest.hexdigest() != expected_sha:
+                raise RuntimeError(f"source integrity mismatch for item {item_id}")
+            result = create_analysis_thumbnail(temporary, output, int(record["maximum_dimension"]))
+            return {"item_id": item_id, **result}
+        finally:
+            temporary.unlink(missing_ok=True)
+
+    results: list[dict[str, Any]] = []
+    with ThreadPoolExecutor(max_workers=max(1, min(8, workers))) as executor:
+        pending = {executor.submit(prepare, record): int(record["item_id"]) for record in requests}
+        for future in as_completed(pending):
+            try:
+                results.append(future.result())
+            except Exception as exception:
+                raise RuntimeError(f"large-source preparation failed for item {pending[future]}: {exception}") from exception
+    print(json.dumps({"results": sorted(results, key=lambda value: value["item_id"])}, sort_keys=True))
+    return 0
 
 
 def intersection_over_union(left: Region, right: Region) -> float:
@@ -773,6 +850,10 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--audit-manifest", type=Path)
     result.add_argument("--page-size", type=int, default=20)
     result.add_argument("--workers", type=int, default=4)
+    result.add_argument("--resize-source", type=Path)
+    result.add_argument("--prepare-large-batch", type=Path)
+    result.add_argument("--output", type=Path)
+    result.add_argument("--max-dimension", type=int, default=720)
     return result
 
 
@@ -780,6 +861,12 @@ def main() -> int:
     arguments = parser().parse_args()
     if arguments.self_test:
         return self_test()
+    if arguments.resize_source is not None:
+        if arguments.output is None:
+            raise SystemExit("--output is required with --resize-source")
+        return resize_verified_source(arguments.resize_source, arguments.output, arguments.max_dimension)
+    if arguments.prepare_large_batch is not None:
+        return prepare_large_batch(arguments.prepare_large_batch, arguments.workers)
     required = [
         arguments.manifest,
         arguments.thumbnails,
