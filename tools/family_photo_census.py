@@ -500,8 +500,65 @@ def render_contact_sheets(
 
 
 def contact_sheets(records: list[dict[str, Any]], thumbnails: Path, destination: Path, page_size: int = 20) -> int:
-    queue = [record for record in records if record["review_state"] == "pending_visual_review"]
+    queue = sorted(
+        (record for record in records if record["review_state"] == "pending_visual_review"),
+        key=lambda record: int(record["position"]),
+    )
     return render_contact_sheets(queue, thumbnails, destination, page_size, "review")
+
+
+def review_proposal_digest(record: dict[str, Any]) -> str:
+    payload = {
+        "item_id": int(record["item_id"]),
+        "classification": record["classification"],
+        "regions": record.get("regions", []),
+        "thumbnail_sha256": record["thumbnail_sha256"],
+        "engine_version": record["engine_version"],
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def review_sheet_manifest(
+    records: list[dict[str, Any]],
+    sheets: Path,
+    manifest: Path,
+    page_size: int = 20,
+) -> int:
+    queue = sorted(
+        (record for record in records if record["review_state"] == "pending_visual_review"),
+        key=lambda record: int(record["position"]),
+    )
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    temporary = manifest.with_suffix(manifest.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8", newline="\n") as stream:
+        for page_index in range(math.ceil(len(queue) / page_size)):
+            page = queue[page_index * page_size : (page_index + 1) * page_size]
+            page_name = f"review-{page_index + 1:05d}.jpg"
+            page_path = sheets / page_name
+            if not page_path.is_file():
+                raise RuntimeError(f"Rendered visual-review sheet is missing: {page_path}")
+            stream.write(
+                json.dumps(
+                    {
+                        "page": page_name,
+                        "page_sha256": image_sha256(page_path),
+                        "items": [
+                            {
+                                "item_id": int(record["item_id"]),
+                                "thumbnail_sha256": record["thumbnail_sha256"],
+                                "engine_version": record["engine_version"],
+                                "proposal_digest": review_proposal_digest(record),
+                            }
+                            for record in page
+                        ],
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+    os.replace(temporary, manifest)
+    return len(queue)
 
 
 def automatic_single_audit_sheets(
@@ -511,7 +568,10 @@ def automatic_single_audit_sheets(
     manifest: Path,
     page_size: int = 20,
 ) -> int:
-    singles = [record for record in records if record["classification"] == "single_high"]
+    singles = sorted(
+        (record for record in records if record["classification"] == "single_high"),
+        key=lambda record: int(record["position"]),
+    )
     sample = [record for record in singles if int(record["thumbnail_sha256"][:8], 16) % 20 == 0]
     if singles and len(sample) < min(50, len(singles)):
         existing = {int(record["item_id"]) for record in sample}
@@ -591,9 +651,18 @@ def run_analyze(arguments: argparse.Namespace) -> int:
             atomic_json(arguments.state, {"status": "running", "processed": completed, "total": len(manifest), "failures": len(failures), "workers": arguments.workers})
     executor.shutdown(wait=True)
 
+    records.sort(key=lambda record: int(record["position"]))
     promoted = apply_templates(records, arguments.thumbnails)
     write_ledger(arguments.ledger, records)
     review_count = contact_sheets(records, arguments.thumbnails, arguments.contact_sheets, arguments.page_size)
+    manifested_review_count = review_sheet_manifest(
+        records,
+        arguments.contact_sheets,
+        arguments.review_manifest,
+        arguments.page_size,
+    )
+    if manifested_review_count != review_count:
+        raise RuntimeError("The visual-review manifest does not reconcile with the rendered review sheets")
     audit_count = automatic_single_audit_sheets(
         records,
         arguments.thumbnails,
@@ -653,6 +722,32 @@ def self_test() -> int:
         scene = analyze_one({"item_id": 2, "position": 2}, single_path)
         if scene["classification"] in {"multi_high", "multi_review"}:
             raise RuntimeError(f"Synthetic ordinary scene was split: {scene}")
+
+        review_records = [
+            {
+                "item_id": item_id,
+                "position": position,
+                "review_state": "pending_visual_review",
+                "classification": "multi_high",
+                "regions": [
+                    {"x": 0, "y": 0, "width": 5000, "height": 10000},
+                    {"x": 5000, "y": 0, "width": 5000, "height": 10000},
+                ],
+                "thumbnail_sha256": str(item_id) * 64,
+                "engine_version": ENGINE_VERSION,
+            }
+            for item_id, position in [(3, 2), (1, 1)]
+        ]
+        review_sheets = root / "review-sheets"
+        review_sheets.mkdir()
+        (review_sheets / "review-00001.jpg").write_bytes(b"deterministic-review-sheet")
+        review_manifest = root / "review-manifest.jsonl"
+        review_sheet_manifest(review_records, review_sheets, review_manifest, 20)
+        pages = read_jsonl(review_manifest)
+        if [item["item_id"] for item in pages[0]["items"]] != [1, 3]:
+            raise RuntimeError("Visual-review manifest ordering is not deterministic")
+        if pages[0]["page_sha256"] != image_sha256(review_sheets / "review-00001.jpg"):
+            raise RuntimeError("Visual-review manifest is not bound to the rendered page bytes")
     print('{"self_test":"passed"}')
     return 0
 
@@ -665,6 +760,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--ledger", type=Path)
     result.add_argument("--state", type=Path)
     result.add_argument("--contact-sheets", type=Path)
+    result.add_argument("--review-manifest", type=Path)
     result.add_argument("--audit-sheets", type=Path)
     result.add_argument("--audit-manifest", type=Path)
     result.add_argument("--page-size", type=int, default=20)
@@ -682,6 +778,7 @@ def main() -> int:
         arguments.ledger,
         arguments.state,
         arguments.contact_sheets,
+        arguments.review_manifest,
         arguments.audit_sheets,
         arguments.audit_manifest,
     ]

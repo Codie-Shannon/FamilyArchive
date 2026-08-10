@@ -61,6 +61,29 @@ def validate_regions(regions: Any) -> list[dict[str, Any]]:
     return validated
 
 
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def review_proposal_digest(record: dict[str, Any]) -> str:
+    payload = {
+        "item_id": int(record["item_id"]),
+        "classification": record["classification"],
+        "regions": record.get("regions", []),
+        "thumbnail_sha256": record["thumbnail_sha256"],
+        "engine_version": record["engine_version"],
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def review_page_digest(page: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(page, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
 def command_decide(arguments: argparse.Namespace) -> int:
     census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
     if arguments.item_id not in census:
@@ -151,6 +174,76 @@ def command_batch_decide(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def command_decide_page(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    pages = {record["page"]: record for record in read_jsonl(arguments.review_manifest)}
+    page = pages.get(arguments.page)
+    if page is None:
+        raise ValueError("The visual-review page is not present in the current manifest")
+
+    page_path = arguments.review_sheets / arguments.page
+    if not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+        raise ValueError("The visual-review page bytes do not match the current manifest")
+
+    page_items = {int(item["item_id"]): item for item in page.get("items", [])}
+    submitted = read_jsonl(arguments.input)
+    submitted_by_id = {int(record["item_id"]): record for record in submitted}
+    if not page_items or len(submitted_by_id) != len(submitted):
+        raise ValueError("The page decision input is empty or contains duplicate item IDs")
+    if set(submitted_by_id) != set(page_items):
+        raise ValueError("The page decision input must decide every item on exactly one review page")
+
+    prepared: dict[int, dict[str, Any]] = {}
+    reviewed_at = datetime.now(timezone.utc).isoformat()
+    current_page_digest = review_page_digest(page)
+    for item_id, manifest_item in page_items.items():
+        census_record = census.get(item_id)
+        if census_record is None:
+            raise ValueError(f"Item {item_id} is not present in the census ledger")
+        if (
+            manifest_item.get("thumbnail_sha256") != census_record.get("thumbnail_sha256")
+            or manifest_item.get("engine_version") != census_record.get("engine_version")
+            or manifest_item.get("proposal_digest") != review_proposal_digest(census_record)
+        ):
+            raise ValueError(f"Item {item_id} no longer matches the rendered visual-review page")
+
+        submitted_record = submitted_by_id[item_id]
+        decision = str(submitted_record.get("decision", ""))
+        if decision not in {"single", "multi", "exclude"}:
+            raise ValueError(f"Item {item_id} has an unsupported decision")
+        regions: list[dict[str, Any]] = []
+        if decision == "multi":
+            regions = validate_regions(submitted_record.get("regions", census_record.get("regions")))
+        elif submitted_record.get("regions"):
+            raise ValueError(f"Item {item_id} supplies regions for a non-multi decision")
+
+        prepared[item_id] = {
+            "item_id": item_id,
+            "decision": decision,
+            "regions": regions,
+            "reviewed_at": reviewed_at,
+            "reviewer": "codex_visual_review",
+            "evidence": arguments.page,
+            "note": str(submitted_record.get("note", "")),
+            "census_thumbnail_sha256": census_record["thumbnail_sha256"],
+            "review_page": arguments.page,
+            "review_page_sha256": page["page_sha256"],
+            "review_page_digest": current_page_digest,
+            "review_proposal_digest": manifest_item["proposal_digest"],
+        }
+
+    existing = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    existing.update(prepared)
+    write_jsonl(arguments.decisions, list(existing.values()))
+    print(
+        json.dumps(
+            {"page": arguments.page, "applied": len(prepared), "total_decisions": len(existing)},
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def command_summary(arguments: argparse.Namespace) -> int:
     census = read_jsonl(arguments.census)
     decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
@@ -164,6 +257,82 @@ def command_summary(arguments: argparse.Namespace) -> int:
         "pending_item_ids": [int(record["item_id"]) for record in pending[:100]],
     }
     print(json.dumps(summary, separators=(",", ":")))
+    return 0
+
+
+def command_review_evidence_summary(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    pages = read_jsonl(arguments.review_manifest)
+    bindings: dict[int, dict[str, Any]] = {}
+    duplicate_item_ids: set[int] = set()
+    stale_manifest_item_ids: set[int] = set()
+    page_byte_mismatches: list[str] = []
+
+    for page in pages:
+        page_name = str(page.get("page", ""))
+        page_path = arguments.review_sheets / page_name
+        if not page_name or not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+            page_byte_mismatches.append(page_name)
+        current_page_digest = review_page_digest(page)
+        for manifest_item in page.get("items", []):
+            item_id = int(manifest_item["item_id"])
+            if item_id in bindings:
+                duplicate_item_ids.add(item_id)
+            census_record = census.get(item_id)
+            if census_record is None or (
+                manifest_item.get("thumbnail_sha256") != census_record.get("thumbnail_sha256")
+                or manifest_item.get("engine_version") != census_record.get("engine_version")
+                or manifest_item.get("proposal_digest") != review_proposal_digest(census_record)
+            ):
+                stale_manifest_item_ids.add(item_id)
+            bindings[item_id] = {
+                "page": page_name,
+                "page_sha256": page.get("page_sha256"),
+                "page_digest": current_page_digest,
+                "proposal_digest": manifest_item.get("proposal_digest"),
+            }
+
+    visual_item_ids = {
+        item_id for item_id, record in census.items() if record.get("classification") != "single_high"
+    }
+    current_decision_ids: set[int] = set()
+    stale_decision_ids: set[int] = set()
+    for item_id in visual_item_ids:
+        decision = decisions.get(item_id)
+        binding = bindings.get(item_id)
+        if decision is None or binding is None:
+            continue
+        if (
+            decision.get("reviewer") == "codex_visual_review"
+            and decision.get("review_page") == binding["page"]
+            and decision.get("review_page_sha256") == binding["page_sha256"]
+            and decision.get("review_page_digest") == binding["page_digest"]
+            and decision.get("review_proposal_digest") == binding["proposal_digest"]
+            and decision.get("census_thumbnail_sha256") == census[item_id].get("thumbnail_sha256")
+            and decision.get("decision") in {"single", "multi", "exclude"}
+        ):
+            current_decision_ids.add(item_id)
+        else:
+            stale_decision_ids.add(item_id)
+
+    output = {
+        "page_count": len(pages),
+        "visual_source_count": len(visual_item_ids),
+        "manifest_source_count": len(bindings),
+        "current_decision_count": len(current_decision_ids),
+        "pending_decision_count": len(visual_item_ids - current_decision_ids - stale_decision_ids),
+        "stale_decision_count": len(stale_decision_ids),
+        "duplicate_manifest_item_count": len(duplicate_item_ids),
+        "stale_manifest_item_count": len(stale_manifest_item_ids),
+        "page_byte_mismatch_count": len(page_byte_mismatches),
+        "pending_item_ids": sorted(visual_item_ids - current_decision_ids - stale_decision_ids)[:100],
+        "stale_decision_item_ids": sorted(stale_decision_ids)[:100],
+        "duplicate_manifest_item_ids": sorted(duplicate_item_ids)[:100],
+        "stale_manifest_item_ids": sorted(stale_manifest_item_ids)[:100],
+        "page_byte_mismatches": page_byte_mismatches[:100],
+    }
+    print(json.dumps(output, separators=(",", ":")))
     return 0
 
 
@@ -273,10 +442,24 @@ def parser() -> argparse.ArgumentParser:
     batch_decide.add_argument("--decisions", type=Path, required=True)
     batch_decide.add_argument("--input", type=Path, required=True)
     batch_decide.set_defaults(handler=command_batch_decide)
+    decide_page = subcommands.add_parser("decide-page")
+    decide_page.add_argument("--census", type=Path, required=True)
+    decide_page.add_argument("--decisions", type=Path, required=True)
+    decide_page.add_argument("--review-manifest", type=Path, required=True)
+    decide_page.add_argument("--review-sheets", type=Path, required=True)
+    decide_page.add_argument("--page", required=True)
+    decide_page.add_argument("--input", type=Path, required=True)
+    decide_page.set_defaults(handler=command_decide_page)
     summary = subcommands.add_parser("summary")
     summary.add_argument("--census", type=Path, required=True)
     summary.add_argument("--decisions", type=Path, required=True)
     summary.set_defaults(handler=command_summary)
+    review_evidence = subcommands.add_parser("review-evidence-summary")
+    review_evidence.add_argument("--census", type=Path, required=True)
+    review_evidence.add_argument("--decisions", type=Path, required=True)
+    review_evidence.add_argument("--review-manifest", type=Path, required=True)
+    review_evidence.add_argument("--review-sheets", type=Path, required=True)
+    review_evidence.set_defaults(handler=command_review_evidence_summary)
     automatic = subcommands.add_parser("materialize-automatic")
     automatic.add_argument("--census", type=Path, required=True)
     automatic.add_argument("--decisions", type=Path, required=True)
