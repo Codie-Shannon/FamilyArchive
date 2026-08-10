@@ -36,7 +36,7 @@ final class ApprovedPhotoGalleryQuery
         $query = MediaItem::query()
             ->select(['id', 'archive_id', 'title', 'approved_at'])
             ->with(['fileVersions' => fn ($query) => $query
-                ->select(['id', 'media_item_id', 'parent_version_id', 'version_type', 'storage_disk', 'mime_type', 'extension', 'generation_status', 'is_preferred'])
+                ->select(['id', 'media_item_id', 'parent_version_id', 'version_type', 'storage_disk', 'mime_type', 'extension', 'generation_status', 'generation_recipe', 'is_preferred'])
                 ->whereIn('version_type', [MediaFileVersionType::Original, MediaFileVersionType::EditedFull, MediaFileVersionType::Thumbnail]),
                 'fileVersions.restorationCandidate:id,candidate_version_id,source_version_id,review_state',
             ])

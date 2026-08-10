@@ -88,6 +88,29 @@ it('publishes a canonical-held source privately, replays idempotently, then make
         $payload['make_family_visible'] = true;
         $published = $engine($payload);
         $children = MediaItem::query()->whereIn('id', $published['outputs'])->get();
+        User::factory()->create([
+            'role' => 'viewer',
+            'account_state' => 'approved',
+            'email_verified_at' => now(),
+        ]);
+        $liveVerifier = require base_path('tools/family_photo_live_verify.php');
+        $candidateOutputIds = DB::table('photo_split_regions as region')
+            ->join('photo_split_proposals as proposal', 'proposal.id', '=', 'region.photo_split_proposal_id')
+            ->join('cloud_import_items as ci', 'ci.id', '=', 'proposal.cloud_import_item_id')
+            ->join('media_items as output', 'output.id', '=', 'region.output_media_item_id')
+            ->where('ci.cloud_import_session_id', DB::table('cloud_import_sessions')->where('session_id', $planned['session_id'])->value('id'))
+            ->where('proposal.state', 'published')
+            ->where('region.review_state', 'included')
+            ->where('output.review_status', 'approved')
+            ->where('output.visibility', 'family_visible')
+            ->pluck('region.output_media_item_id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+        $liveResult = $liveVerifier([
+            'session_id' => $planned['session_id'],
+            'after_id' => 0,
+            'limit' => 100,
+        ]);
 
         expect($published['outputs'])->toBe($private['outputs'])
             ->and($published['family_visible'])->toBeTrue()
@@ -96,7 +119,11 @@ it('publishes a canonical-held source privately, replays idempotently, then make
                 && $child->visibility === MediaVisibility::FamilyVisible))->toBeTrue()
             ->and($sourceItem->fresh()->review_status)->toBe(MediaReviewStatus::Hidden)
             ->and(PhotoSplitProposal::query()->where('cloud_import_item_id', $item->id)->value('source_version_id'))->toBe($source->id)
-            ->and(DB::table('cloud_import_items')->where('id', $item->id)->value('review_decision'))->toBe('split_photos');
+            ->and(DB::table('cloud_import_items')->where('id', $item->id)->value('review_decision'))->toBe('split_photos')
+            ->and($candidateOutputIds)->toBe($published['outputs'])
+            ->and($liveResult['ids'])->toBe($published['outputs'])
+            ->and($liveResult['failed'])->toBe([])
+            ->and($liveResult['verified'])->toBe($published['outputs']);
     } finally {
         File::deleteDirectory($directory);
     }
