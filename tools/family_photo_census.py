@@ -29,7 +29,7 @@ if LOCAL_DEPENDENCIES.is_dir():
 import cv2
 import numpy as np
 
-ENGINE_VERSION = 4
+ENGINE_VERSION = 5
 
 
 @dataclass(frozen=True)
@@ -414,6 +414,15 @@ def analyze_one(metadata: dict[str, Any], thumbnail: Path) -> dict[str, Any]:
     }
 
 
+def bind_source_identity(record: dict[str, Any], metadata: dict[str, Any]) -> None:
+    """Bind census output to the retained source and suppress exact duplicate work."""
+    record["source_version_id"] = int(metadata["source_version_id"])
+    record["source_sha256"] = str(metadata["source_sha256"])
+    record["canonical_duplicate"] = bool(metadata.get("canonical_duplicate", False))
+    if record["canonical_duplicate"]:
+        record["review_state"] = "automatic_exact_duplicate"
+
+
 def apply_templates(records: list[dict[str, Any]], thumbnails: Path) -> int:
     groups: dict[tuple[int, str], list[dict[str, Any]]] = defaultdict(list)
     for record in records:
@@ -569,7 +578,11 @@ def automatic_single_audit_sheets(
     page_size: int = 20,
 ) -> int:
     singles = sorted(
-        (record for record in records if record["classification"] == "single_high"),
+        (
+            record
+            for record in records
+            if record["classification"] == "single_high" and not record.get("canonical_duplicate", False)
+        ),
         key=lambda record: int(record["position"]),
     )
     sample = [record for record in singles if int(record["thumbnail_sha256"][:8], 16) % 20 == 0]
@@ -633,6 +646,7 @@ def run_analyze(arguments: argparse.Namespace) -> int:
             and previous[item_id].get("engine_version") == ENGINE_VERSION
         ):
             record = previous[item_id]
+            bind_source_identity(record, metadata)
             record["metadata"] = {"width": metadata.get("width"), "height": metadata.get("height")}
             records.append(record)
             completed += 1
@@ -643,6 +657,7 @@ def run_analyze(arguments: argparse.Namespace) -> int:
         metadata, _ = pending[future]
         try:
             record = future.result()
+            bind_source_identity(record, metadata)
             record["metadata"] = {"width": metadata.get("width"), "height": metadata.get("height")}
             records.append(record)
         except Exception as exception:
@@ -681,6 +696,12 @@ def run_analyze(arguments: argparse.Namespace) -> int:
         "template_promotions": promoted,
         "pending_visual_review": review_count,
         "automatic_single_audit_count": audit_count,
+        "automatic_single_count": sum(
+            1
+            for record in records
+            if record["classification"] == "single_high" and not record.get("canonical_duplicate", False)
+        ),
+        "canonical_duplicate_count": sum(1 for record in records if record.get("canonical_duplicate", False)),
         "conceptual_output_count": sum(max(1, len(record["regions"])) for record in records),
     }
     atomic_json(arguments.state, summary)
