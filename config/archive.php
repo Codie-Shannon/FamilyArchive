@@ -71,6 +71,9 @@ return [
             'minimum_deskew_degrees' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_DESKEW_DEGREES', 0.4),
             'maximum_deskew_degrees' => (float) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_DESKEW_DEGREES', 8.0),
             'webp_quality' => (int) env('ARCHIVE_MULTI_PHOTO_WEBP_QUALITY', 90),
+            'quality_minimum_dimension_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_QUALITY_MINIMUM_DIMENSION', 160),
+            'quality_maximum_transparent_edge_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_QUALITY_MAXIMUM_TRANSPARENT_EDGE_RATIO', 0.20),
+            'quality_minimum_detail_score' => (float) env('ARCHIVE_MULTI_PHOTO_QUALITY_MINIMUM_DETAIL_SCORE', 2.0),
         ],
         'grid' => [
             'minimum_confidence' => (float) env('ARCHIVE_MULTI_PHOTO_GRID_MINIMUM_CONFIDENCE', 0.77),

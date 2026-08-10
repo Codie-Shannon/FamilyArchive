@@ -104,6 +104,7 @@ final class PhotoSplitCandidateRenderer
             $output = ob_get_clean();
             $finalWidth = imagesx($final);
             $finalHeight = imagesy($final);
+            $qualitySignals = $this->qualitySignals($final);
             imagedestroy($final);
             if (! $encoded || ! is_string($output) || $output === '') {
                 throw new RuntimeException('The split region could not be encoded.');
@@ -134,12 +135,89 @@ final class PhotoSplitCandidateRenderer
                         'safety_pixels' => $finalSafety,
                     ],
                     'clipping_guard' => 'rotate_before_final_crop',
+                    'quality_signals' => $qualitySignals,
                 ],
             );
         } finally {
             imagedestroy($source);
             $this->restoreMemoryLimit($previousLimit);
         }
+    }
+
+    /** @return array{status:string,minimum_dimensions_pass:bool,transparent_edge_ratio:float,detail_score:float,checks:list<string>} */
+    private function qualitySignals(GdImage $image): array
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $minimumDimension = max(1, (int) config('archive.multi_photo.candidate_rendering.quality_minimum_dimension_pixels', 160));
+        $maximumTransparentEdgeRatio = max(0.0, min(1.0, (float) config('archive.multi_photo.candidate_rendering.quality_maximum_transparent_edge_ratio', 0.20)));
+        $minimumDetailScore = max(0.0, (float) config('archive.multi_photo.candidate_rendering.quality_minimum_detail_score', 2.0));
+        $stepX = max(1, (int) floor($width / 160));
+        $stepY = max(1, (int) floor($height / 160));
+        $edgeSamples = 0;
+        $transparentEdges = 0;
+        $detailTotal = 0.0;
+        $detailSamples = 0;
+
+        for ($x = 0; $x < $width; $x += $stepX) {
+            foreach ([0, $height - 1] as $y) {
+                $edgeSamples++;
+                if ($this->alpha($this->colorAt($image, $x, $y)) >= 120) {
+                    $transparentEdges++;
+                }
+            }
+        }
+        for ($y = 0; $y < $height; $y += $stepY) {
+            foreach ([0, $width - 1] as $x) {
+                $edgeSamples++;
+                if ($this->alpha($this->colorAt($image, $x, $y)) >= 120) {
+                    $transparentEdges++;
+                }
+            }
+        }
+        for ($y = 0; $y + $stepY < $height; $y += $stepY) {
+            for ($x = 0; $x + $stepX < $width; $x += $stepX) {
+                $current = $this->luma($this->colorAt($image, $x, $y));
+                $detailTotal += abs($current - $this->luma($this->colorAt($image, $x + $stepX, $y)));
+                $detailTotal += abs($current - $this->luma($this->colorAt($image, $x, $y + $stepY)));
+                $detailSamples += 2;
+            }
+        }
+
+        $minimumDimensionsPass = min($width, $height) >= $minimumDimension;
+        $transparentEdgeRatio = $transparentEdges / $edgeSamples;
+        $detailScore = $detailTotal / $detailSamples;
+        $attention = ! $minimumDimensionsPass || $transparentEdgeRatio > $maximumTransparentEdgeRatio || $detailScore < $minimumDetailScore;
+
+        return [
+            'status' => $attention ? 'attention' : 'automatic_checks_passed_visual_review_required',
+            'minimum_dimensions_pass' => $minimumDimensionsPass,
+            'transparent_edge_ratio' => round($transparentEdgeRatio, 4),
+            'detail_score' => round($detailScore, 2),
+            'checks' => ['source_bounds', 'minimum_region_size', 'transparent_or_blank_edge', 'detail_or_blur_proxy', 'rotation_clipping_guard'],
+        ];
+    }
+
+    private function alpha(int $color): int
+    {
+        return ($color >> 24) & 0x7F;
+    }
+
+    private function colorAt(GdImage $image, int $x, int $y): int
+    {
+        $color = imagecolorat($image, $x, $y);
+        if ($color === false) {
+            throw new RuntimeException('The rendered split photo could not be sampled for quality checks.');
+        }
+
+        return $color;
+    }
+
+    private function luma(int $color): float
+    {
+        return (0.2126 * (($color >> 16) & 0xFF))
+            + (0.7152 * (($color >> 8) & 0xFF))
+            + (0.0722 * ($color & 0xFF));
     }
 
     private function transparentCanvas(int $width, int $height): GdImage

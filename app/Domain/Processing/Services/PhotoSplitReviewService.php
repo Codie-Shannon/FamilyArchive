@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Throwable;
 
 final class PhotoSplitReviewService
 {
@@ -177,8 +178,11 @@ final class PhotoSplitReviewService
     }
 
     /** @return list<MediaItem> */
-    public function publish(PhotoSplitProposal $proposal, User $actor): array
-    {
+    public function publish(
+        PhotoSplitProposal $proposal,
+        User $actor,
+        MediaVisibility $visibility = MediaVisibility::PrivateArchive,
+    ): array {
         if ($proposal->state !== 'ready') {
             throw ValidationException::withMessages(['items' => 'Review and save the split regions before publishing them.']);
         }
@@ -190,79 +194,95 @@ final class PhotoSplitReviewService
         }
 
         $created = [];
-        DB::transaction(function () use ($proposal, $included, $actor, &$created): void {
-            foreach ($included as $region) {
-                if ($region->output_media_item_id !== null) {
-                    $created[] = $region->outputMediaItem()->firstOrFail();
+        $writtenTargets = [];
+        try {
+            DB::transaction(function () use ($proposal, $included, $actor, $visibility, &$created, &$writtenTargets): void {
+                foreach ($included as $region) {
+                    if ($region->output_media_item_id !== null) {
+                        $created[] = $region->outputMediaItem()->firstOrFail();
 
-                    continue;
+                        continue;
+                    }
+
+                    $candidate = $region->candidateVersion;
+                    $bytes = $this->verifiedBytes($candidate);
+                    $archiveId = $this->archiveIds->allocate(MediaType::Photo);
+                    $target = $this->paths->derivative(MediaFileVersionType::EditedFull, MediaType::Photo, $archiveId, 'webp', 'split');
+                    /** @var FilesystemAdapter $targetDisk */
+                    $targetDisk = Storage::disk($target['disk']->value);
+                    if ($targetDisk->exists($target['path'])) {
+                        throw new RuntimeException('The split derivative target already exists.');
+                    }
+                    $targetDisk->put($target['path'], $bytes);
+                    $written = $targetDisk->get($target['path']);
+                    if (strlen($written) !== strlen($bytes) || ! hash_equals(hash('sha256', $bytes), hash('sha256', $written))) {
+                        $targetDisk->delete($target['path']);
+
+                        throw new RuntimeException('The split derivative failed write-back verification.');
+                    }
+                    $writtenTargets[] = ['disk' => $target['disk']->value, 'path' => $target['path']];
+
+                    $item = MediaItem::query()->create([
+                        'archive_id' => $archiveId,
+                        'media_type' => MediaType::Photo,
+                        'title' => 'Split photo '.$region->position,
+                        'description' => 'Individually reviewed photo derived from a preserved multi-photo source.',
+                        'date_confidence' => DateConfidence::Unknown,
+                        'visibility' => $visibility,
+                        'review_status' => MediaReviewStatus::Approved,
+                        'sensitivity_status' => SensitivityStatus::NotFlagged,
+                        'created_by' => $actor->id,
+                        'approved_by' => $actor->id,
+                        'approved_at' => now(),
+                    ]);
+                    MediaFileVersion::query()->create([
+                        'media_item_id' => $item->id,
+                        'parent_version_id' => $proposal->source_version_id,
+                        'version_type' => MediaFileVersionType::EditedFull,
+                        'storage_disk' => $target['disk']->value,
+                        'storage_path' => $target['path'],
+                        'mime_type' => 'image/webp',
+                        'extension' => 'webp',
+                        'file_size_bytes' => strlen($bytes),
+                        'width' => $candidate->width,
+                        'height' => $candidate->height,
+                        'sha256' => hash('sha256', $bytes),
+                        'generation_status' => GenerationStatus::Ready,
+                        'generation_recipe' => [
+                            'operation' => 'multi_photo_split',
+                            'proposal_id' => $proposal->id,
+                            'region_id' => $region->region_id,
+                            'source_sha256' => $proposal->sourceVersion->sha256,
+                            'bounds_basis_points' => $this->regionArray($region),
+                            'candidate_pipeline' => $candidate->generation_recipe,
+                        ],
+                        'is_preferred' => true,
+                    ]);
+                    $region->forceFill(['output_media_item_id' => $item->id])->save();
+                    $created[] = $item;
                 }
 
-                $candidate = $region->candidateVersion;
-                $bytes = $this->verifiedBytes($candidate);
-                $archiveId = $this->archiveIds->allocate(MediaType::Photo);
-                $target = $this->paths->derivative(MediaFileVersionType::EditedFull, MediaType::Photo, $archiveId, 'webp', 'split');
-                /** @var FilesystemAdapter $targetDisk */
-                $targetDisk = Storage::disk($target['disk']->value);
-                if ($targetDisk->exists($target['path'])) {
-                    throw new RuntimeException('The split derivative target already exists.');
+                $sourceItem = $proposal->sourceVersion->mediaItem;
+                if ($sourceItem instanceof MediaItem) {
+                    $sourceItem->forceFill([
+                        'review_status' => MediaReviewStatus::Hidden,
+                        'approved_by' => null,
+                        'approved_at' => null,
+                    ])->save();
                 }
-                $targetDisk->put($target['path'], $bytes);
-
-                $item = MediaItem::query()->create([
-                    'archive_id' => $archiveId,
-                    'media_type' => MediaType::Photo,
-                    'title' => 'Split photo '.$region->position,
-                    'description' => 'Individually reviewed photo derived from a preserved multi-photo source.',
-                    'date_confidence' => DateConfidence::Unknown,
-                    'visibility' => MediaVisibility::PrivateArchive,
-                    'review_status' => MediaReviewStatus::Approved,
-                    'sensitivity_status' => SensitivityStatus::NotFlagged,
-                    'created_by' => $actor->id,
-                    'approved_by' => $actor->id,
-                    'approved_at' => now(),
-                ]);
-                MediaFileVersion::query()->create([
-                    'media_item_id' => $item->id,
-                    'parent_version_id' => $proposal->source_version_id,
-                    'version_type' => MediaFileVersionType::EditedFull,
-                    'storage_disk' => $target['disk']->value,
-                    'storage_path' => $target['path'],
-                    'mime_type' => 'image/webp',
-                    'extension' => 'webp',
-                    'file_size_bytes' => strlen($bytes),
-                    'width' => $candidate->width,
-                    'height' => $candidate->height,
-                    'sha256' => hash('sha256', $bytes),
-                    'generation_status' => GenerationStatus::Ready,
-                    'generation_recipe' => [
-                        'operation' => 'multi_photo_split',
-                        'proposal_id' => $proposal->id,
-                        'region_id' => $region->region_id,
-                        'source_sha256' => $proposal->sourceVersion->sha256,
-                        'bounds_basis_points' => $this->regionArray($region),
-                        'candidate_pipeline' => $candidate->generation_recipe,
-                    ],
-                    'is_preferred' => true,
-                ]);
-                $region->forceFill(['output_media_item_id' => $item->id])->save();
-                $created[] = $item;
-            }
-
-            $sourceItem = $proposal->sourceVersion->mediaItem;
-            if ($sourceItem instanceof MediaItem) {
-                $sourceItem->forceFill([
-                    'review_status' => MediaReviewStatus::Hidden,
-                    'approved_by' => null,
-                    'approved_at' => null,
+                $proposal->forceFill([
+                    'state' => 'published',
+                    'reviewed_by' => $actor->id,
+                    'reviewed_at' => now(),
                 ])->save();
+            });
+        } catch (Throwable $exception) {
+            foreach ($writtenTargets as $target) {
+                Storage::disk($target['disk'])->delete($target['path']);
             }
-            $proposal->forceFill([
-                'state' => 'published',
-                'reviewed_by' => $actor->id,
-                'reviewed_at' => now(),
-            ])->save();
-        });
+
+            throw $exception;
+        }
 
         foreach ($created as $item) {
             $this->derivatives->handle($item->fresh(), $actor);
@@ -294,9 +314,44 @@ final class PhotoSplitReviewService
             $region->rotation_degrees,
         );
         $output = $rendered->bytes;
+        $outputSha256 = hash('sha256', $output);
+        $renderKey = hash('sha256', json_encode([
+            'source_sha256' => $source->sha256,
+            'proposal_id' => $proposal->id,
+            'region_id' => $region->region_id,
+            'bounds' => $this->regionArray($region),
+            'renderer_recipe' => $rendered->recipe,
+        ], JSON_THROW_ON_ERROR));
+        $path = 'split-candidates/'.substr($source->sha256, 0, 12).'/proposal-'.$proposal->id.'/'.$region->region_id.'-'.substr($renderKey, 0, 24).'.webp';
+        $existing = MediaFileVersion::query()
+            ->where('storage_disk', 'archive_derivatives')
+            ->where('storage_path', $path)
+            ->first();
+        if ($existing instanceof MediaFileVersion) {
+            $this->verifiedBytes($existing);
 
-        $path = 'split-candidates/'.substr($source->sha256, 0, 12).'/proposal-'.$proposal->id.'/'.$region->region_id.'-'.Str::uuid().'.webp';
-        Storage::disk('archive_derivatives')->put($path, $output);
+            if (! hash_equals($outputSha256, strtolower($existing->sha256))) {
+                throw new RuntimeException('The deterministic split candidate does not match its existing record.');
+            }
+
+            return $existing;
+        }
+
+        $disk = Storage::disk('archive_derivatives');
+        if ($disk->exists($path)) {
+            $stored = $disk->get($path);
+            if (! hash_equals($outputSha256, hash('sha256', $stored))) {
+                throw new RuntimeException('The deterministic split candidate path contains different bytes.');
+            }
+        } else {
+            $disk->put($path, $output);
+            $stored = $disk->get($path);
+            if (strlen($stored) !== strlen($output) || ! hash_equals($outputSha256, hash('sha256', $stored))) {
+                $disk->delete($path);
+
+                throw new RuntimeException('The split candidate failed write-back verification.');
+            }
+        }
 
         return MediaFileVersion::query()->create([
             'media_item_id' => $source->media_item_id,
@@ -309,13 +364,14 @@ final class PhotoSplitReviewService
             'file_size_bytes' => strlen($output),
             'width' => $rendered->width,
             'height' => $rendered->height,
-            'sha256' => hash('sha256', $output),
+            'sha256' => $outputSha256,
             'generation_status' => GenerationStatus::Ready,
             'generation_recipe' => [
                 'operation' => 'multi_photo_split_candidate',
                 'proposal_id' => $proposal->id,
                 'region_id' => $region->region_id,
                 'source_sha256' => $source->sha256,
+                'render_key' => $renderKey,
                 'bounds_basis_points' => $this->regionArray($region),
                 ...$rendered->recipe,
             ],
