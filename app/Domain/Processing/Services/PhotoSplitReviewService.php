@@ -5,6 +5,7 @@ namespace App\Domain\Processing\Services;
 use App\Domain\Archive\Services\ArchiveIdGenerator;
 use App\Domain\Archive\Services\ArchiveStoragePath;
 use App\Domain\Derivatives\Actions\GeneratePhotoViewingDerivatives;
+use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
 use App\Domain\Intake\Models\IncomingUpload;
 use App\Domain\Media\Enums\DateConfidence;
 use App\Domain\Media\Enums\GenerationStatus;
@@ -34,6 +35,7 @@ final class PhotoSplitReviewService
         private ArchiveIdGenerator $archiveIds,
         private ArchiveStoragePath $paths,
         private GeneratePhotoViewingDerivatives $derivatives,
+        private NoOverwriteDerivativeWriter $writer,
     ) {}
 
     public function analyzeItem(int $itemId, User $actor, bool $createWhenUndetected = false): ?PhotoSplitProposal
@@ -208,19 +210,11 @@ final class PhotoSplitReviewService
                     $bytes = $this->verifiedBytes($candidate);
                     $archiveId = $this->archiveIds->allocate(MediaType::Photo);
                     $target = $this->paths->derivative(MediaFileVersionType::EditedFull, MediaType::Photo, $archiveId, 'webp', 'split');
-                    /** @var FilesystemAdapter $targetDisk */
-                    $targetDisk = Storage::disk($target['disk']->value);
-                    if ($targetDisk->exists($target['path'])) {
-                        throw new RuntimeException('The split derivative target already exists.');
+                    if ($target['disk']->value !== 'archive_derivatives') {
+                        throw new RuntimeException('The split derivative target is outside archive_derivatives.');
                     }
-                    $targetDisk->put($target['path'], $bytes);
-                    $written = $targetDisk->get($target['path']);
-                    if (strlen($written) !== strlen($bytes) || ! hash_equals(hash('sha256', $bytes), hash('sha256', $written))) {
-                        $targetDisk->delete($target['path']);
-
-                        throw new RuntimeException('The split derivative failed write-back verification.');
-                    }
-                    $writtenTargets[] = ['disk' => $target['disk']->value, 'path' => $target['path']];
+                    $writtenObject = $this->writer->write($target['path'], $bytes);
+                    $writtenTargets[] = $writtenObject;
 
                     $item = MediaItem::query()->create([
                         'archive_id' => $archiveId,
@@ -243,10 +237,10 @@ final class PhotoSplitReviewService
                         'storage_path' => $target['path'],
                         'mime_type' => 'image/webp',
                         'extension' => 'webp',
-                        'file_size_bytes' => strlen($bytes),
+                        'file_size_bytes' => $writtenObject->bytes,
                         'width' => $candidate->width,
                         'height' => $candidate->height,
-                        'sha256' => hash('sha256', $bytes),
+                        'sha256' => $writtenObject->sha256,
                         'generation_status' => GenerationStatus::Ready,
                         'generation_recipe' => [
                             'operation' => 'multi_photo_split',
@@ -278,7 +272,7 @@ final class PhotoSplitReviewService
             });
         } catch (Throwable $exception) {
             foreach ($writtenTargets as $target) {
-                Storage::disk($target['disk'])->delete($target['path']);
+                $this->writer->removeCreated($target);
             }
 
             throw $exception;
@@ -337,46 +331,37 @@ final class PhotoSplitReviewService
             return $existing;
         }
 
-        $disk = Storage::disk('archive_derivatives');
-        if ($disk->exists($path)) {
-            $stored = $disk->get($path);
-            if (! hash_equals($outputSha256, hash('sha256', $stored))) {
-                throw new RuntimeException('The deterministic split candidate path contains different bytes.');
-            }
-        } else {
-            $disk->put($path, $output);
-            $stored = $disk->get($path);
-            if (strlen($stored) !== strlen($output) || ! hash_equals($outputSha256, hash('sha256', $stored))) {
-                $disk->delete($path);
+        $writtenObject = $this->writer->write($path, $output);
+        try {
+            return MediaFileVersion::query()->create([
+                'media_item_id' => $source->media_item_id,
+                'parent_version_id' => $source->id,
+                'version_type' => MediaFileVersionType::EditedFull,
+                'storage_disk' => 'archive_derivatives',
+                'storage_path' => $path,
+                'mime_type' => 'image/webp',
+                'extension' => 'webp',
+                'file_size_bytes' => $writtenObject->bytes,
+                'width' => $rendered->width,
+                'height' => $rendered->height,
+                'sha256' => $writtenObject->sha256,
+                'generation_status' => GenerationStatus::Ready,
+                'generation_recipe' => [
+                    'operation' => 'multi_photo_split_candidate',
+                    'proposal_id' => $proposal->id,
+                    'region_id' => $region->region_id,
+                    'source_sha256' => $source->sha256,
+                    'render_key' => $renderKey,
+                    'bounds_basis_points' => $this->regionArray($region),
+                    ...$rendered->recipe,
+                ],
+                'is_preferred' => false,
+            ]);
+        } catch (Throwable $exception) {
+            $this->writer->removeCreated($writtenObject);
 
-                throw new RuntimeException('The split candidate failed write-back verification.');
-            }
+            throw $exception;
         }
-
-        return MediaFileVersion::query()->create([
-            'media_item_id' => $source->media_item_id,
-            'parent_version_id' => $source->id,
-            'version_type' => MediaFileVersionType::EditedFull,
-            'storage_disk' => 'archive_derivatives',
-            'storage_path' => $path,
-            'mime_type' => 'image/webp',
-            'extension' => 'webp',
-            'file_size_bytes' => strlen($output),
-            'width' => $rendered->width,
-            'height' => $rendered->height,
-            'sha256' => $outputSha256,
-            'generation_status' => GenerationStatus::Ready,
-            'generation_recipe' => [
-                'operation' => 'multi_photo_split_candidate',
-                'proposal_id' => $proposal->id,
-                'region_id' => $region->region_id,
-                'source_sha256' => $source->sha256,
-                'render_key' => $renderKey,
-                'bounds_basis_points' => $this->regionArray($region),
-                ...$rendered->recipe,
-            ],
-            'is_preferred' => false,
-        ]);
     }
 
     /** @return array{0:object,1:MediaFileVersion} */
