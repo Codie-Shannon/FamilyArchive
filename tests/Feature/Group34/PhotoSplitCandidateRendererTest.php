@@ -36,6 +36,8 @@ it('rotates a padded child before calculating its final crop', function (): void
         ->and($rendered->height)->toBeGreaterThanOrEqual($minimumHeight)
         ->and($rendered->recipe['operation_order'])->toBe(['padded_extract', 'independent_rotate', 'final_edge_crop'])
         ->and($rendered->recipe['clipping_guard'])->toBe('rotate_before_final_crop')
+        ->and($rendered->recipe['quality_signals']['checks'])->toContain('minimum_region_size', 'detail_or_blur_proxy', 'rotation_clipping_guard')
+        ->and($rendered->recipe['quality_signals']['status'])->toBeIn(['attention', 'automatic_checks_passed_visual_review_required'])
         ->and($rendered->recipe['manual_rotation_degrees_clockwise'])->toBe(37.0)
         ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
 });

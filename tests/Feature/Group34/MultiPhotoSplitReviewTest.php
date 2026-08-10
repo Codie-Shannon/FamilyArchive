@@ -3,9 +3,11 @@
 use App\Domain\CloudImport\Services\HighVolumePhotoBatch;
 use App\Domain\CloudImport\Services\TrustedBatchReview;
 use App\Domain\Media\Enums\MediaReviewStatus;
+use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Processing\Models\PhotoSplitProposal;
+use App\Domain\Processing\Services\PhotoSplitReviewService;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -52,8 +54,21 @@ it('lets a trusted reviewer define freeform regions without changing the source'
             ->post(route('intake.items.split.update', [$planned['session_id'], $item->id]), ['regions_json' => json_encode($regions, JSON_THROW_ON_ERROR)])
             ->assertRedirect(route('intake.items.split', [$planned['session_id'], $item->id]));
 
+        $savedRegions = $proposal->fresh()->regions()->orderBy('position')->get();
+        $candidateIds = $savedRegions->pluck('candidate_version_id')->all();
+        app(PhotoSplitReviewService::class)->saveRegions($proposal->fresh(), $trusted, $savedRegions->map(fn ($region): array => [
+            'region_id' => $region->region_id,
+            'x' => $region->x_basis_points,
+            'y' => $region->y_basis_points,
+            'width' => $region->width_basis_points,
+            'height' => $region->height_basis_points,
+            'rotation_degrees' => $region->rotation_degrees,
+            'included' => true,
+        ])->all());
+
         expect($proposal->fresh()->state)->toBe('ready')
             ->and($proposal->regions()->whereNotNull('candidate_version_id')->count())->toBe(2)
+            ->and($proposal->regions()->orderBy('position')->pluck('candidate_version_id')->all())->toBe($candidateIds)
             ->and($proposal->regions()->orderBy('position')->firstOrFail()->rotation_degrees)->toBe(90)
             ->and($source->fresh()->sha256)->toBe($sourceHash)
             ->and(Storage::disk($source->storage_disk)->get($source->storage_path))->toBe($sourceBytes);
@@ -104,6 +119,43 @@ it('publishes reviewed regions as independent photos with lineage to the preserv
             ->and(MediaFileVersion::query()->whereIn('media_item_id', $children->pluck('id'))->where('parent_version_id', $sourceVersion->id)->count())->toBe(2)
             ->and($proposal->fresh()->state)->toBe('published')
             ->and(DB::table('cloud_import_items')->value('review_decision'))->toBe('split_photos');
+    } finally {
+        File::deleteDirectory($directory);
+    }
+});
+
+it('can publish reviewed split photos directly to the members-only family archive', function (): void {
+    $trusted = User::factory()->create(['role' => 'trusted_contributor', 'email_verified_at' => now()]);
+    $directory = storage_path('framework/testing/family-visible-split-'.str()->random(10));
+    File::ensureDirectoryExists($directory);
+    $photo = UploadedFile::fake()->image('family-contact-sheet.jpg', 1000, 700);
+    File::copy($photo->getRealPath(), $directory.'/family-contact-sheet.jpg');
+
+    try {
+        $planned = app(HighVolumePhotoBatch::class)->plan($trusted, $directory, 25);
+        app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 1);
+        app(TrustedBatchReview::class)->prepare($planned['session_id'], $trusted, 25);
+        $item = DB::table('cloud_import_items')->first();
+
+        $this->actingAs($trusted)->get(route('intake.items.split', [$planned['session_id'], $item->id]))->assertOk();
+        $proposal = PhotoSplitProposal::query()->where('cloud_import_item_id', $item->id)->firstOrFail();
+        $regions = [
+            ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'included' => true],
+            ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'included' => true],
+        ];
+        app(PhotoSplitReviewService::class)->saveRegions($proposal, $trusted, $regions);
+        $source = MediaItem::query()->firstOrFail();
+
+        $children = app(PhotoSplitReviewService::class)->publish(
+            $proposal->fresh(),
+            $trusted,
+            MediaVisibility::FamilyVisible,
+        );
+
+        expect($children)->toHaveCount(2)
+            ->and(collect($children)->every(fn (MediaItem $child): bool => $child->visibility === MediaVisibility::FamilyVisible))->toBeTrue()
+            ->and($source->fresh()->review_status)->toBe(MediaReviewStatus::Hidden)
+            ->and($proposal->fresh()->state)->toBe('published');
     } finally {
         File::deleteDirectory($directory);
     }
