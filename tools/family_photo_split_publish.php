@@ -8,6 +8,8 @@ return static function (array $input): array {
     $evidence = (string) ($input['evidence'] ?? '');
     $requestedFamilyVisibility = (bool) ($input['make_family_visible'] ?? true);
     $allowedIdentificationIds = array_values(array_unique(array_map('intval', $input['allowed_identification_ids'] ?? [])));
+    $expectedSourceVersionId = max(0, (int) ($input['expected_source_version_id'] ?? 0));
+    $expectedSourceSha256 = strtolower((string) ($input['expected_source_sha256'] ?? ''));
 
     $actor = \App\Models\User::query()->where('email', $ownerEmail)->firstOrFail();
     $session = \Illuminate\Support\Facades\DB::table('cloud_import_sessions')
@@ -37,6 +39,12 @@ return static function (array $input): array {
             ->where('sha256', $upload->sha256)
             ->orderBy('id')
             ->firstOrFail();
+    }
+    if ($expectedSourceVersionId < 1
+        || ! preg_match('/^[a-f0-9]{64}$/', $expectedSourceSha256)
+        || (int) $source->id !== $expectedSourceVersionId
+        || ! hash_equals($expectedSourceSha256, strtolower((string) $source->sha256))) {
+        throw new RuntimeException('The reviewed split decision no longer matches its immutable census source.');
     }
     $sourceItem = \App\Domain\Media\Models\MediaItem::query()->find($source->media_item_id);
     $sourceState = $sourceItem === null ? null : [

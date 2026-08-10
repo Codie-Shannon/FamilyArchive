@@ -64,6 +64,8 @@ it('publishes a canonical-held source privately, replays idempotently, then make
             'evidence' => 'test-bound-crop-review',
             'make_family_visible' => false,
             'allowed_identification_ids' => [],
+            'expected_source_version_id' => $source->id,
+            'expected_source_sha256' => $source->sha256,
         ];
 
         $private = $engine($payload);
