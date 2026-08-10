@@ -10,8 +10,17 @@ return static function (array $input): array {
 
     $session = \Illuminate\Support\Facades\DB::table('cloud_import_sessions')->where('session_id', $sessionId)->firstOrFail();
     $actor = \Illuminate\Support\Facades\DB::table('users')->where('email', $ownerEmail)->firstOrFail();
+    $canonicalVersions = \Illuminate\Support\Facades\DB::table('media_file_versions')
+        ->selectRaw('MIN(id) as id, sha256')
+        ->where('version_type', 'original')
+        ->groupBy('sha256');
     $query = \Illuminate\Support\Facades\DB::table('cloud_import_items as ci')
-        ->join('archive_promotions as ap', 'ap.incoming_upload_id', '=', 'ci.incoming_upload_id')
+        ->join('incoming_uploads as session_upload', 'session_upload.id', '=', 'ci.incoming_upload_id')
+        ->leftJoin('archive_promotions as ap', 'ap.incoming_upload_id', '=', 'ci.incoming_upload_id')
+        ->leftJoinSub($canonicalVersions, 'canonical_index', static function ($join): void {
+            $join->on('canonical_index.sha256', '=', 'session_upload.sha256');
+        })
+        ->leftJoin('media_file_versions as canonical_source', 'canonical_source.id', '=', 'canonical_index.id')
         ->where('ci.cloud_import_session_id', $session->id)
         ->orderBy('ci.id');
     if ($requestedIds !== []) {
@@ -23,8 +32,8 @@ return static function (array $input): array {
     $items = $query->get([
         'ci.id as item_id',
         'ci.incoming_upload_id',
-        'ap.media_item_id',
-        'ap.original_media_file_version_id as source_version_id',
+        \Illuminate\Support\Facades\DB::raw('COALESCE(ap.media_item_id, canonical_source.media_item_id) as media_item_id'),
+        \Illuminate\Support\Facades\DB::raw('COALESCE(ap.original_media_file_version_id, canonical_source.id) as source_version_id'),
     ]);
     $results = [];
 
