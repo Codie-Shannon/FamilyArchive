@@ -1005,8 +1005,8 @@ final class PhotoSplitCandidateRenderer
     /** @param list<array{x:int,y:int,width:int,height:int,rotation_degrees:float|int}> $regions */
     private function sharpExecutableFor(int $sourceWidth, int $sourceHeight, array $regions): ?string
     {
-        $minimumPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 45000001));
-        $minimumRegionPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_region_pixels', 8000000));
+        $minimumPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 30000000));
+        $minimumRegionPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_region_pixels', 6000000));
         $largeRegion = false;
         foreach ($regions as $region) {
             if ($minimumRegionPixels <= $region['width'] * $region['height']) {
