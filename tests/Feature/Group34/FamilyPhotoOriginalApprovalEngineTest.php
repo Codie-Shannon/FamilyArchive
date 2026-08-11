@@ -105,3 +105,92 @@ it('approves a canonical-held original with verified derivatives and replays saf
         File::deleteDirectory($directory);
     }
 });
+
+it('publishes a reviewed whole-photo rotation as an approved non-destructive viewing source', function (): void {
+    $owner = User::factory()->create([
+        'role' => 'owner',
+        'email' => 'rotated-original-owner@example.test',
+        'email_verified_at' => now(),
+    ]);
+    $directory = storage_path('framework/testing/rotated-original-engine-'.str()->random(10));
+    File::ensureDirectoryExists($directory);
+    $photo = UploadedFile::fake()->image('sideways-single.jpg', 1000, 700);
+    File::copy($photo->getRealPath(), $directory.'/sideways-single.jpg');
+
+    try {
+        $planned = app(HighVolumePhotoBatch::class)->plan($owner, $directory, 25);
+        app(HighVolumePhotoBatch::class)->process($planned['session_id'], $directory, 1);
+        app(TrustedBatchReview::class)->prepare($planned['session_id'], $owner, 25);
+        $item = DB::table('cloud_import_items')->firstOrFail();
+        DB::table('cloud_import_items')->where('id', $item->id)->update([
+            'review_decision' => 'hold',
+            'attention_code' => null,
+        ]);
+        $source = MediaFileVersion::query()->where('version_type', MediaFileVersionType::Original)->firstOrFail();
+        $sourceBytes = Storage::disk('archive_originals')->get($source->storage_path);
+        $engine = require base_path('tools/family_photo_original_approve.php');
+        $payload = [
+            'session_id' => $planned['session_id'],
+            'owner_email' => $owner->email,
+            'item_ids' => [(int) $item->id],
+            'allowed_identification_ids' => [],
+            'maximum_source_pixels' => 80000000,
+            'expected_sources' => [[
+                'item_id' => (int) $item->id,
+                'source_version_id' => $source->id,
+                'source_sha256' => $source->sha256,
+                'rotation_degrees' => 90,
+            ]],
+        ];
+
+        $approved = $engine($payload);
+        $edited = MediaFileVersion::query()
+            ->where('media_item_id', $source->media_item_id)
+            ->where('parent_version_id', $source->id)
+            ->where('version_type', MediaFileVersionType::EditedFull)
+            ->get()
+            ->first(fn (MediaFileVersion $version): bool => data_get($version->generation_recipe, 'operation') === 'family_photo_single_rotation');
+        expect($edited)->not->toBeNull();
+        $viewing = MediaFileVersion::query()
+            ->where('media_item_id', $source->media_item_id)
+            ->where('parent_version_id', $edited->id)
+            ->whereIn('version_type', [MediaFileVersionType::WebDisplay, MediaFileVersionType::Thumbnail])
+            ->get();
+        User::factory()->create([
+            'role' => 'viewer',
+            'account_state' => 'approved',
+            'email_verified_at' => now(),
+        ]);
+        $liveVerifier = require base_path('tools/family_photo_live_verify.php');
+        $liveResult = $liveVerifier([
+            'session_id' => $planned['session_id'],
+            'after_id' => 0,
+            'limit' => 100,
+            'expected_rotations' => [[
+                'item_id' => (int) $item->id,
+                'rotation_degrees' => 90,
+                'source_sha256' => $source->sha256,
+            ]],
+        ]);
+
+        expect($approved)->toMatchArray([
+            'approved' => [(int) $item->id],
+            'failed' => [],
+            'skipped' => [],
+        ])->and($edited->generation_recipe['operation'])->toBe('family_photo_single_rotation')
+            ->and($edited->generation_recipe['clockwise_degrees'])->toBe(90)
+            ->and($edited->width)->toBe(700)
+            ->and($edited->height)->toBe(1000)
+            ->and($edited->is_preferred)->toBeTrue()
+            ->and($edited->restorationCandidate?->review_state)->toBe('approved')
+            ->and($viewing)->toHaveCount(2)
+            ->and($viewing->every(fn (MediaFileVersion $version): bool => $version->is_preferred
+                && Storage::disk('archive_derivatives')->exists($version->storage_path)))->toBeTrue()
+            ->and(Storage::disk('archive_originals')->get($source->storage_path))->toBe($sourceBytes)
+            ->and(hash('sha256', $sourceBytes))->toBe(strtolower($source->sha256))
+            ->and($liveResult['verified_rotations'])->toBe([(int) $item->id])
+            ->and($liveResult['failed'])->toBe([]);
+    } finally {
+        File::deleteDirectory($directory);
+    }
+});

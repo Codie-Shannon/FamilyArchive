@@ -102,12 +102,39 @@ def fit(image: np.ndarray, width: int, height: int) -> np.ndarray:
 def render(arguments: argparse.Namespace) -> int:
     census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
     decisions = [record for record in read_jsonl(arguments.decisions) if record.get("decision") == "multi"]
+    decisions_by_id = {int(record["item_id"]): record for record in decisions}
     arguments.output.mkdir(parents=True, exist_ok=True)
     manifest: list[dict[str, Any]] = []
     rows_per_page = max(1, min(10, arguments.rows_per_page))
-    for page_index in range((len(decisions) + rows_per_page - 1) // rows_per_page):
-        page = decisions[page_index * rows_per_page : (page_index + 1) * rows_per_page]
-        canvas = np.full((len(page) * 230, 1500, 3), 245, dtype=np.uint8)
+    existing_manifest = read_jsonl(arguments.manifest)
+    assigned_item_ids: set[int] = set()
+    pages: list[tuple[str, list[dict[str, Any]]]] = []
+    maximum_page_index = 0
+    for existing_page in existing_manifest:
+        page_name = str(existing_page.get("page", ""))
+        try:
+            maximum_page_index = max(maximum_page_index, int(Path(page_name).stem.rsplit("-", 1)[-1]))
+        except (TypeError, ValueError):
+            continue
+        page: list[dict[str, Any]] = []
+        for raw_item_id in existing_page.get("item_ids", []):
+            item_id = int(raw_item_id)
+            decision = decisions_by_id.get(item_id)
+            if decision is not None and item_id not in assigned_item_ids:
+                page.append(decision)
+                assigned_item_ids.add(item_id)
+        if page:
+            pages.append((page_name, page))
+
+    unassigned = [record for record in decisions if int(record["item_id"]) not in assigned_item_ids]
+    for offset in range(0, len(unassigned), rows_per_page):
+        maximum_page_index += 1
+        pages.append((f"crop-audit-{maximum_page_index:05d}.jpg", unassigned[offset : offset + rows_per_page]))
+
+    for page_name, page in pages:
+        maximum_region_count = max(len(decision["regions"]) for decision in page)
+        available_width = max(1170, maximum_region_count * 100)
+        canvas = np.full((len(page) * 230, 320 + available_width + 8, 3), 245, dtype=np.uint8)
         item_ids: list[int] = []
         for row_index, decision in enumerate(page):
             item_id = int(decision["item_id"])
@@ -130,7 +157,6 @@ def render(arguments: argparse.Namespace) -> int:
             top = row_index * 230 + 32
             canvas[top : top + source.shape[0], 8 : 8 + source.shape[1]] = source
             cv2.putText(canvas, f"item {item_id} ({len(decision['regions'])} crops)", (8, row_index * 230 + 23), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (20, 20, 20), 1, cv2.LINE_AA)
-            available_width = 1170
             cell_width = max(100, min(280, available_width // max(1, len(decision["regions"]))))
             left = 320
             for position, region in enumerate(decision["regions"], 1):
@@ -138,7 +164,7 @@ def render(arguments: argparse.Namespace) -> int:
                 canvas[top : top + output.shape[0], left : left + output.shape[1]] = output
                 cv2.putText(canvas, str(position), (left, row_index * 230 + 218), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (20, 20, 20), 1, cv2.LINE_AA)
                 left += cell_width
-        page_path = arguments.output / f"crop-audit-{page_index + 1:05d}.jpg"
+        page_path = arguments.output / page_name
         cv2.imwrite(str(page_path), canvas, [cv2.IMWRITE_JPEG_QUALITY, 90])
         manifest.append(
             {
@@ -297,6 +323,82 @@ def summary(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def archive_stale(arguments: argparse.Namespace) -> int:
+    """Archive non-current audit rows before compacting the active ledger."""
+    if arguments.archive.exists():
+        raise ValueError("The stale-audit archive path already exists")
+
+    decisions = {
+        int(record["item_id"]): record
+        for record in read_jsonl(arguments.decisions)
+        if record.get("decision") == "multi"
+    }
+    audits = {int(record["item_id"]): record for record in read_jsonl(arguments.audit)}
+    pages = read_jsonl(arguments.manifest)
+    bindings: dict[int, dict[str, Any]] = {}
+    for page in pages:
+        page_name = str(page.get("page", ""))
+        page_path = arguments.sheets / page_name
+        if not page_name or not page_path.is_file() or file_sha256(page_path) != page.get("page_sha256"):
+            raise ValueError(f"The crop-audit page bytes do not match the manifest: {page_name}")
+        page_digest = audit_page_digest(page)
+        for raw_item_id in page.get("item_ids", []):
+            item_id = int(raw_item_id)
+            if item_id in bindings:
+                raise ValueError(f"The crop-audit manifest contains duplicate item {item_id}")
+            bindings[item_id] = {
+                "page": page_name,
+                "page_sha256": page["page_sha256"],
+                "page_digest": page_digest,
+                "decision_digest": page.get("decision_digests", {}).get(str(item_id)),
+            }
+
+    kept: list[dict[str, Any]] = []
+    archived: list[dict[str, Any]] = []
+    archived_at = datetime.now(timezone.utc).isoformat()
+    for item_id, audit in audits.items():
+        decision = decisions.get(item_id)
+        binding = bindings.get(item_id)
+        current_digest = decision_digest(decision) if decision is not None else None
+        current = (
+            decision is not None
+            and binding is not None
+            and audit.get("decision_digest") == current_digest
+            and binding["decision_digest"] == current_digest
+            and audit.get("audit_page") == binding["page"]
+            and audit.get("audit_page_sha256") == binding["page_sha256"]
+            and audit.get("audit_page_digest") == binding["page_digest"]
+        )
+        if current:
+            kept.append(audit)
+            continue
+        archived.append(
+            {
+                "item_id": item_id,
+                "archived_at": archived_at,
+                "reason": "not_current_multi" if decision is None else "superseded_evidence",
+                "audit_record": audit,
+            }
+        )
+
+    if archived:
+        write_jsonl(arguments.archive, archived)
+    else:
+        write_jsonl(arguments.archive, [])
+    write_jsonl(arguments.audit, kept)
+    print(
+        json.dumps(
+            {
+                "kept_count": len(kept),
+                "archived_count": len(archived),
+                "archive": str(arguments.archive),
+            },
+            separators=(",", ":"),
+        )
+    )
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser()
     commands = result.add_subparsers(dest="command", required=True)
@@ -331,6 +433,13 @@ def parser() -> argparse.ArgumentParser:
     summary_command.add_argument("--manifest", type=Path, required=True)
     summary_command.add_argument("--sheets", type=Path, required=True)
     summary_command.set_defaults(handler=summary)
+    archive_command = commands.add_parser("archive-stale")
+    archive_command.add_argument("--decisions", type=Path, required=True)
+    archive_command.add_argument("--audit", type=Path, required=True)
+    archive_command.add_argument("--manifest", type=Path, required=True)
+    archive_command.add_argument("--sheets", type=Path, required=True)
+    archive_command.add_argument("--archive", type=Path, required=True)
+    archive_command.set_defaults(handler=archive_stale)
     return result
 
 

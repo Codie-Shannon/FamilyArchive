@@ -4,9 +4,54 @@ return static function (array $input): array {
     $sessionId = (string) ($input['session_id'] ?? '');
     $afterId = max(0, (int) ($input['after_id'] ?? 0));
     $limit = max(1, min(100, (int) ($input['limit'] ?? 10)));
+    $expectedRotations = [];
+    foreach (($input['expected_rotations'] ?? []) as $rotation) {
+        $itemId = (int) ($rotation['item_id'] ?? 0);
+        $degrees = (int) ($rotation['rotation_degrees'] ?? 0);
+        $sourceSha256 = strtolower((string) ($rotation['source_sha256'] ?? ''));
+        if ($itemId < 1 || ! in_array($degrees, [-90, 90, 180], true) || ! preg_match('/^[a-f0-9]{64}$/', $sourceSha256)) {
+            throw new RuntimeException('Expected whole-photo rotation evidence is invalid.');
+        }
+        $expectedRotations[$itemId] = ['rotation_degrees' => $degrees, 'source_sha256' => $sourceSha256];
+    }
     $session = \Illuminate\Support\Facades\DB::table('cloud_import_sessions')
         ->where('session_id', $sessionId)
         ->firstOrFail();
+    $rotationsByMediaItem = [];
+    foreach ($expectedRotations as $itemId => $rotation) {
+        $row = \Illuminate\Support\Facades\DB::table('cloud_import_items as ci')
+            ->join('archive_promotions as ap', 'ap.incoming_upload_id', '=', 'ci.incoming_upload_id')
+            ->where('ci.cloud_import_session_id', $session->id)
+            ->where('ci.id', $itemId)
+            ->where('ci.review_decision', 'original')
+            ->first(['ap.media_item_id']);
+        if (! $row || ! $row->media_item_id) {
+            throw new RuntimeException("Rotated source {$itemId} is not an approved promoted original.");
+        }
+        $mediaItemId = (int) $row->media_item_id;
+        $rotatedItem = \App\Domain\Media\Models\MediaItem::query()->findOrFail($mediaItemId);
+        $rotatedSource = app(\App\Domain\Derivatives\Services\ApprovedPhotoViewingSource::class)->resolve($rotatedItem);
+        $recipe = $rotatedSource?->generation_recipe;
+        $parent = $rotatedSource?->parentVersion;
+        if (! $rotatedSource
+            || $rotatedSource->version_type !== \App\Domain\Media\Enums\MediaFileVersionType::EditedFull
+            || $rotatedSource->restorationCandidate?->review_state !== 'approved'
+            || ! is_array($recipe)
+            || ($recipe['operation'] ?? null) !== 'family_photo_single_rotation'
+            || (int) ($recipe['clockwise_degrees'] ?? 0) !== (int) $rotation['rotation_degrees']
+            || ($recipe['source_sha256'] ?? null) !== $rotation['source_sha256']
+            || ! $parent
+            || ! hash_equals($rotation['source_sha256'], strtolower((string) $parent->sha256))) {
+            throw new RuntimeException("Rotated source {$itemId} does not resolve to its reviewed non-destructive viewing source.");
+        }
+        $rotationDisk = \Illuminate\Support\Facades\Storage::disk($rotatedSource->storage_disk);
+        $rotationBytes = $rotationDisk->get($rotatedSource->storage_path);
+        if (strlen($rotationBytes) !== (int) $rotatedSource->file_size_bytes
+            || ! hash_equals(strtolower((string) $rotatedSource->sha256), hash('sha256', $rotationBytes))) {
+            throw new RuntimeException("Rotated source {$itemId} failed object integrity verification.");
+        }
+        $rotationsByMediaItem[$mediaItemId] = ['item_id' => $itemId, ...$rotation];
+    }
 
     $promotedOriginals = \Illuminate\Support\Facades\DB::table('cloud_import_items as ci')
         ->join('archive_promotions as ap', 'ap.incoming_upload_id', '=', 'ci.incoming_upload_id')
@@ -60,6 +105,7 @@ return static function (array $input): array {
     $gallery = app(\App\Domain\Browsing\Queries\ApprovedPhotoGalleryQuery::class);
     $details = app(\App\Domain\Browsing\Queries\ApprovedPhotoDetailQuery::class);
     $verified = [];
+    $verifiedRotations = array_map('intval', array_keys($expectedRotations));
     $failed = [];
 
     $verifyObject = static function (\App\Domain\Media\Models\MediaFileVersion $version, string $label): void {
@@ -84,6 +130,21 @@ return static function (array $input): array {
             $source = $sources->resolve($item);
             if (! $source) {
                 throw new RuntimeException('No approved viewing source exists.');
+            }
+            $expectedRotation = $rotationsByMediaItem[(int) $id] ?? null;
+            if (is_array($expectedRotation)) {
+                $recipe = $source->generation_recipe;
+                $parent = $source->parentVersion;
+                if ($source->version_type !== \App\Domain\Media\Enums\MediaFileVersionType::EditedFull
+                    || $source->restorationCandidate?->review_state !== 'approved'
+                    || ! is_array($recipe)
+                    || ($recipe['operation'] ?? null) !== 'family_photo_single_rotation'
+                    || (int) ($recipe['clockwise_degrees'] ?? 0) !== (int) $expectedRotation['rotation_degrees']
+                    || ($recipe['source_sha256'] ?? null) !== $expectedRotation['source_sha256']
+                    || ! $parent
+                    || ! hash_equals($expectedRotation['source_sha256'], strtolower((string) $parent->sha256))) {
+                    throw new RuntimeException('Reviewed whole-photo rotation is not the approved viewing source.');
+                }
             }
             $verifyObject($source, 'Viewing source');
 
@@ -133,5 +194,10 @@ return static function (array $input): array {
         }
     }
 
-    return ['ids' => $ids->map(fn ($id): int => (int) $id)->all(), 'verified' => $verified, 'failed' => $failed];
+    return [
+        'ids' => $ids->map(fn ($id): int => (int) $id)->all(),
+        'verified' => $verified,
+        'verified_rotations' => $verifiedRotations,
+        'failed' => $failed,
+    ];
 };

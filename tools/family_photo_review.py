@@ -61,6 +61,13 @@ def validate_regions(regions: Any) -> list[dict[str, Any]]:
     return validated
 
 
+def validate_single_rotation(value: Any) -> int:
+    rotation = int(value or 0)
+    if rotation not in {-90, 0, 90, 180}:
+        raise ValueError("A single-photo rotation must be -90, 0, 90, or 180 degrees clockwise")
+    return rotation
+
+
 def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -91,15 +98,19 @@ def command_decide(arguments: argparse.Namespace) -> int:
     existing = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
     census_record = census[arguments.item_id]
     regions: list[dict[str, Any]] = []
+    rotation_degrees = 0
     if arguments.decision == "multi":
         if arguments.regions_json:
             regions = validate_regions(json.loads(arguments.regions_json))
         else:
             regions = validate_regions(census_record.get("regions"))
+    elif arguments.decision == "single":
+        rotation_degrees = validate_single_rotation(arguments.rotation_degrees)
     existing[arguments.item_id] = {
         "item_id": arguments.item_id,
         "decision": arguments.decision,
         "regions": regions,
+        "rotation_degrees": rotation_degrees,
         "reviewed_at": datetime.now(timezone.utc).isoformat(),
         "reviewer": "codex_visual_review",
         "evidence": arguments.evidence,
@@ -143,15 +154,21 @@ def command_batch_decide(arguments: argparse.Namespace) -> int:
             raise ValueError(f"Item {item_id} is missing visual-review evidence")
 
         regions: list[dict[str, Any]] = []
+        rotation_degrees = 0
         if decision == "multi":
             regions = validate_regions(record.get("regions", census_record.get("regions")))
         elif record.get("regions"):
             raise ValueError(f"Item {item_id} supplies regions for a non-multi decision")
+        if decision == "single":
+            rotation_degrees = validate_single_rotation(record.get("rotation_degrees", 0))
+        elif int(record.get("rotation_degrees", 0) or 0) != 0:
+            raise ValueError(f"Item {item_id} supplies a whole-photo rotation for a non-single decision")
 
         prepared[item_id] = {
             "item_id": item_id,
             "decision": decision,
             "regions": regions,
+            "rotation_degrees": rotation_degrees,
             "reviewed_at": reviewed_at,
             "reviewer": "codex_visual_review",
             "evidence": evidence,
@@ -175,6 +192,30 @@ def command_batch_decide(arguments: argparse.Namespace) -> int:
             separators=(",", ":"),
         )
     )
+    return 0
+
+
+def command_set_single_rotation(arguments: argparse.Namespace) -> int:
+    census = {int(record["item_id"]): record for record in read_jsonl(arguments.census)}
+    decisions = {int(record["item_id"]): record for record in read_jsonl(arguments.decisions)}
+    census_record = census.get(arguments.item_id)
+    decision = decisions.get(arguments.item_id)
+    if census_record is None or decision is None or decision.get("decision") != "single":
+        raise ValueError("A current reviewed single-photo decision is required")
+    if (
+        decision.get("census_thumbnail_sha256") != census_record.get("thumbnail_sha256")
+        or int(decision.get("census_source_version_id", 0)) != int(census_record.get("source_version_id", 0))
+        or decision.get("census_source_sha256") != census_record.get("source_sha256")
+    ):
+        raise ValueError("The single-photo decision is not bound to the current immutable census source")
+    rotation = validate_single_rotation(arguments.rotation_degrees)
+    decision["rotation_degrees"] = rotation
+    decision["rotation_reviewed_at"] = datetime.now(timezone.utc).isoformat()
+    decision["rotation_evidence"] = arguments.evidence
+    if arguments.note:
+        decision["note"] = (str(decision.get("note", "")).rstrip() + " " + arguments.note.strip()).strip()
+    write_jsonl(arguments.decisions, list(decisions.values()))
+    print(json.dumps({"item_id": arguments.item_id, "rotation_degrees": rotation}, separators=(",", ":")))
     return 0
 
 
@@ -216,15 +257,21 @@ def command_decide_page(arguments: argparse.Namespace) -> int:
         if decision not in {"single", "multi", "exclude"}:
             raise ValueError(f"Item {item_id} has an unsupported decision")
         regions: list[dict[str, Any]] = []
+        rotation_degrees = 0
         if decision == "multi":
             regions = validate_regions(submitted_record.get("regions", census_record.get("regions")))
         elif submitted_record.get("regions"):
             raise ValueError(f"Item {item_id} supplies regions for a non-multi decision")
+        if decision == "single":
+            rotation_degrees = validate_single_rotation(submitted_record.get("rotation_degrees", 0))
+        elif int(submitted_record.get("rotation_degrees", 0) or 0) != 0:
+            raise ValueError(f"Item {item_id} supplies a whole-photo rotation for a non-single decision")
 
         prepared[item_id] = {
             "item_id": item_id,
             "decision": decision,
             "regions": regions,
+            "rotation_degrees": rotation_degrees,
             "reviewed_at": reviewed_at,
             "reviewer": "codex_visual_review",
             "evidence": arguments.page,
@@ -276,6 +323,7 @@ def command_page_template(arguments: argparse.Namespace) -> int:
                 "item_id": item_id,
                 "decision": "multi" if len(proposed_regions) >= 2 else "review_required",
                 "regions": proposed_regions if len(proposed_regions) >= 2 else [],
+                "rotation_degrees": 0,
                 "note": "",
             }
         )
@@ -343,6 +391,7 @@ def command_prepare_page_templates(arguments: argparse.Namespace) -> int:
                         "item_id": item_id,
                         "decision": decision["decision"],
                         "regions": decision.get("regions", []),
+                        "rotation_degrees": int(decision.get("rotation_degrees", 0)),
                         "note": decision.get("note", ""),
                     }
                 )
@@ -354,6 +403,7 @@ def command_prepare_page_templates(arguments: argparse.Namespace) -> int:
                     "item_id": item_id,
                     "decision": "multi" if len(proposed_regions) >= 2 else "review_required",
                     "regions": proposed_regions if len(proposed_regions) >= 2 else [],
+                    "rotation_degrees": 0,
                     "note": "",
                 }
             )
@@ -509,6 +559,7 @@ def command_materialize_automatic(arguments: argparse.Namespace) -> int:
             "item_id": item_id,
             "decision": "single",
             "regions": [],
+            "rotation_degrees": 0,
             "reviewed_at": datetime.now(timezone.utc).isoformat(),
             "reviewer": "automatic_confident_single",
             "evidence": "family_photo_census_engine_v2",
@@ -610,6 +661,7 @@ def parser() -> argparse.ArgumentParser:
     decide.add_argument("--item-id", type=int, required=True)
     decide.add_argument("--decision", choices=["single", "multi", "exclude"], required=True)
     decide.add_argument("--regions-json")
+    decide.add_argument("--rotation-degrees", type=int, default=0)
     decide.add_argument("--evidence", required=True)
     decide.add_argument("--note", default="")
     decide.set_defaults(handler=command_decide)
@@ -618,6 +670,14 @@ def parser() -> argparse.ArgumentParser:
     batch_decide.add_argument("--decisions", type=Path, required=True)
     batch_decide.add_argument("--input", type=Path, required=True)
     batch_decide.set_defaults(handler=command_batch_decide)
+    single_rotation = subcommands.add_parser("set-single-rotation")
+    single_rotation.add_argument("--census", type=Path, required=True)
+    single_rotation.add_argument("--decisions", type=Path, required=True)
+    single_rotation.add_argument("--item-id", type=int, required=True)
+    single_rotation.add_argument("--rotation-degrees", type=int, required=True)
+    single_rotation.add_argument("--evidence", required=True)
+    single_rotation.add_argument("--note", default="")
+    single_rotation.set_defaults(handler=command_set_single_rotation)
     decide_page = subcommands.add_parser("decide-page")
     decide_page.add_argument("--census", type=Path, required=True)
     decide_page.add_argument("--decisions", type=Path, required=True)
