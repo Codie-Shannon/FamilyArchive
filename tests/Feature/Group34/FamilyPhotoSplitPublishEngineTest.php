@@ -68,12 +68,16 @@ it('publishes a canonical-held source privately, replays idempotently, then make
             'expected_source_sha256' => $source->sha256,
         ];
 
+        $privateCheckpoint = $engine($payload);
         $private = $engine($payload);
         $replay = $engine($payload);
         $sourceItem->refresh();
         $itemAfterCanary = DB::table('cloud_import_items')->where('id', $item->id)->firstOrFail();
 
-        expect($private['family_visible'])->toBeFalse()
+        expect($privateCheckpoint['pending_candidates'])->toBe(1)
+            ->and($privateCheckpoint['outputs'])->toBe([])
+            ->and($private['pending_candidates'])->toBe(0)
+            ->and($private['family_visible'])->toBeFalse()
             ->and($private['outputs'])->toHaveCount(2)
             ->and($replay['outputs'])->toBe($private['outputs'])
             ->and($sourceItem->getRawOriginal('review_status'))->toBe($sourceState['review_status'])

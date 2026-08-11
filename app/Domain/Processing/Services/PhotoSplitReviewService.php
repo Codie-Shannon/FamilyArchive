@@ -111,6 +111,21 @@ final class PhotoSplitReviewService
      */
     public function saveRegions(PhotoSplitProposal $proposal, User $actor, array $regions): PhotoSplitProposal
     {
+        return $this->saveRegionsCheckpointed($proposal, $actor, $regions, PHP_INT_MAX);
+    }
+
+    /**
+     * Persist reviewed geometry once and render at most the requested number
+     * of missing candidates. Repeated calls resume deterministic region IDs.
+     *
+     * @param  array<mixed>  $regions
+     */
+    public function saveRegionsCheckpointed(
+        PhotoSplitProposal $proposal,
+        User $actor,
+        array $regions,
+        int $maximumCandidates = 1,
+    ): PhotoSplitProposal {
         if ($proposal->state === 'published') {
             throw ValidationException::withMessages(['regions' => 'Published split regions cannot be changed.']);
         }
@@ -128,29 +143,9 @@ final class PhotoSplitReviewService
 
         $source = $proposal->sourceVersion()->firstOrFail();
         $sourceBytes = $this->verifiedBytes($source);
-        $dimensions = @getimagesizefromstring($sourceBytes);
-        if (! is_array($dimensions)) {
-            throw new RuntimeException('The immutable source could not be decoded for split rendering.');
-        }
-        $sourceWidth = (int) $dimensions[0];
-        $sourceHeight = (int) $dimensions[1];
-        $renderIndexes = [];
-        $renderRequests = [];
-        foreach ($normalized as $index => $input) {
-            if (! $input['included']) {
-                continue;
-            }
-            $renderIndexes[] = $index;
-            $renderRequests[] = $this->pixelRegion($input, $sourceWidth, $sourceHeight);
-        }
-        $renderedByIndex = [];
-        $renderedCandidates = $this->candidateRenderer->renderBatch($sourceBytes, $renderRequests);
-        foreach ($renderIndexes as $renderOffset => $index) {
-            $renderedByIndex[$index] = $renderedCandidates[$renderOffset];
-        }
         $keptIds = [];
 
-        DB::transaction(function () use ($proposal, $normalized, $source, $sourceBytes, $renderedByIndex, $actor, &$keptIds): void {
+        DB::transaction(function () use ($proposal, $normalized, $actor, &$keptIds): void {
             // Move existing positions out of the active range before applying a
             // reordered/manual layout, avoiding transient unique-key clashes.
             $proposal->regions()->update([
@@ -160,7 +155,7 @@ final class PhotoSplitReviewService
             foreach ($normalized as $index => $input) {
                 $regionUuid = isset($input['region_id']) && Str::isUuid($input['region_id'])
                     ? $input['region_id']
-                    : (string) Str::uuid();
+                    : $this->deterministicRegionUuid($proposal, $input, $index + 1);
                 $region = PhotoSplitRegion::query()->firstOrNew([
                     'photo_split_proposal_id' => $proposal->id,
                     'region_id' => $regionUuid,
@@ -176,26 +171,40 @@ final class PhotoSplitReviewService
                     'source' => 'manual',
                     'review_state' => $input['included'] ? 'included' : 'excluded',
                 ])->save();
-
-                if ($input['included']) {
-                    $candidate = $this->renderCandidate($proposal, $region, $source, $sourceBytes, $renderedByIndex[$index]);
-                    $region->forceFill(['candidate_version_id' => $candidate->id])->save();
-                }
                 $keptIds[] = $region->id;
             }
 
             $proposal->regions()->whereNotIn('id', $keptIds)->delete();
             $proposal->forceFill([
-                'state' => 'ready',
+                'state' => 'suggested',
                 'reviewed_by' => $actor->id,
                 'reviewed_at' => now(),
             ])->save();
         });
 
-        DB::table('cloud_import_items')->where('id', $proposal->cloud_import_item_id)->update([
-            'attention_code' => 'multi_photo_ready',
-            'updated_at' => now(),
-        ]);
+        $maximumCandidates = max(1, $maximumCandidates);
+        $missing = $proposal->regions()
+            ->where('review_state', 'included')
+            ->whereNull('candidate_version_id')
+            ->orderBy('position')
+            ->limit($maximumCandidates)
+            ->get();
+        foreach ($missing as $region) {
+            $candidate = $this->renderCandidate($proposal, $region, $source, $sourceBytes);
+            $region->forceFill(['candidate_version_id' => $candidate->id])->save();
+        }
+
+        $remaining = $proposal->regions()
+            ->where('review_state', 'included')
+            ->whereNull('candidate_version_id')
+            ->count();
+        if ($remaining === 0) {
+            $proposal->forceFill(['state' => 'ready'])->save();
+            DB::table('cloud_import_items')->where('id', $proposal->cloud_import_item_id)->update([
+                'attention_code' => 'multi_photo_ready',
+                'updated_at' => now(),
+            ]);
+        }
 
         return $proposal->fresh(['regions.candidateVersion', 'sourceVersion']);
     }
@@ -482,5 +491,25 @@ final class PhotoSplitReviewService
             'height' => min($height, $sourceHeight - $y),
             'rotation_degrees' => $region['rotation_degrees'],
         ];
+    }
+
+    /** @param array{x:int,y:int,width:int,height:int,rotation_degrees:int,included:bool,region_id?:string} $region */
+    private function deterministicRegionUuid(PhotoSplitProposal $proposal, array $region, int $position): string
+    {
+        $hex = hash('sha256', json_encode([
+            'namespace' => 'familyarchive-reviewed-split-region-v1',
+            'proposal_id' => $proposal->id,
+            'position' => $position,
+            'x' => $region['x'],
+            'y' => $region['y'],
+            'width' => $region['width'],
+            'height' => $region['height'],
+            'rotation_degrees' => $region['rotation_degrees'],
+            'included' => $region['included'],
+        ], JSON_THROW_ON_ERROR));
+        $hex[12] = '5';
+        $hex[16] = dechex((hexdec($hex[16]) & 0x3) | 0x8);
+
+        return substr($hex, 0, 8).'-'.substr($hex, 8, 4).'-'.substr($hex, 12, 4).'-'.substr($hex, 16, 4).'-'.substr($hex, 20, 12);
     }
 }
