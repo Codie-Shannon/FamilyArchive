@@ -503,6 +503,7 @@ final class PhotoSplitCandidateRenderer
                 'minimum_deskew_confidence' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55),
                 'minimum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4),
                 'maximum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0),
+                'apply_deskew' => (bool) config('archive.multi_photo.candidate_rendering.sharp_apply_deskew', false),
                 'final_safety_pixels' => max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)),
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
                 'regions' => $manifestRegions,
@@ -550,8 +551,8 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 6,
-                        'rendering_backend' => 'sharp_libvips_streaming_v1',
+                        'pipeline_version' => 7,
+                        'rendering_backend' => 'sharp_libvips_streaming_v2',
                         'operation_order' => ['padded_extract', 'independent_rotate', 'final_edge_crop'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [

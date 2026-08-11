@@ -74,6 +74,7 @@ return [
             'sharp_minimum_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MINIMUM_SOURCE_PIXELS', 45000001),
             'sharp_minimum_region_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MINIMUM_REGION_PIXELS', 8000000),
             'sharp_max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MAX_SOURCE_PIXELS', 250000000),
+            'sharp_apply_deskew' => (bool) env('ARCHIVE_MULTI_PHOTO_SHARP_APPLY_DESKEW', false),
             'sharp_timeout_seconds' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_TIMEOUT_SECONDS', 900),
             'padding_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_PADDING_RATIO', 0.08),
             'minimum_padding_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MINIMUM_PADDING_PIXELS', 8),

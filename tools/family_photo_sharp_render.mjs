@@ -84,7 +84,8 @@ for (const region of manifest.regions) {
         .raw()
         .toBuffer({ resolveWithObject: true });
     const skew = detectSkew(preview.data, preview.info.width, preview.info.height, preview.info.channels);
-    const deskewDegrees = skew.confidence >= manifest.minimum_deskew_confidence
+    const deskewDegrees = manifest.apply_deskew
+        && skew.confidence >= manifest.minimum_deskew_confidence
         && Math.abs(skew.degrees) >= manifest.minimum_deskew_degrees
         && Math.abs(skew.degrees) <= manifest.maximum_deskew_degrees
         ? -skew.degrees
