@@ -958,7 +958,9 @@ final class PhotoSplitCandidateRenderer
         }
         $node = trim((string) config('archive.multi_photo.candidate_rendering.sharp_node_path', ''));
         $script = base_path('tools/family_photo_sharp_render.mjs');
-        $package = base_path('node_modules/sharp/package.json');
+        $package = is_file(base_path('node_modules/sharp/package.json'))
+            ? base_path('node_modules/sharp/package.json')
+            : base_path('tools/node-runtime/node_modules/sharp/package.json');
 
         return $node !== '' && is_file($node) && is_executable($node) && is_file($script) && is_file($package)
             ? $node

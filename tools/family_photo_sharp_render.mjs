@@ -1,5 +1,13 @@
 import fs from 'node:fs/promises';
-import sharp from 'sharp';
+import { createRequire } from 'node:module';
+
+let sharp;
+try {
+    ({ default: sharp } = await import('sharp'));
+} catch {
+    const require = createRequire(import.meta.url);
+    sharp = require('./node-runtime/node_modules/sharp');
+}
 
 sharp.cache({ memory: 32, files: 20, items: 10 });
 sharp.concurrency(1);
