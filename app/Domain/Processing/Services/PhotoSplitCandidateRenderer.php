@@ -9,6 +9,64 @@ use Symfony\Component\Process\Process;
 
 final class PhotoSplitCandidateRenderer
 {
+    /**
+     * @param  list<array{x:int,y:int,width:int,height:int,rotation_degrees:float|int}>  $regions
+     * @return list<RenderedSplitPhoto>
+     */
+    public function renderBatch(string $sourceBytes, array $regions): array
+    {
+        if ($regions === []) {
+            return [];
+        }
+        $dimensions = @getimagesizefromstring($sourceBytes);
+        if (! is_array($dimensions)) {
+            throw new RuntimeException('The immutable source could not be decoded for split rendering.');
+        }
+        $sourceWidth = (int) $dimensions[0];
+        $sourceHeight = (int) $dimensions[1];
+        $imageMagick = $this->imageMagickExecutable();
+        $maximumSourcePixels = $imageMagick === null
+            ? (int) config('archive.multi_photo.max_source_pixels', 250000000)
+            : (int) config('archive.multi_photo.candidate_rendering.imagemagick_max_source_pixels', 250000000);
+        if ($sourceWidth * $sourceHeight > $maximumSourcePixels) {
+            throw new RuntimeException('The immutable source exceeds the split-rendering pixel limit.');
+        }
+        foreach ($regions as $region) {
+            if ($region['width'] < 1 || $region['height'] < 1 || $region['x'] < 0 || $region['y'] < 0
+                || $sourceWidth < $region['x'] + $region['width'] || $sourceHeight < $region['y'] + $region['height']) {
+                throw new RuntimeException('A split region falls outside the immutable source.');
+            }
+        }
+        if ($imageMagick === null) {
+            return array_map(fn (array $region): RenderedSplitPhoto => $this->render(
+                $sourceBytes,
+                $region['x'],
+                $region['y'],
+                $region['width'],
+                $region['height'],
+                (float) $region['rotation_degrees'],
+            ), $regions);
+        }
+
+        [$preparedDirectory, $preparedSource] = $this->prepareImageMagickSource($imageMagick, $sourceBytes);
+        try {
+            return array_map(fn (array $region): RenderedSplitPhoto => $this->renderWithImageMagick(
+                $imageMagick,
+                $sourceBytes,
+                $sourceWidth,
+                $sourceHeight,
+                $region['x'],
+                $region['y'],
+                $region['width'],
+                $region['height'],
+                (float) $region['rotation_degrees'],
+                $preparedSource,
+            ), $regions);
+        } finally {
+            $this->removeTemporaryDirectory($preparedDirectory);
+        }
+    }
+
     public function render(
         string $sourceBytes,
         int $x,
@@ -188,6 +246,7 @@ final class PhotoSplitCandidateRenderer
         int $width,
         int $height,
         float $manualRotationDegrees,
+        ?string $preparedSourcePath = null,
     ): RenderedSplitPhoto {
         $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
         $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
@@ -211,12 +270,12 @@ final class PhotoSplitCandidateRenderer
             throw new RuntimeException('The disk-backed split renderer could not create its temporary workspace.');
         }
 
-        $inputPath = $directory.DIRECTORY_SEPARATOR.'source.bin';
+        $inputPath = $preparedSourcePath ?? $directory.DIRECTORY_SEPARATOR.'source.bin';
         $skewPath = $directory.DIRECTORY_SEPARATOR.'skew.png';
         $outputPath = $directory.DIRECTORY_SEPARATOR.'candidate.webp';
         $qualityPath = $directory.DIRECTORY_SEPARATOR.'quality.png';
         try {
-            if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
+            if ($preparedSourcePath === null && file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
                 throw new RuntimeException('The disk-backed split renderer could not stage the immutable source.');
             }
 
@@ -307,8 +366,10 @@ final class PhotoSplitCandidateRenderer
                 width: $finalWidth,
                 height: $finalHeight,
                 recipe: [
-                    'pipeline_version' => 3,
-                    'rendering_backend' => 'imagemagick_disk_backed_v1',
+                    'pipeline_version' => $preparedSourcePath === null ? 3 : 4,
+                    'rendering_backend' => $preparedSourcePath === null
+                        ? 'imagemagick_disk_backed_v1'
+                        : 'imagemagick_disk_cached_v2',
                     'operation_order' => ['padded_extract', 'independent_rotate', 'final_edge_crop'],
                     'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                     'requested_bounds_pixels' => compact('x', 'y', 'width', 'height'),
@@ -332,7 +393,11 @@ final class PhotoSplitCandidateRenderer
                 ],
             );
         } finally {
-            foreach ([$inputPath, $skewPath, $outputPath, $qualityPath] as $path) {
+            $paths = [$skewPath, $outputPath, $qualityPath];
+            if ($preparedSourcePath === null) {
+                $paths[] = $inputPath;
+            }
+            foreach ($paths as $path) {
                 if (is_file($path)) {
                     @unlink($path);
                 }
@@ -503,6 +568,43 @@ final class PhotoSplitCandidateRenderer
         return $configured !== '' && is_file($configured) && is_executable($configured)
             ? $configured
             : null;
+    }
+
+    /** @return array{0:string,1:string} */
+    private function prepareImageMagickSource(string $executable, string $sourceBytes): array
+    {
+        $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'familyarchive-split-cache-'.bin2hex(random_bytes(8));
+        if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
+            throw new RuntimeException('The disk-backed split renderer could not create its source cache.');
+        }
+        $inputPath = $directory.DIRECTORY_SEPARATOR.'source.bin';
+        $preparedPath = $directory.DIRECTORY_SEPARATOR.'source.mpc';
+        try {
+            if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
+                throw new RuntimeException('The disk-backed split renderer could not stage its source cache.');
+            }
+            $this->runImageMagick($executable, [$inputPath, $preparedPath]);
+            if (! is_file($preparedPath) || ! is_file($directory.DIRECTORY_SEPARATOR.'source.cache')) {
+                throw new RuntimeException('The disk-backed split renderer did not create a reusable source cache.');
+            }
+            @unlink($inputPath);
+
+            return [$directory, $preparedPath];
+        } catch (\Throwable $exception) {
+            $this->removeTemporaryDirectory($directory);
+
+            throw $exception;
+        }
+    }
+
+    private function removeTemporaryDirectory(string $directory): void
+    {
+        foreach (glob($directory.DIRECTORY_SEPARATOR.'*') ?: [] as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+        @rmdir($directory);
     }
 
     /** @param list<string> $arguments */

@@ -18,6 +18,7 @@ use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Processing\Models\PhotoSplitProposal;
 use App\Domain\Processing\Models\PhotoSplitRegion;
+use App\Domain\Processing\ValueObjects\RenderedSplitPhoto;
 use App\Models\User;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\DB;
@@ -127,9 +128,29 @@ final class PhotoSplitReviewService
 
         $source = $proposal->sourceVersion()->firstOrFail();
         $sourceBytes = $this->verifiedBytes($source);
+        $dimensions = @getimagesizefromstring($sourceBytes);
+        if (! is_array($dimensions)) {
+            throw new RuntimeException('The immutable source could not be decoded for split rendering.');
+        }
+        $sourceWidth = (int) $dimensions[0];
+        $sourceHeight = (int) $dimensions[1];
+        $renderIndexes = [];
+        $renderRequests = [];
+        foreach ($normalized as $index => $input) {
+            if (! $input['included']) {
+                continue;
+            }
+            $renderIndexes[] = $index;
+            $renderRequests[] = $this->pixelRegion($input, $sourceWidth, $sourceHeight);
+        }
+        $renderedByIndex = [];
+        $renderedCandidates = $this->candidateRenderer->renderBatch($sourceBytes, $renderRequests);
+        foreach ($renderIndexes as $renderOffset => $index) {
+            $renderedByIndex[$index] = $renderedCandidates[$renderOffset];
+        }
         $keptIds = [];
 
-        DB::transaction(function () use ($proposal, $normalized, $source, $sourceBytes, $actor, &$keptIds): void {
+        DB::transaction(function () use ($proposal, $normalized, $source, $sourceBytes, $renderedByIndex, $actor, &$keptIds): void {
             // Move existing positions out of the active range before applying a
             // reordered/manual layout, avoiding transient unique-key clashes.
             $proposal->regions()->update([
@@ -157,7 +178,7 @@ final class PhotoSplitReviewService
                 ])->save();
 
                 if ($input['included']) {
-                    $candidate = $this->renderCandidate($proposal, $region, $source, $sourceBytes);
+                    $candidate = $this->renderCandidate($proposal, $region, $source, $sourceBytes, $renderedByIndex[$index]);
                     $region->forceFill(['candidate_version_id' => $candidate->id])->save();
                 }
                 $keptIds[] = $region->id;
@@ -285,28 +306,28 @@ final class PhotoSplitReviewService
         return $created;
     }
 
-    private function renderCandidate(PhotoSplitProposal $proposal, PhotoSplitRegion $region, MediaFileVersion $source, string $bytes): MediaFileVersion
-    {
-        $dimensions = @getimagesizefromstring($bytes);
-        if (! is_array($dimensions)) {
-            throw new RuntimeException('The immutable source could not be decoded for split rendering.');
+    private function renderCandidate(
+        PhotoSplitProposal $proposal,
+        PhotoSplitRegion $region,
+        MediaFileVersion $source,
+        string $bytes,
+        ?RenderedSplitPhoto $rendered = null,
+    ): MediaFileVersion {
+        if (! $rendered instanceof RenderedSplitPhoto) {
+            $dimensions = @getimagesizefromstring($bytes);
+            if (! is_array($dimensions)) {
+                throw new RuntimeException('The immutable source could not be decoded for split rendering.');
+            }
+            $pixelRegion = $this->pixelRegion($this->regionArray($region), (int) $dimensions[0], (int) $dimensions[1]);
+            $rendered = $this->candidateRenderer->render(
+                $bytes,
+                $pixelRegion['x'],
+                $pixelRegion['y'],
+                $pixelRegion['width'],
+                $pixelRegion['height'],
+                $pixelRegion['rotation_degrees'],
+            );
         }
-        $sourceWidth = (int) $dimensions[0];
-        $sourceHeight = (int) $dimensions[1];
-        $x = (int) floor($sourceWidth * ($region->x_basis_points / 10000));
-        $y = (int) floor($sourceHeight * ($region->y_basis_points / 10000));
-        $width = max(1, (int) ceil($sourceWidth * ($region->width_basis_points / 10000)));
-        $height = max(1, (int) ceil($sourceHeight * ($region->height_basis_points / 10000)));
-        $width = min($width, $sourceWidth - $x);
-        $height = min($height, $sourceHeight - $y);
-        $rendered = $this->candidateRenderer->render(
-            $bytes,
-            $x,
-            $y,
-            $width,
-            $height,
-            $region->rotation_degrees,
-        );
         $output = $rendered->bytes;
         $outputSha256 = hash('sha256', $output);
         $renderKey = hash('sha256', json_encode([
@@ -440,6 +461,26 @@ final class PhotoSplitReviewService
             'width' => $region->width_basis_points,
             'height' => $region->height_basis_points,
             'rotation_degrees' => $region->rotation_degrees,
+        ];
+    }
+
+    /**
+     * @param  array{x:int,y:int,width:int,height:int,rotation_degrees:int}  $region
+     * @return array{x:int,y:int,width:int,height:int,rotation_degrees:int}
+     */
+    private function pixelRegion(array $region, int $sourceWidth, int $sourceHeight): array
+    {
+        $x = (int) floor($sourceWidth * ($region['x'] / 10000));
+        $y = (int) floor($sourceHeight * ($region['y'] / 10000));
+        $width = max(1, (int) ceil($sourceWidth * ($region['width'] / 10000)));
+        $height = max(1, (int) ceil($sourceHeight * ($region['height'] / 10000)));
+
+        return [
+            'x' => $x,
+            'y' => $y,
+            'width' => min($width, $sourceWidth - $x),
+            'height' => min($height, $sourceHeight - $y),
+            'rotation_degrees' => $region['rotation_degrees'],
         ];
     }
 }
