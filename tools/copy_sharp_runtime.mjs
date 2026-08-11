@@ -6,6 +6,8 @@ const sourceModules = path.join(root, 'node_modules');
 const targetModules = path.join(root, 'tools', 'node-runtime', 'node_modules');
 const packages = [
     'sharp',
+    'detect-libc',
+    'semver',
     '@img/colour',
     `@img/sharp-${process.platform}-${process.arch}`,
     `@img/sharp-libvips-${process.platform}-${process.arch}`,
