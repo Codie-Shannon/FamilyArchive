@@ -51,7 +51,7 @@ return [
         'maximum_crop_margin_balance' => (float) env('ARCHIVE_MAXIMUM_CROP_MARGIN_BALANCE', 0.28),
     ],
     'multi_photo' => [
-        'max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAX_SOURCE_PIXELS', 45000000),
+        'max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAX_SOURCE_PIXELS', 250000000),
         'minimum_seam_spacing' => (float) env('ARCHIVE_MULTI_PHOTO_MINIMUM_SEAM_SPACING', 0.08),
         'maximum_axis_seams' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_AXIS_SEAMS', 7),
         'maximum_regions' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_REGIONS', 32),
@@ -63,6 +63,12 @@ return [
         ],
         'candidate_rendering' => [
             'memory_limit' => env('ARCHIVE_MULTI_PHOTO_MEMORY_LIMIT', '512M'),
+            'imagemagick_path' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_PATH', PHP_OS_FAMILY === 'Windows' ? '' : '/usr/local/bin/magick'),
+            'imagemagick_max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MAX_SOURCE_PIXELS', 250000000),
+            'imagemagick_memory_limit' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MEMORY_LIMIT', '64MiB'),
+            'imagemagick_map_limit' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MAP_LIMIT', '128MiB'),
+            'imagemagick_disk_limit' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_DISK_LIMIT', '8GiB'),
+            'imagemagick_timeout_seconds' => (int) env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_TIMEOUT_SECONDS', 900),
             'padding_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_PADDING_RATIO', 0.08),
             'minimum_padding_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MINIMUM_PADDING_PIXELS', 8),
             'maximum_padding_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_MAXIMUM_PADDING_PIXELS', 192),
