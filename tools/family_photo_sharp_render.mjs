@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import { createRequire } from 'node:module';
 
 let sharp;
@@ -58,14 +59,22 @@ function detectSkew(data, width, height, channels) {
     };
 }
 
-const results = [];
-for (const region of manifest.regions) {
-    const rawInput = {
+function sharpFromRawFile(region) {
+    const pipeline = sharp({
         raw: { width: region.raw_width, height: region.raw_height, channels: 3 },
         failOn: 'error',
         sequentialRead: true,
-    };
-    const preview = await sharp(region.raw_path, rawInput)
+    });
+    const input = createReadStream(region.raw_path);
+    input.on('error', error => pipeline.destroy(error));
+    input.pipe(pipeline);
+
+    return pipeline;
+}
+
+const results = [];
+for (const region of manifest.regions) {
+    const preview = await sharpFromRawFile(region)
         .extract({ left: region.raw_region_x, top: region.raw_region_y, width: region.width, height: region.height })
         .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
         .removeAlpha()
@@ -100,7 +109,7 @@ for (const region of manifest.regions) {
     const scaledCopyHeight = Math.max(1, Math.floor(copyHeight * outputScale));
     const scaledDestinationX = Math.max(0, Math.floor(destinationX * outputScale));
     const scaledDestinationY = Math.max(0, Math.floor(destinationY * outputScale));
-    let pipeline = sharp(region.raw_path, rawInput);
+    let pipeline = sharpFromRawFile(region);
     if (outputScale < 1) {
         pipeline = pipeline.resize({ width: scaledCopyWidth, height: scaledCopyHeight, fit: 'fill' });
     }
