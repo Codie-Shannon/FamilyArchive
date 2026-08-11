@@ -72,8 +72,109 @@ function sharpFromRawFile(region) {
     return pipeline;
 }
 
+async function readRow(file, buffer, row, rowBytes) {
+    const { bytesRead } = await file.read(buffer, 0, rowBytes, row * rowBytes);
+    if (bytesRead !== rowBytes) {
+        throw new Error('The bounded raw resampler could not read a complete source row.');
+    }
+}
+
+async function boundedRawRegion(region, maximumPixels) {
+    const sourceWidth = region.raw_width;
+    const sourceHeight = region.raw_height;
+    const original = {
+        ...region,
+        original_width: region.width,
+        original_height: region.height,
+        original_safety_pixels: manifest.final_safety_pixels,
+        working_safety_pixels: manifest.final_safety_pixels,
+        working_scale_x: 1,
+        working_scale_y: 1,
+    };
+    if (sourceWidth * sourceHeight <= maximumPixels) {
+        return original;
+    }
+
+    const scale = Math.sqrt(maximumPixels / (sourceWidth * sourceHeight));
+    const targetWidth = Math.max(1, Math.floor(sourceWidth * scale));
+    const targetHeight = Math.max(1, Math.floor(sourceHeight * scale));
+    const targetPath = `${region.raw_path}.bounded.rgb`;
+    const source = await fs.open(region.raw_path, 'r');
+    const target = await fs.open(targetPath, 'w');
+    const sourceRowBytes = sourceWidth * 3;
+    const targetRowBytes = targetWidth * 3;
+    const rowA = Buffer.allocUnsafe(sourceRowBytes);
+    const rowB = Buffer.allocUnsafe(sourceRowBytes);
+    const outputRow = Buffer.allocUnsafe(targetRowBytes);
+    const x0 = new Int32Array(targetWidth);
+    const x1 = new Int32Array(targetWidth);
+    const xWeight = new Float64Array(targetWidth);
+
+    for (let x = 0; x < targetWidth; x += 1) {
+        const sourceX = Math.max(0, Math.min(sourceWidth - 1, ((x + 0.5) * sourceWidth / targetWidth) - 0.5));
+        x0[x] = Math.floor(sourceX);
+        x1[x] = Math.min(sourceWidth - 1, x0[x] + 1);
+        xWeight[x] = sourceX - x0[x];
+    }
+
+    try {
+        for (let y = 0; y < targetHeight; y += 1) {
+            const sourceY = Math.max(0, Math.min(sourceHeight - 1, ((y + 0.5) * sourceHeight / targetHeight) - 0.5));
+            const y0 = Math.floor(sourceY);
+            const y1 = Math.min(sourceHeight - 1, y0 + 1);
+            const yWeight = sourceY - y0;
+            await readRow(source, rowA, y0, sourceRowBytes);
+            if (y1 === y0) {
+                rowA.copy(rowB);
+            } else {
+                await readRow(source, rowB, y1, sourceRowBytes);
+            }
+            for (let x = 0; x < targetWidth; x += 1) {
+                const left = x0[x] * 3;
+                const right = x1[x] * 3;
+                const destination = x * 3;
+                const horizontalWeight = xWeight[x];
+                for (let channel = 0; channel < 3; channel += 1) {
+                    const top = rowA[left + channel] * (1 - horizontalWeight) + rowA[right + channel] * horizontalWeight;
+                    const bottom = rowB[left + channel] * (1 - horizontalWeight) + rowB[right + channel] * horizontalWeight;
+                    outputRow[destination + channel] = Math.round(top * (1 - yWeight) + bottom * yWeight);
+                }
+            }
+            const { bytesWritten } = await target.write(outputRow, 0, targetRowBytes, y * targetRowBytes);
+            if (bytesWritten !== targetRowBytes) {
+                throw new Error('The bounded raw resampler could not write a complete output row.');
+            }
+        }
+    } finally {
+        await source.close();
+        await target.close();
+    }
+
+    const scaleX = targetWidth / sourceWidth;
+    const scaleY = targetHeight / sourceHeight;
+    const regionX = Math.max(0, Math.min(targetWidth - 1, Math.round(region.raw_region_x * scaleX)));
+    const regionY = Math.max(0, Math.min(targetHeight - 1, Math.round(region.raw_region_y * scaleY)));
+
+    return {
+        ...original,
+        raw_path: targetPath,
+        raw_width: targetWidth,
+        raw_height: targetHeight,
+        raw_region_x: regionX,
+        raw_region_y: regionY,
+        raw_destination_x: Math.max(0, Math.round(region.raw_destination_x * scaleX)),
+        raw_destination_y: Math.max(0, Math.round(region.raw_destination_y * scaleY)),
+        width: Math.max(1, Math.min(targetWidth - regionX, Math.round(region.width * scaleX))),
+        height: Math.max(1, Math.min(targetHeight - regionY, Math.round(region.height * scaleY))),
+        working_safety_pixels: Math.max(0, Math.round(manifest.final_safety_pixels * Math.min(scaleX, scaleY))),
+        working_scale_x: scaleX,
+        working_scale_y: scaleY,
+    };
+}
+
 const results = [];
-for (const region of manifest.regions) {
+for (const manifestRegion of manifest.regions) {
+    const region = await boundedRawRegion(manifestRegion, manifest.maximum_working_pixels);
     const preview = await sharpFromRawFile(region)
         .extract({ left: region.raw_region_x, top: region.raw_region_y, width: region.width, height: region.height })
         .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
@@ -93,7 +194,7 @@ for (const region of manifest.regions) {
     if (![0, 90, 180, 270].includes(normalizedRotation)) {
         throw new Error('The streaming renderer only accepts audited quarter-turn rotations.');
     }
-    const safety = manifest.final_safety_pixels;
+    const safety = region.working_safety_pixels;
     const copyWidth = region.raw_width;
     const copyHeight = region.raw_height;
     const destinationX = region.raw_destination_x;
@@ -130,6 +231,14 @@ for (const region of manifest.regions) {
         .resize({ width: 640, height: 640, fit: 'inside', withoutEnlargement: true })
         .png()
         .toFile(region.quality_path);
+    const originalUnrotatedWidth = region.original_width + region.original_safety_pixels * 2;
+    const originalUnrotatedHeight = region.original_height + region.original_safety_pixels * 2;
+    const originalTargetWidth = normalizedRotation === 90 || normalizedRotation === 270
+        ? originalUnrotatedHeight
+        : originalUnrotatedWidth;
+    const originalTargetHeight = normalizedRotation === 90 || normalizedRotation === 270
+        ? originalUnrotatedWidth
+        : originalUnrotatedHeight;
     results.push({
         index: region.index,
         width: output.width,
@@ -139,9 +248,9 @@ for (const region of manifest.regions) {
         gd_rotation: gdRotation,
         final_x: 0,
         final_y: 0,
-        unscaled_width: targetWidth,
-        unscaled_height: targetHeight,
-        output_scale: outputScale,
+        unscaled_width: originalTargetWidth,
+        unscaled_height: originalTargetHeight,
+        output_scale: Math.sqrt((output.width * output.height) / (originalTargetWidth * originalTargetHeight)),
     });
 }
 

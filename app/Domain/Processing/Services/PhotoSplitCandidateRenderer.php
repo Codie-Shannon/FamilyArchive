@@ -523,6 +523,7 @@ final class PhotoSplitCandidateRenderer
                 'final_safety_pixels' => $finalSafety,
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
                 'maximum_output_pixels' => (int) config('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 24000000),
+                'maximum_working_pixels' => (int) config('archive.multi_photo.candidate_rendering.sharp_max_working_pixels', 12000000),
                 'regions' => $manifestRegions,
             ];
             $script = base_path('tools/family_photo_sharp_render.mjs');
@@ -581,9 +582,9 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 10,
-                        'rendering_backend' => 'imagemagick_stream_sharp_v5',
-                        'operation_order' => ['rgb_stream_extract', 'downscale_if_needed', 'independent_quarter_turn'],
+                        'pipeline_version' => 11,
+                        'rendering_backend' => 'imagemagick_stream_bilinear_sharp_v6',
+                        'operation_order' => ['rgb_stream_extract', 'bounded_bilinear_resample', 'independent_quarter_turn'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [
                             'x' => $region['x'],

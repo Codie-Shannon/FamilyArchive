@@ -65,8 +65,8 @@ it('streams oversized split crops through the sharp renderer', function (): void
 
     $rendered = app(PhotoSplitCandidateRenderer::class)->render(splitRendererFixture(), 80, 60, 120, 80, 90.0);
 
-    expect($rendered->recipe['pipeline_version'])->toBe(10)
-        ->and($rendered->recipe['rendering_backend'])->toBe('imagemagick_stream_sharp_v5')
+    expect($rendered->recipe['pipeline_version'])->toBe(11)
+        ->and($rendered->recipe['rendering_backend'])->toBe('imagemagick_stream_bilinear_sharp_v6')
         ->and($rendered->height)->toBeGreaterThan($rendered->width)
         ->and($rendered->width * $rendered->height)->toBeLessThanOrEqual(5000)
         ->and($rendered->recipe['output_scaling']['scale'])->toBeLessThan(1)
