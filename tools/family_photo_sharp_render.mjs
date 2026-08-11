@@ -132,8 +132,21 @@ for (const region of manifest.regions) {
     if (Math.abs(clockwiseRotation) >= 0.01) {
         pipeline = pipeline.rotate(clockwiseRotation, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
     }
+    const outputScale = Math.min(1, Math.sqrt(manifest.maximum_output_pixels / (targetWidth * targetHeight)));
+    const outputWidth = Math.max(1, Math.floor(targetWidth * outputScale));
+    const outputHeight = Math.max(1, Math.floor(targetHeight * outputScale));
+    if (outputScale < 1) {
+        const scaledCanvasWidth = Math.max(outputWidth, Math.floor(rotatedWidth * outputScale));
+        const scaledCanvasHeight = Math.max(outputHeight, Math.floor(rotatedHeight * outputScale));
+        const scaledFinalX = Math.max(0, Math.min(scaledCanvasWidth - outputWidth, Math.floor(finalX * outputScale)));
+        const scaledFinalY = Math.max(0, Math.min(scaledCanvasHeight - outputHeight, Math.floor(finalY * outputScale)));
+        pipeline = pipeline
+            .resize({ width: scaledCanvasWidth, height: scaledCanvasHeight, fit: 'fill' })
+            .extract({ left: scaledFinalX, top: scaledFinalY, width: outputWidth, height: outputHeight });
+    } else {
+        pipeline = pipeline.extract({ left: finalX, top: finalY, width: targetWidth, height: targetHeight });
+    }
     const output = await pipeline
-        .extract({ left: finalX, top: finalY, width: targetWidth, height: targetHeight })
         .webp({ quality: manifest.webp_quality, effort: 4 })
         .toFile(region.output_path);
     await sharp(region.output_path, { failOn: 'error', limitInputPixels: manifest.maximum_source_pixels })
@@ -149,6 +162,9 @@ for (const region of manifest.regions) {
         gd_rotation: gdRotation,
         final_x: finalX,
         final_y: finalY,
+        unscaled_width: targetWidth,
+        unscaled_height: targetHeight,
+        output_scale: outputScale,
     });
 }
 

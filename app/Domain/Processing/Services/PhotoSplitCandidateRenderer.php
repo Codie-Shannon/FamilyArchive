@@ -506,6 +506,7 @@ final class PhotoSplitCandidateRenderer
                 'apply_deskew' => (bool) config('archive.multi_photo.candidate_rendering.sharp_apply_deskew', false),
                 'final_safety_pixels' => max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)),
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
+                'maximum_output_pixels' => (int) config('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 24000000),
                 'regions' => $manifestRegions,
             ];
             $script = base_path('tools/family_photo_sharp_render.mjs');
@@ -551,8 +552,8 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 7,
-                        'rendering_backend' => 'sharp_libvips_streaming_v2',
+                        'pipeline_version' => 8,
+                        'rendering_backend' => 'sharp_libvips_streaming_v3',
                         'operation_order' => ['padded_extract', 'independent_rotate', 'final_edge_crop'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [
@@ -577,6 +578,12 @@ final class PhotoSplitCandidateRenderer
                             'safety_pixels' => $manifest['final_safety_pixels'],
                         ],
                         'clipping_guard' => 'rotate_before_final_crop',
+                        'output_scaling' => [
+                            'scale' => round((float) $row['output_scale'], 6),
+                            'unscaled_width' => (int) $row['unscaled_width'],
+                            'unscaled_height' => (int) $row['unscaled_height'],
+                            'maximum_pixels' => $manifest['maximum_output_pixels'],
+                        ],
                         'quality_signals' => $qualitySignals,
                     ],
                 );

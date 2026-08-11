@@ -59,13 +59,16 @@ it('streams oversized split crops through the sharp renderer', function (): void
     }
     config()->set('archive.multi_photo.candidate_rendering.sharp_node_path', $node);
     config()->set('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 1);
+    config()->set('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 5000);
     config()->set('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 1.0);
 
     $rendered = app(PhotoSplitCandidateRenderer::class)->render(splitRendererFixture(), 80, 60, 120, 80, 90.0);
 
-    expect($rendered->recipe['pipeline_version'])->toBe(7)
-        ->and($rendered->recipe['rendering_backend'])->toBe('sharp_libvips_streaming_v2')
+    expect($rendered->recipe['pipeline_version'])->toBe(8)
+        ->and($rendered->recipe['rendering_backend'])->toBe('sharp_libvips_streaming_v3')
         ->and($rendered->height)->toBeGreaterThan($rendered->width)
+        ->and($rendered->width * $rendered->height)->toBeLessThanOrEqual(5000)
+        ->and($rendered->recipe['output_scaling']['scale'])->toBeLessThan(1)
         ->and($rendered->recipe['manual_rotation_degrees_clockwise'])->toBe(90.0)
         ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
 });
