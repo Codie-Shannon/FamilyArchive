@@ -24,7 +24,7 @@ final class PhotoSplitCandidateRenderer
         }
         $sourceWidth = (int) $dimensions[0];
         $sourceHeight = (int) $dimensions[1];
-        $imageMagick = $this->imageMagickExecutable();
+        $imageMagick = $this->imageMagickExecutableFor($sourceWidth, $sourceHeight);
         $maximumSourcePixels = $imageMagick === null
             ? (int) config('archive.multi_photo.max_source_pixels', 250000000)
             : (int) config('archive.multi_photo.candidate_rendering.imagemagick_max_source_pixels', 250000000);
@@ -48,23 +48,13 @@ final class PhotoSplitCandidateRenderer
             ), $regions);
         }
 
-        [$preparedDirectory, $preparedSource] = $this->prepareImageMagickSource($imageMagick, $sourceBytes);
-        try {
-            return array_map(fn (array $region): RenderedSplitPhoto => $this->renderWithImageMagick(
-                $imageMagick,
-                $sourceBytes,
-                $sourceWidth,
-                $sourceHeight,
-                $region['x'],
-                $region['y'],
-                $region['width'],
-                $region['height'],
-                (float) $region['rotation_degrees'],
-                $preparedSource,
-            ), $regions);
-        } finally {
-            $this->removeTemporaryDirectory($preparedDirectory);
-        }
+        return $this->renderBatchWithImageMagick(
+            $imageMagick,
+            $sourceBytes,
+            $sourceWidth,
+            $sourceHeight,
+            $regions,
+        );
     }
 
     public function render(
@@ -81,7 +71,7 @@ final class PhotoSplitCandidateRenderer
         }
         $sourceWidth = (int) $dimensions[0];
         $sourceHeight = (int) $dimensions[1];
-        $imageMagick = $this->imageMagickExecutable();
+        $imageMagick = $this->imageMagickExecutableFor($sourceWidth, $sourceHeight);
         $maximumSourcePixels = $imageMagick === null
             ? (int) config('archive.multi_photo.max_source_pixels', 250000000)
             : (int) config('archive.multi_photo.candidate_rendering.imagemagick_max_source_pixels', 250000000);
@@ -406,6 +396,207 @@ final class PhotoSplitCandidateRenderer
         }
     }
 
+    /**
+     * @param  list<array{x:int,y:int,width:int,height:int,rotation_degrees:float|int}>  $regions
+     * @return list<RenderedSplitPhoto>
+     */
+    private function renderBatchWithImageMagick(
+        string $executable,
+        string $sourceBytes,
+        int $sourceWidth,
+        int $sourceHeight,
+        array $regions,
+    ): array {
+        $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'familyarchive-split-batch-'.bin2hex(random_bytes(8));
+        if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
+            throw new RuntimeException('The disk-backed split renderer could not create its batch workspace.');
+        }
+        $inputPath = $directory.DIRECTORY_SEPARATOR.'source.bin';
+        try {
+            if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
+                throw new RuntimeException('The disk-backed split renderer could not stage the immutable batch source.');
+            }
+            $geometry = [];
+            $previewArguments = [$inputPath];
+            foreach ($regions as $index => $region) {
+                $x = $region['x'];
+                $y = $region['y'];
+                $width = $region['width'];
+                $height = $region['height'];
+                $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
+                $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
+                $maximumPadding = max($minimumPadding, (int) config('archive.multi_photo.candidate_rendering.maximum_padding_pixels', 192));
+                $paddingX = min($maximumPadding, max($minimumPadding, (int) ceil($width * $ratio)));
+                $paddingY = min($maximumPadding, max($minimumPadding, (int) ceil($height * $ratio)));
+                $requestedLeft = $x - $paddingX;
+                $requestedTop = $y - $paddingY;
+                $copyLeft = max(0, $requestedLeft);
+                $copyTop = max(0, $requestedTop);
+                $copyRight = min($sourceWidth, $x + $width + $paddingX);
+                $copyBottom = min($sourceHeight, $y + $height + $paddingY);
+                $geometry[$index] = [
+                    'x' => $x,
+                    'y' => $y,
+                    'width' => $width,
+                    'height' => $height,
+                    'padding_x' => $paddingX,
+                    'padding_y' => $paddingY,
+                    'working_width' => $width + ($paddingX * 2),
+                    'working_height' => $height + ($paddingY * 2),
+                    'copy_left' => $copyLeft,
+                    'copy_top' => $copyTop,
+                    'copy_width' => max(1, $copyRight - $copyLeft),
+                    'copy_height' => max(1, $copyBottom - $copyTop),
+                    'destination_x' => $copyLeft - $requestedLeft,
+                    'destination_y' => $copyTop - $requestedTop,
+                    'manual_rotation' => (float) $region['rotation_degrees'],
+                    'skew_path' => $directory.DIRECTORY_SEPARATOR."skew-{$index}.png",
+                    'output_path' => $directory.DIRECTORY_SEPARATOR."candidate-{$index}.webp",
+                    'quality_path' => $directory.DIRECTORY_SEPARATOR."quality-{$index}.png",
+                ];
+                array_push(
+                    $previewArguments,
+                    '(', '+clone',
+                    '-crop', "{$width}x{$height}+{$x}+{$y}",
+                    '+repage',
+                    '-thumbnail', '1200x1200>',
+                    '-write', $geometry[$index]['skew_path'],
+                    '+delete', ')',
+                );
+            }
+            $previewArguments[] = 'null:';
+            $this->runImageMagick($executable, $previewArguments);
+
+            $renderArguments = [$inputPath];
+            foreach ($geometry as $index => &$item) {
+                $skewBytes = @file_get_contents($item['skew_path']);
+                $skewImage = is_string($skewBytes) ? @imagecreatefromstring($skewBytes) : false;
+                if (! $skewImage instanceof GdImage) {
+                    throw new RuntimeException('The disk-backed split renderer could not inspect batch crop alignment.');
+                }
+                try {
+                    $skew = $this->detectSkew($skewImage, 0, 0, imagesx($skewImage), imagesy($skewImage));
+                } finally {
+                    imagedestroy($skewImage);
+                }
+                $minimumConfidence = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55);
+                $minimumDegrees = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4);
+                $maximumDegrees = (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0);
+                $deskewDegrees = $skew['confidence'] >= $minimumConfidence
+                    && abs($skew['degrees']) >= $minimumDegrees
+                    && abs($skew['degrees']) <= $maximumDegrees
+                        ? -$skew['degrees']
+                        : 0.0;
+                $gdRotation = -$item['manual_rotation'] + $deskewDegrees;
+                $clockwiseRotation = -$gdRotation;
+                $radians = deg2rad(abs($gdRotation));
+                $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
+                $targetWidth = (int) ceil(abs($item['width'] * cos($radians)) + abs($item['height'] * sin($radians))) + ($finalSafety * 2);
+                $targetHeight = (int) ceil(abs($item['width'] * sin($radians)) + abs($item['height'] * cos($radians))) + ($finalSafety * 2);
+                $rotatedWidth = (int) ceil(abs($item['working_width'] * cos($radians)) + abs($item['working_height'] * sin($radians)));
+                $rotatedHeight = (int) ceil(abs($item['working_width'] * sin($radians)) + abs($item['working_height'] * cos($radians)));
+                $targetWidth = min($rotatedWidth, max(1, $targetWidth));
+                $targetHeight = min($rotatedHeight, max(1, $targetHeight));
+                $item['skew'] = $skew;
+                $item['deskew_degrees'] = $deskewDegrees;
+                $item['gd_rotation'] = $gdRotation;
+                $item['final_safety'] = $finalSafety;
+                $item['target_width'] = $targetWidth;
+                $item['target_height'] = $targetHeight;
+                $item['final_x'] = max(0, (int) floor(($rotatedWidth - $targetWidth) / 2));
+                $item['final_y'] = max(0, (int) floor(($rotatedHeight - $targetHeight) / 2));
+                array_push(
+                    $renderArguments,
+                    '(', '+clone',
+                    '-crop', "{$item['copy_width']}x{$item['copy_height']}+{$item['copy_left']}+{$item['copy_top']}",
+                    '+repage',
+                    '-background', 'none',
+                );
+                if ($item['destination_x'] > 0 || $item['destination_y'] > 0) {
+                    array_push($renderArguments, '-gravity', 'northwest', '-splice', "{$item['destination_x']}x{$item['destination_y']}+0+0");
+                }
+                array_push(
+                    $renderArguments,
+                    '-gravity', 'northwest',
+                    '-extent', "{$item['working_width']}x{$item['working_height']}",
+                );
+                if (abs($clockwiseRotation) >= 0.01) {
+                    array_push($renderArguments, '-gravity', 'center', '-rotate', (string) round($clockwiseRotation, 4));
+                }
+                array_push(
+                    $renderArguments,
+                    '-gravity', 'center',
+                    '-crop', "{$targetWidth}x{$targetHeight}+0+0",
+                    '+repage',
+                    '-quality', (string) ((int) config('archive.multi_photo.candidate_rendering.webp_quality', 90)),
+                    '-write', $item['output_path'],
+                    '-thumbnail', '640x640>',
+                    '-write', $item['quality_path'],
+                    '+delete', ')',
+                );
+            }
+            unset($item);
+            $renderArguments[] = 'null:';
+            $this->runImageMagick($executable, $renderArguments);
+
+            $rendered = [];
+            foreach ($geometry as $item) {
+                $output = @file_get_contents($item['output_path']);
+                $finalDimensions = is_string($output) ? @getimagesizefromstring($output) : false;
+                $qualityBytes = @file_get_contents($item['quality_path']);
+                $qualityImage = is_string($qualityBytes) ? @imagecreatefromstring($qualityBytes) : false;
+                if (! is_string($output) || $output === '' || ! is_array($finalDimensions) || ! $qualityImage instanceof GdImage) {
+                    throw new RuntimeException('The disk-backed split renderer produced an invalid batch candidate.');
+                }
+                $finalWidth = (int) $finalDimensions[0];
+                $finalHeight = (int) $finalDimensions[1];
+                try {
+                    $qualitySignals = $this->qualitySignals($qualityImage, $finalWidth, $finalHeight);
+                } finally {
+                    imagedestroy($qualityImage);
+                }
+                $rendered[] = new RenderedSplitPhoto(
+                    bytes: $output,
+                    width: $finalWidth,
+                    height: $finalHeight,
+                    recipe: [
+                        'pipeline_version' => 5,
+                        'rendering_backend' => 'imagemagick_single_decode_batch_v3',
+                        'operation_order' => ['padded_extract', 'independent_rotate', 'final_edge_crop'],
+                        'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
+                        'requested_bounds_pixels' => [
+                            'x' => $item['x'],
+                            'y' => $item['y'],
+                            'width' => $item['width'],
+                            'height' => $item['height'],
+                        ],
+                        'padding_pixels' => ['x' => $item['padding_x'], 'y' => $item['padding_y']],
+                        'manual_rotation_degrees_clockwise' => round($item['manual_rotation'], 2),
+                        'deskew' => [
+                            'detected_degrees' => $item['skew']['degrees'],
+                            'confidence' => $item['skew']['confidence'],
+                            'applied_degrees' => round($item['deskew_degrees'], 2),
+                        ],
+                        'render_rotation_degrees' => round($item['gd_rotation'], 2),
+                        'final_crop' => [
+                            'x' => $item['final_x'],
+                            'y' => $item['final_y'],
+                            'width' => $finalWidth,
+                            'height' => $finalHeight,
+                            'safety_pixels' => $item['final_safety'],
+                        ],
+                        'clipping_guard' => 'rotate_before_final_crop',
+                        'quality_signals' => $qualitySignals,
+                    ],
+                );
+            }
+
+            return $rendered;
+        } finally {
+            $this->removeTemporaryDirectory($directory);
+        }
+    }
+
     /** @return array{status:string,minimum_dimensions_pass:bool,transparent_edge_ratio:float,detail_score:float,checks:list<string>} */
     private function qualitySignals(GdImage $image, ?int $actualWidth = null, ?int $actualHeight = null): array
     {
@@ -570,31 +761,13 @@ final class PhotoSplitCandidateRenderer
             : null;
     }
 
-    /** @return array{0:string,1:string} */
-    private function prepareImageMagickSource(string $executable, string $sourceBytes): array
+    private function imageMagickExecutableFor(int $sourceWidth, int $sourceHeight): ?string
     {
-        $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'familyarchive-split-cache-'.bin2hex(random_bytes(8));
-        if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
-            throw new RuntimeException('The disk-backed split renderer could not create its source cache.');
-        }
-        $inputPath = $directory.DIRECTORY_SEPARATOR.'source.bin';
-        $preparedPath = $directory.DIRECTORY_SEPARATOR.'source.mpc';
-        try {
-            if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
-                throw new RuntimeException('The disk-backed split renderer could not stage its source cache.');
-            }
-            $this->runImageMagick($executable, [$inputPath, $preparedPath]);
-            if (! is_file($preparedPath) || ! is_file($directory.DIRECTORY_SEPARATOR.'source.cache')) {
-                throw new RuntimeException('The disk-backed split renderer did not create a reusable source cache.');
-            }
-            @unlink($inputPath);
+        $minimumPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.imagemagick_minimum_source_pixels', 45000001));
 
-            return [$directory, $preparedPath];
-        } catch (\Throwable $exception) {
-            $this->removeTemporaryDirectory($directory);
-
-            throw $exception;
-        }
+        return $sourceWidth * $sourceHeight >= $minimumPixels
+            ? $this->imageMagickExecutable()
+            : null;
     }
 
     private function removeTemporaryDirectory(string $directory): void

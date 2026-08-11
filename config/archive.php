@@ -64,6 +64,7 @@ return [
         'candidate_rendering' => [
             'memory_limit' => env('ARCHIVE_MULTI_PHOTO_MEMORY_LIMIT', '512M'),
             'imagemagick_path' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_PATH', PHP_OS_FAMILY === 'Windows' ? '' : '/usr/local/bin/magick'),
+            'imagemagick_minimum_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MINIMUM_SOURCE_PIXELS', 45000001),
             'imagemagick_max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MAX_SOURCE_PIXELS', 250000000),
             'imagemagick_memory_limit' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MEMORY_LIMIT', '64MiB'),
             'imagemagick_map_limit' => env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_MAP_LIMIT', '128MiB'),
