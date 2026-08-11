@@ -51,3 +51,21 @@ it('renders quarter-turn overrides independently for each split photo', function
         ->and($rendered->recipe['final_crop']['width'])->toBe($rendered->width)
         ->and($rendered->recipe['final_crop']['height'])->toBe($rendered->height);
 });
+
+it('streams oversized split crops through the sharp renderer', function (): void {
+    $node = PHP_OS_FAMILY === 'Windows' ? 'C:\\Program Files\\nodejs\\node.exe' : '/usr/local/bin/node';
+    if (! is_file($node) || ! is_file(base_path('node_modules/sharp/package.json'))) {
+        $this->markTestSkipped('The Sharp runtime is unavailable.');
+    }
+    config()->set('archive.multi_photo.candidate_rendering.sharp_node_path', $node);
+    config()->set('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 1);
+    config()->set('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 1.0);
+
+    $rendered = app(PhotoSplitCandidateRenderer::class)->render(splitRendererFixture(), 80, 60, 120, 80, 90.0);
+
+    expect($rendered->recipe['pipeline_version'])->toBe(6)
+        ->and($rendered->recipe['rendering_backend'])->toBe('sharp_libvips_streaming_v1')
+        ->and($rendered->height)->toBeGreaterThan($rendered->width)
+        ->and($rendered->recipe['manual_rotation_degrees_clockwise'])->toBe(90.0)
+        ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
+});
