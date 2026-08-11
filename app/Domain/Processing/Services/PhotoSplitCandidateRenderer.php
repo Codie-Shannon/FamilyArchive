@@ -491,6 +491,8 @@ final class PhotoSplitCandidateRenderer
             }
             $manifest = [
                 'input_path' => $inputPath,
+                'source_width' => $sourceWidth,
+                'source_height' => $sourceHeight,
                 'maximum_source_pixels' => $maximumSourcePixels,
                 'minimum_deskew_confidence' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55),
                 'minimum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4),

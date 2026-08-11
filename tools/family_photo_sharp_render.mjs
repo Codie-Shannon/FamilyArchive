@@ -9,7 +9,7 @@ try {
     sharp = require('./node-runtime/node_modules/sharp');
 }
 
-sharp.cache({ memory: 32, files: 20, items: 10 });
+sharp.cache(false);
 sharp.concurrency(1);
 
 const manifestPath = process.argv[2];
@@ -60,13 +60,26 @@ function detectSkew(data, width, height, channels) {
 
 const results = [];
 for (const region of manifest.regions) {
+    const previewScale = Math.min(1, 1200 / manifest.source_width, 1200 / manifest.source_height);
+    const previewSourceWidth = Math.max(1, Math.round(manifest.source_width * previewScale));
+    const previewSourceHeight = Math.max(1, Math.round(manifest.source_height * previewScale));
+    const previewLeft = Math.max(0, Math.floor(region.x * previewScale));
+    const previewTop = Math.max(0, Math.floor(region.y * previewScale));
+    const previewWidth = Math.max(1, Math.min(
+        previewSourceWidth - previewLeft,
+        Math.ceil(region.width * previewScale),
+    ));
+    const previewHeight = Math.max(1, Math.min(
+        previewSourceHeight - previewTop,
+        Math.ceil(region.height * previewScale),
+    ));
     const preview = await sharp(manifest.input_path, {
         failOn: 'error',
         limitInputPixels: manifest.maximum_source_pixels,
-        sequentialRead: true,
+        sequentialRead: false,
     })
-        .extract({ left: region.x, top: region.y, width: region.width, height: region.height })
-        .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
+        .resize({ width: previewSourceWidth, height: previewSourceHeight, fit: 'fill' })
+        .extract({ left: previewLeft, top: previewTop, width: previewWidth, height: previewHeight })
         .removeAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
@@ -100,7 +113,7 @@ for (const region of manifest.regions) {
     let pipeline = sharp(manifest.input_path, {
         failOn: 'error',
         limitInputPixels: manifest.maximum_source_pixels,
-        sequentialRead: true,
+        sequentialRead: false,
     })
         .extract({
             left: region.copy_left,
