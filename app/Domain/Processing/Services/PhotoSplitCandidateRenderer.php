@@ -24,7 +24,7 @@ final class PhotoSplitCandidateRenderer
         }
         $sourceWidth = (int) $dimensions[0];
         $sourceHeight = (int) $dimensions[1];
-        $sharp = $this->sharpExecutableFor($sourceWidth, $sourceHeight);
+        $sharp = $this->sharpExecutableFor($sourceWidth, $sourceHeight, $regions);
         if ($sharp !== null) {
             return $this->renderBatchWithSharp(
                 $sharp,
@@ -81,7 +81,13 @@ final class PhotoSplitCandidateRenderer
         }
         $sourceWidth = (int) $dimensions[0];
         $sourceHeight = (int) $dimensions[1];
-        $sharp = $this->sharpExecutableFor($sourceWidth, $sourceHeight);
+        $sharp = $this->sharpExecutableFor($sourceWidth, $sourceHeight, [[
+            'x' => $x,
+            'y' => $y,
+            'width' => $width,
+            'height' => $height,
+            'rotation_degrees' => $manualRotationDegrees,
+        ]]);
         if ($sharp !== null) {
             return $this->renderBatchWithSharp(
                 $sharp,
@@ -501,22 +507,25 @@ final class PhotoSplitCandidateRenderer
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
                 'regions' => $manifestRegions,
             ];
-            $manifestJson = json_encode($manifest, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-            if (file_put_contents($manifestPath, $manifestJson, LOCK_EX) !== strlen($manifestJson)) {
-                throw new RuntimeException('The streaming split renderer could not stage its manifest.');
-            }
             $script = base_path('tools/family_photo_sharp_render.mjs');
-            $process = new Process([$node, $script, $manifestPath]);
-            $process->setTimeout(max(30, (int) config('archive.multi_photo.candidate_rendering.sharp_timeout_seconds', 900)));
-            $process->run();
-            if (! $process->isSuccessful()) {
-                $error = trim($process->getErrorOutput().' '.$process->getOutput());
-                throw new RuntimeException('The streaming split renderer failed: '.mb_substr($error, 0, 500));
-            }
-            $result = json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR);
             $resultByIndex = [];
-            foreach ($result['results'] ?? [] as $row) {
-                $resultByIndex[(int) $row['index']] = $row;
+            foreach ($manifestRegions as $manifestRegion) {
+                $singleManifest = [...$manifest, 'regions' => [$manifestRegion]];
+                $manifestJson = json_encode($singleManifest, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+                if (file_put_contents($manifestPath, $manifestJson, LOCK_EX) !== strlen($manifestJson)) {
+                    throw new RuntimeException('The streaming split renderer could not stage its manifest.');
+                }
+                $process = new Process([$node, $script, $manifestPath]);
+                $process->setTimeout(max(30, (int) config('archive.multi_photo.candidate_rendering.sharp_timeout_seconds', 900)));
+                $process->run();
+                if (! $process->isSuccessful()) {
+                    $error = trim($process->getErrorOutput().' '.$process->getOutput());
+                    throw new RuntimeException('The streaming split renderer failed: '.mb_substr($error, 0, 500));
+                }
+                $result = json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR);
+                foreach ($result['results'] ?? [] as $row) {
+                    $resultByIndex[(int) $row['index']] = $row;
+                }
             }
             $rendered = [];
             foreach ($manifestRegions as $region) {
@@ -952,10 +961,19 @@ final class PhotoSplitCandidateRenderer
             : null;
     }
 
-    private function sharpExecutableFor(int $sourceWidth, int $sourceHeight): ?string
+    /** @param list<array{x:int,y:int,width:int,height:int,rotation_degrees:float|int}> $regions */
+    private function sharpExecutableFor(int $sourceWidth, int $sourceHeight, array $regions): ?string
     {
         $minimumPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 45000001));
-        if ($sourceWidth * $sourceHeight < $minimumPixels) {
+        $minimumRegionPixels = max(1, (int) config('archive.multi_photo.candidate_rendering.sharp_minimum_region_pixels', 8000000));
+        $largeRegion = false;
+        foreach ($regions as $region) {
+            if ($minimumRegionPixels <= $region['width'] * $region['height']) {
+                $largeRegion = true;
+                break;
+            }
+        }
+        if ($sourceWidth * $sourceHeight < $minimumPixels && ! $largeRegion) {
             return null;
         }
         $node = trim((string) config('archive.multi_photo.candidate_rendering.sharp_node_path', ''));

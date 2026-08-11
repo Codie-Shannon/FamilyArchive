@@ -72,6 +72,7 @@ return [
             'imagemagick_timeout_seconds' => (int) env('ARCHIVE_MULTI_PHOTO_IMAGEMAGICK_TIMEOUT_SECONDS', 900),
             'sharp_node_path' => env('ARCHIVE_MULTI_PHOTO_SHARP_NODE_PATH', PHP_OS_FAMILY === 'Windows' ? '' : '/usr/local/bin/node'),
             'sharp_minimum_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MINIMUM_SOURCE_PIXELS', 45000001),
+            'sharp_minimum_region_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MINIMUM_REGION_PIXELS', 8000000),
             'sharp_max_source_pixels' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_MAX_SOURCE_PIXELS', 250000000),
             'sharp_timeout_seconds' => (int) env('ARCHIVE_MULTI_PHOTO_SHARP_TIMEOUT_SECONDS', 900),
             'padding_ratio' => (float) env('ARCHIVE_MULTI_PHOTO_PADDING_RATIO', 0.08),
