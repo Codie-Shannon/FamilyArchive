@@ -442,9 +442,10 @@ final class PhotoSplitReviewService
         }
 
         $rotation = $region['rotation_degrees'] ?? 0;
-        if (! is_int($rotation) || ! in_array($rotation, [0, 90, 180, 270], true)) {
-            throw ValidationException::withMessages(['regions' => 'Photo rotation must be 0, 90, 180 or 270 degrees.']);
+        if (! is_int($rotation) || $rotation < -359 || $rotation > 359) {
+            throw ValidationException::withMessages(['regions' => 'Photo rotation must be a whole degree between -359 and 359.']);
         }
+        $rotation = (($rotation % 360) + 360) % 360;
 
         $normalized = [
             'x' => $region['x'],
@@ -497,7 +498,7 @@ final class PhotoSplitReviewService
     private function deterministicRegionUuid(PhotoSplitProposal $proposal, array $region, int $position): string
     {
         $hex = hash('sha256', json_encode([
-            'namespace' => 'familyarchive-reviewed-split-region-v6',
+            'namespace' => 'familyarchive-reviewed-split-region-v7',
             'proposal_id' => $proposal->id,
             'position' => $position,
             'x' => $region['x'],

@@ -582,8 +582,8 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 11,
-                        'rendering_backend' => 'imagemagick_stream_bilinear_sharp_v6',
+                        'pipeline_version' => 12,
+                        'rendering_backend' => 'imagemagick_stream_bilinear_sharp_v7',
                         'operation_order' => ['rgb_stream_extract', 'bounded_bilinear_resample', 'independent_quarter_turn'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [

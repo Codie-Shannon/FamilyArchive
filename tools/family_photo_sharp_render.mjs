@@ -172,6 +172,17 @@ async function boundedRawRegion(region, maximumPixels) {
     };
 }
 
+function rotatedDimensions(width, height, degrees) {
+    const radians = Math.abs(degrees) * Math.PI / 180;
+    const cosine = Math.abs(Math.cos(radians)) < 1e-12 ? 0 : Math.abs(Math.cos(radians));
+    const sine = Math.abs(Math.sin(radians)) < 1e-12 ? 0 : Math.abs(Math.sin(radians));
+
+    return {
+        width: Math.ceil(width * cosine + height * sine),
+        height: Math.ceil(width * sine + height * cosine),
+    };
+}
+
 const results = [];
 for (const manifestRegion of manifest.regions) {
     const region = await boundedRawRegion(manifestRegion, manifest.maximum_working_pixels);
@@ -191,9 +202,6 @@ for (const manifestRegion of manifest.regions) {
     const gdRotation = -region.manual_rotation_degrees + deskewDegrees;
     const clockwiseRotation = -gdRotation;
     const normalizedRotation = ((Math.round(clockwiseRotation) % 360) + 360) % 360;
-    if (![0, 90, 180, 270].includes(normalizedRotation)) {
-        throw new Error('The streaming renderer only accepts audited quarter-turn rotations.');
-    }
     const safety = region.working_safety_pixels;
     const copyWidth = region.raw_width;
     const copyHeight = region.raw_height;
@@ -201,8 +209,9 @@ for (const manifestRegion of manifest.regions) {
     const destinationY = region.raw_destination_y;
     const unrotatedWidth = region.width + safety * 2;
     const unrotatedHeight = region.height + safety * 2;
-    const targetWidth = normalizedRotation === 90 || normalizedRotation === 270 ? unrotatedHeight : unrotatedWidth;
-    const targetHeight = normalizedRotation === 90 || normalizedRotation === 270 ? unrotatedWidth : unrotatedHeight;
+    const target = rotatedDimensions(unrotatedWidth, unrotatedHeight, normalizedRotation);
+    const targetWidth = target.width;
+    const targetHeight = target.height;
     const outputScale = Math.min(1, Math.sqrt(manifest.maximum_output_pixels / (targetWidth * targetHeight)));
     const scaledCanvasWidth = Math.max(1, Math.floor(unrotatedWidth * outputScale));
     const scaledCanvasHeight = Math.max(1, Math.floor(unrotatedHeight * outputScale));
@@ -233,12 +242,9 @@ for (const manifestRegion of manifest.regions) {
         .toFile(region.quality_path);
     const originalUnrotatedWidth = region.original_width + region.original_safety_pixels * 2;
     const originalUnrotatedHeight = region.original_height + region.original_safety_pixels * 2;
-    const originalTargetWidth = normalizedRotation === 90 || normalizedRotation === 270
-        ? originalUnrotatedHeight
-        : originalUnrotatedWidth;
-    const originalTargetHeight = normalizedRotation === 90 || normalizedRotation === 270
-        ? originalUnrotatedWidth
-        : originalUnrotatedHeight;
+    const originalTarget = rotatedDimensions(originalUnrotatedWidth, originalUnrotatedHeight, normalizedRotation);
+    const originalTargetWidth = originalTarget.width;
+    const originalTargetHeight = originalTarget.height;
     results.push({
         index: region.index,
         width: output.width,
