@@ -60,26 +60,14 @@ function detectSkew(data, width, height, channels) {
 
 const results = [];
 for (const region of manifest.regions) {
-    const previewScale = Math.min(1, 1200 / manifest.source_width, 1200 / manifest.source_height);
-    const previewSourceWidth = Math.max(1, Math.round(manifest.source_width * previewScale));
-    const previewSourceHeight = Math.max(1, Math.round(manifest.source_height * previewScale));
-    const previewLeft = Math.max(0, Math.floor(region.x * previewScale));
-    const previewTop = Math.max(0, Math.floor(region.y * previewScale));
-    const previewWidth = Math.max(1, Math.min(
-        previewSourceWidth - previewLeft,
-        Math.ceil(region.width * previewScale),
-    ));
-    const previewHeight = Math.max(1, Math.min(
-        previewSourceHeight - previewTop,
-        Math.ceil(region.height * previewScale),
-    ));
-    const preview = await sharp(manifest.input_path, {
+    const rawInput = {
+        raw: { width: region.raw_width, height: region.raw_height, channels: 3 },
         failOn: 'error',
-        limitInputPixels: manifest.maximum_source_pixels,
-        sequentialRead: false,
-    })
-        .resize({ width: previewSourceWidth, height: previewSourceHeight, fit: 'fill' })
-        .extract({ left: previewLeft, top: previewTop, width: previewWidth, height: previewHeight })
+        sequentialRead: true,
+    };
+    const preview = await sharp(region.raw_path, rawInput)
+        .extract({ left: region.raw_region_x, top: region.raw_region_y, width: region.width, height: region.height })
+        .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
         .removeAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
@@ -97,16 +85,10 @@ for (const region of manifest.regions) {
         throw new Error('The streaming renderer only accepts audited quarter-turn rotations.');
     }
     const safety = manifest.final_safety_pixels;
-    const requestedLeft = region.x - safety;
-    const requestedTop = region.y - safety;
-    const copyLeft = Math.max(0, requestedLeft);
-    const copyTop = Math.max(0, requestedTop);
-    const copyRight = Math.min(manifest.source_width, region.x + region.width + safety);
-    const copyBottom = Math.min(manifest.source_height, region.y + region.height + safety);
-    const copyWidth = Math.max(1, copyRight - copyLeft);
-    const copyHeight = Math.max(1, copyBottom - copyTop);
-    const destinationX = copyLeft - requestedLeft;
-    const destinationY = copyTop - requestedTop;
+    const copyWidth = region.raw_width;
+    const copyHeight = region.raw_height;
+    const destinationX = region.raw_destination_x;
+    const destinationY = region.raw_destination_y;
     const unrotatedWidth = region.width + safety * 2;
     const unrotatedHeight = region.height + safety * 2;
     const targetWidth = normalizedRotation === 90 || normalizedRotation === 270 ? unrotatedHeight : unrotatedWidth;
@@ -118,17 +100,7 @@ for (const region of manifest.regions) {
     const scaledCopyHeight = Math.max(1, Math.floor(copyHeight * outputScale));
     const scaledDestinationX = Math.max(0, Math.floor(destinationX * outputScale));
     const scaledDestinationY = Math.max(0, Math.floor(destinationY * outputScale));
-    let pipeline = sharp(manifest.input_path, {
-        failOn: 'error',
-        limitInputPixels: manifest.maximum_source_pixels,
-        sequentialRead: false,
-    })
-        .extract({
-            left: copyLeft,
-            top: copyTop,
-            width: copyWidth,
-            height: copyHeight,
-        });
+    let pipeline = sharp(region.raw_path, rawInput);
     if (outputScale < 1) {
         pipeline = pipeline.resize({ width: scaledCopyWidth, height: scaledCopyHeight, fit: 'fill' });
     }

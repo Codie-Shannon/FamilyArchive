@@ -54,8 +54,9 @@ it('renders quarter-turn overrides independently for each split photo', function
 
 it('streams oversized split crops through the sharp renderer', function (): void {
     $node = PHP_OS_FAMILY === 'Windows' ? 'C:\\Program Files\\nodejs\\node.exe' : '/usr/local/bin/node';
-    if (! is_file($node) || ! is_file(base_path('node_modules/sharp/package.json'))) {
-        $this->markTestSkipped('The Sharp runtime is unavailable.');
+    $imageMagick = (string) config('archive.multi_photo.candidate_rendering.imagemagick_path');
+    if (! is_file($node) || ! is_file($imageMagick) || ! is_file(base_path('node_modules/sharp/package.json'))) {
+        $this->markTestSkipped('The Sharp and ImageMagick streaming runtimes are unavailable.');
     }
     config()->set('archive.multi_photo.candidate_rendering.sharp_node_path', $node);
     config()->set('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 1);
@@ -64,8 +65,8 @@ it('streams oversized split crops through the sharp renderer', function (): void
 
     $rendered = app(PhotoSplitCandidateRenderer::class)->render(splitRendererFixture(), 80, 60, 120, 80, 90.0);
 
-    expect($rendered->recipe['pipeline_version'])->toBe(9)
-        ->and($rendered->recipe['rendering_backend'])->toBe('sharp_libvips_streaming_v4')
+    expect($rendered->recipe['pipeline_version'])->toBe(10)
+        ->and($rendered->recipe['rendering_backend'])->toBe('imagemagick_stream_sharp_v5')
         ->and($rendered->height)->toBeGreaterThan($rendered->width)
         ->and($rendered->width * $rendered->height)->toBeLessThanOrEqual(5000)
         ->and($rendered->recipe['output_scaling']['scale'])->toBeLessThan(1)

@@ -453,6 +453,7 @@ final class PhotoSplitCandidateRenderer
             if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
                 throw new RuntimeException('The streaming split renderer could not stage the immutable source.');
             }
+            $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
             $manifestRegions = [];
             foreach ($regions as $index => $region) {
                 $x = $region['x'];
@@ -474,6 +475,12 @@ final class PhotoSplitCandidateRenderer
                 $copyTop = max(0, $requestedTop);
                 $copyRight = min($sourceWidth, $x + $width + $paddingX);
                 $copyBottom = min($sourceHeight, $y + $height + $paddingY);
+                $streamRequestedLeft = $x - $finalSafety;
+                $streamRequestedTop = $y - $finalSafety;
+                $streamCopyLeft = max(0, $streamRequestedLeft);
+                $streamCopyTop = max(0, $streamRequestedTop);
+                $streamCopyRight = min($sourceWidth, $x + $width + $finalSafety);
+                $streamCopyBottom = min($sourceHeight, $y + $height + $finalSafety);
                 $manifestRegions[] = [
                     'index' => $index,
                     'x' => $x,
@@ -493,6 +500,15 @@ final class PhotoSplitCandidateRenderer
                     'manual_rotation_degrees' => (float) $region['rotation_degrees'],
                     'output_path' => $directory.DIRECTORY_SEPARATOR."candidate-{$index}.webp",
                     'quality_path' => $directory.DIRECTORY_SEPARATOR."quality-{$index}.png",
+                    'raw_path' => $directory.DIRECTORY_SEPARATOR."stream-{$index}.rgb",
+                    'raw_width' => max(1, $streamCopyRight - $streamCopyLeft),
+                    'raw_height' => max(1, $streamCopyBottom - $streamCopyTop),
+                    'raw_region_x' => $x - $streamCopyLeft,
+                    'raw_region_y' => $y - $streamCopyTop,
+                    'raw_destination_x' => $streamCopyLeft - $streamRequestedLeft,
+                    'raw_destination_y' => $streamCopyTop - $streamRequestedTop,
+                    'stream_copy_left' => $streamCopyLeft,
+                    'stream_copy_top' => $streamCopyTop,
                 ];
             }
             $manifest = [
@@ -504,14 +520,27 @@ final class PhotoSplitCandidateRenderer
                 'minimum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4),
                 'maximum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0),
                 'apply_deskew' => (bool) config('archive.multi_photo.candidate_rendering.sharp_apply_deskew', false),
-                'final_safety_pixels' => max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)),
+                'final_safety_pixels' => $finalSafety,
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
                 'maximum_output_pixels' => (int) config('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 24000000),
                 'regions' => $manifestRegions,
             ];
             $script = base_path('tools/family_photo_sharp_render.mjs');
             $resultByIndex = [];
+            $imageMagick = $this->imageMagickExecutable();
+            if ($imageMagick === null) {
+                throw new RuntimeException('The streaming split renderer requires ImageMagick stream extraction.');
+            }
             foreach ($manifestRegions as $manifestRegion) {
+                $this->runImageMagickStream(
+                    $imageMagick,
+                    $inputPath,
+                    $manifestRegion['raw_path'],
+                    $manifestRegion['stream_copy_left'],
+                    $manifestRegion['stream_copy_top'],
+                    $manifestRegion['raw_width'],
+                    $manifestRegion['raw_height'],
+                );
                 $singleManifest = [...$manifest, 'regions' => [$manifestRegion]];
                 $manifestJson = json_encode($singleManifest, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
                 if (file_put_contents($manifestPath, $manifestJson, LOCK_EX) !== strlen($manifestJson)) {
@@ -552,9 +581,9 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 9,
-                        'rendering_backend' => 'sharp_libvips_streaming_v4',
-                        'operation_order' => ['safety_extract', 'downscale_if_needed', 'independent_quarter_turn'],
+                        'pipeline_version' => 10,
+                        'rendering_backend' => 'imagemagick_stream_sharp_v5',
+                        'operation_order' => ['rgb_stream_extract', 'downscale_if_needed', 'independent_quarter_turn'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [
                             'x' => $region['x'],
@@ -562,7 +591,10 @@ final class PhotoSplitCandidateRenderer
                             'width' => $region['width'],
                             'height' => $region['height'],
                         ],
-                        'padding_pixels' => ['x' => $region['padding_x'], 'y' => $region['padding_y']],
+                        'padding_pixels' => [
+                            'x' => $manifest['final_safety_pixels'],
+                            'y' => $manifest['final_safety_pixels'],
+                        ],
                         'manual_rotation_degrees_clockwise' => round($region['manual_rotation_degrees'], 2),
                         'deskew' => [
                             'detected_degrees' => (float) $row['skew']['degrees'],
@@ -1021,6 +1053,34 @@ final class PhotoSplitCandidateRenderer
         if (! $process->isSuccessful()) {
             $error = trim($process->getErrorOutput().' '.$process->getOutput());
             throw new RuntimeException('The disk-backed split renderer failed: '.mb_substr($error, 0, 400));
+        }
+    }
+
+    private function runImageMagickStream(
+        string $executable,
+        string $inputPath,
+        string $outputPath,
+        int $left,
+        int $top,
+        int $width,
+        int $height,
+    ): void {
+        $process = new Process([
+            $executable,
+            'stream',
+            '-limit', 'memory', '32MiB',
+            '-map', 'RGB',
+            '-storage-type', 'Char',
+            '-extract', "{$width}x{$height}+{$left}+{$top}",
+            $inputPath,
+            $outputPath,
+        ]);
+        $process->setTimeout(max(30, (int) config('archive.multi_photo.candidate_rendering.sharp_timeout_seconds', 900)));
+        $process->run();
+        $expectedBytes = $width * $height * 3;
+        if (! $process->isSuccessful() || ! is_file($outputPath) || filesize($outputPath) !== $expectedBytes) {
+            $error = trim($process->getErrorOutput().' '.$process->getOutput());
+            throw new RuntimeException('The streaming RGB crop failed: '.mb_substr($error, 0, 400));
         }
     }
 
