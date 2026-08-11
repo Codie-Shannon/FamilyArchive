@@ -552,9 +552,9 @@ final class PhotoSplitCandidateRenderer
                     width: $finalWidth,
                     height: $finalHeight,
                     recipe: [
-                        'pipeline_version' => 8,
-                        'rendering_backend' => 'sharp_libvips_streaming_v3',
-                        'operation_order' => ['padded_extract', 'independent_rotate', 'final_edge_crop'],
+                        'pipeline_version' => 9,
+                        'rendering_backend' => 'sharp_libvips_streaming_v4',
+                        'operation_order' => ['safety_extract', 'downscale_if_needed', 'independent_quarter_turn'],
                         'source_dimensions' => ['width' => $sourceWidth, 'height' => $sourceHeight],
                         'requested_bounds_pixels' => [
                             'x' => $region['x'],
@@ -577,7 +577,7 @@ final class PhotoSplitCandidateRenderer
                             'height' => $finalHeight,
                             'safety_pixels' => $manifest['final_safety_pixels'],
                         ],
-                        'clipping_guard' => 'rotate_before_final_crop',
+                        'clipping_guard' => 'quarter_turn_after_safety_extract',
                         'output_scaling' => [
                             'scale' => round((float) $row['output_scale'], 6),
                             'unscaled_width' => (int) $row['unscaled_width'],

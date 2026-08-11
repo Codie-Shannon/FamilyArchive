@@ -92,59 +92,55 @@ for (const region of manifest.regions) {
         : 0;
     const gdRotation = -region.manual_rotation_degrees + deskewDegrees;
     const clockwiseRotation = -gdRotation;
-    const radians = Math.abs(gdRotation) * Math.PI / 180;
-    const rotatedWidth = Math.ceil(
-        Math.abs(region.working_width * Math.cos(radians))
-        + Math.abs(region.working_height * Math.sin(radians)),
-    );
-    const rotatedHeight = Math.ceil(
-        Math.abs(region.working_width * Math.sin(radians))
-        + Math.abs(region.working_height * Math.cos(radians)),
-    );
-    const targetWidth = Math.min(rotatedWidth, Math.max(1, Math.ceil(
-        Math.abs(region.width * Math.cos(radians))
-        + Math.abs(region.height * Math.sin(radians)),
-    ) + manifest.final_safety_pixels * 2));
-    const targetHeight = Math.min(rotatedHeight, Math.max(1, Math.ceil(
-        Math.abs(region.width * Math.sin(radians))
-        + Math.abs(region.height * Math.cos(radians)),
-    ) + manifest.final_safety_pixels * 2));
-    const finalX = Math.max(0, Math.floor((rotatedWidth - targetWidth) / 2));
-    const finalY = Math.max(0, Math.floor((rotatedHeight - targetHeight) / 2));
+    const normalizedRotation = ((Math.round(clockwiseRotation) % 360) + 360) % 360;
+    if (![0, 90, 180, 270].includes(normalizedRotation)) {
+        throw new Error('The streaming renderer only accepts audited quarter-turn rotations.');
+    }
+    const safety = manifest.final_safety_pixels;
+    const requestedLeft = region.x - safety;
+    const requestedTop = region.y - safety;
+    const copyLeft = Math.max(0, requestedLeft);
+    const copyTop = Math.max(0, requestedTop);
+    const copyRight = Math.min(manifest.source_width, region.x + region.width + safety);
+    const copyBottom = Math.min(manifest.source_height, region.y + region.height + safety);
+    const copyWidth = Math.max(1, copyRight - copyLeft);
+    const copyHeight = Math.max(1, copyBottom - copyTop);
+    const destinationX = copyLeft - requestedLeft;
+    const destinationY = copyTop - requestedTop;
+    const unrotatedWidth = region.width + safety * 2;
+    const unrotatedHeight = region.height + safety * 2;
+    const targetWidth = normalizedRotation === 90 || normalizedRotation === 270 ? unrotatedHeight : unrotatedWidth;
+    const targetHeight = normalizedRotation === 90 || normalizedRotation === 270 ? unrotatedWidth : unrotatedHeight;
+    const outputScale = Math.min(1, Math.sqrt(manifest.maximum_output_pixels / (targetWidth * targetHeight)));
+    const scaledCanvasWidth = Math.max(1, Math.floor(unrotatedWidth * outputScale));
+    const scaledCanvasHeight = Math.max(1, Math.floor(unrotatedHeight * outputScale));
+    const scaledCopyWidth = Math.max(1, Math.floor(copyWidth * outputScale));
+    const scaledCopyHeight = Math.max(1, Math.floor(copyHeight * outputScale));
+    const scaledDestinationX = Math.max(0, Math.floor(destinationX * outputScale));
+    const scaledDestinationY = Math.max(0, Math.floor(destinationY * outputScale));
     let pipeline = sharp(manifest.input_path, {
         failOn: 'error',
         limitInputPixels: manifest.maximum_source_pixels,
         sequentialRead: false,
     })
         .extract({
-            left: region.copy_left,
-            top: region.copy_top,
-            width: region.copy_width,
-            height: region.copy_height,
-        })
-        .extend({
-            top: region.destination_y,
-            bottom: region.working_height - region.copy_height - region.destination_y,
-            left: region.destination_x,
-            right: region.working_width - region.copy_width - region.destination_x,
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
+            left: copyLeft,
+            top: copyTop,
+            width: copyWidth,
+            height: copyHeight,
         });
-    if (Math.abs(clockwiseRotation) >= 0.01) {
-        pipeline = pipeline.rotate(clockwiseRotation, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
-    }
-    const outputScale = Math.min(1, Math.sqrt(manifest.maximum_output_pixels / (targetWidth * targetHeight)));
-    const outputWidth = Math.max(1, Math.floor(targetWidth * outputScale));
-    const outputHeight = Math.max(1, Math.floor(targetHeight * outputScale));
     if (outputScale < 1) {
-        const scaledCanvasWidth = Math.max(outputWidth, Math.floor(rotatedWidth * outputScale));
-        const scaledCanvasHeight = Math.max(outputHeight, Math.floor(rotatedHeight * outputScale));
-        const scaledFinalX = Math.max(0, Math.min(scaledCanvasWidth - outputWidth, Math.floor(finalX * outputScale)));
-        const scaledFinalY = Math.max(0, Math.min(scaledCanvasHeight - outputHeight, Math.floor(finalY * outputScale)));
-        pipeline = pipeline
-            .resize({ width: scaledCanvasWidth, height: scaledCanvasHeight, fit: 'fill' })
-            .extract({ left: scaledFinalX, top: scaledFinalY, width: outputWidth, height: outputHeight });
-    } else {
-        pipeline = pipeline.extract({ left: finalX, top: finalY, width: targetWidth, height: targetHeight });
+        pipeline = pipeline.resize({ width: scaledCopyWidth, height: scaledCopyHeight, fit: 'fill' });
+    }
+    pipeline = pipeline.extend({
+        top: scaledDestinationY,
+        bottom: Math.max(0, scaledCanvasHeight - scaledCopyHeight - scaledDestinationY),
+        left: scaledDestinationX,
+        right: Math.max(0, scaledCanvasWidth - scaledCopyWidth - scaledDestinationX),
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+    });
+    if (normalizedRotation !== 0) {
+        pipeline = pipeline.rotate(normalizedRotation, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
     }
     const output = await pipeline
         .webp({ quality: manifest.webp_quality, effort: 4 })
@@ -160,8 +156,8 @@ for (const region of manifest.regions) {
         skew,
         deskew_degrees: deskewDegrees,
         gd_rotation: gdRotation,
-        final_x: finalX,
-        final_y: finalY,
+        final_x: 0,
+        final_y: 0,
         unscaled_width: targetWidth,
         unscaled_height: targetHeight,
         output_scale: outputScale,

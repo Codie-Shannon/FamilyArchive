@@ -497,7 +497,7 @@ final class PhotoSplitReviewService
     private function deterministicRegionUuid(PhotoSplitProposal $proposal, array $region, int $position): string
     {
         $hex = hash('sha256', json_encode([
-            'namespace' => 'familyarchive-reviewed-split-region-v3',
+            'namespace' => 'familyarchive-reviewed-split-region-v4',
             'proposal_id' => $proposal->id,
             'position' => $position,
             'x' => $region['x'],
