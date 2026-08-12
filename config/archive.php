@@ -22,6 +22,12 @@ return [
         'memory_limit' => env('ARCHIVE_PHOTO_DERIVATIVE_MEMORY_LIMIT', '512M'),
         'max_source_bytes' => 104857600,
         'max_source_pixels' => 80000000,
+        'imagemagick_path' => env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_PATH', PHP_OS_FAMILY === 'Windows' ? '' : '/usr/local/bin/magick'),
+        'imagemagick_minimum_source_pixels' => (int) env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_MINIMUM_SOURCE_PIXELS', 30000000),
+        'imagemagick_memory_limit' => env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_MEMORY_LIMIT', '64MiB'),
+        'imagemagick_map_limit' => env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_MAP_LIMIT', '128MiB'),
+        'imagemagick_disk_limit' => env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_DISK_LIMIT', '8GiB'),
+        'imagemagick_timeout_seconds' => (int) env('ARCHIVE_PHOTO_DERIVATIVE_IMAGEMAGICK_TIMEOUT_SECONDS', 900),
         'targets' => [
             MediaFileVersionType::WebDisplay->value => ['max_long_side' => 2000, 'quality' => 82],
             MediaFileVersionType::Thumbnail->value => ['max_long_side' => 480, 'quality' => 72],

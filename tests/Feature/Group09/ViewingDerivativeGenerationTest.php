@@ -108,6 +108,25 @@ it('never upscales small originals and is idempotent', function () {
         ->and($first->webDisplay->parent_version_id)->toBe($original->id);
 });
 
+it('uses the bounded disk-backed encoder for large-source policy thresholds', function () {
+    $imageMagick = PHP_OS_FAMILY === 'Windows'
+        ? (string) config('archive.multi_photo.candidate_rendering.imagemagick_path')
+        : '/usr/local/bin/magick';
+    if (! is_file($imageMagick)) {
+        $this->markTestSkipped('The ImageMagick runtime is unavailable.');
+    }
+    config()->set('archive.photo_derivatives.imagemagick_path', $imageMagick);
+    config()->set('archive.photo_derivatives.imagemagick_minimum_source_pixels', 1);
+    [$item, $original, $owner, $originalBytes] = group09ApprovedPhoto(800, 600);
+
+    $result = app(GeneratePhotoViewingDerivatives::class)->handle($item, $owner);
+
+    expect($result->webDisplay->generation_recipe['encoder'])->toBe('imagemagick/disk-backed-v1')
+        ->and($result->thumbnail->generation_recipe['encoder'])->toBe('imagemagick/disk-backed-v1')
+        ->and(Storage::disk('archive_originals')->get($original->storage_path))->toBe($originalBytes)
+        ->and(max($result->thumbnail->width, $result->thumbnail->height))->toBeLessThanOrEqual(480);
+});
+
 it('fails closed on source mismatch and preserves the original', function () {
     [$item, $original, $owner, $bytes] = group09ApprovedPhoto();
     $original->forceFill(['sha256' => hash('sha256', 'wrong')])->save();

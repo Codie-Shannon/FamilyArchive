@@ -5,6 +5,7 @@ namespace App\Domain\Derivatives\Services;
 use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
 use App\Domain\Derivatives\ValueObjects\EncodedDerivative;
 use GdImage;
+use Symfony\Component\Process\Process;
 
 final class GdPhotoDerivativeEncoder
 {
@@ -64,6 +65,12 @@ final class GdPhotoDerivativeEncoder
         $maximumPixels = (int) config('archive.photo_derivatives.max_source_pixels', 80000000);
         if ($pixelCount > $maximumPixels) {
             throw new DerivativeGenerationException('The original exceeds the configured derivative pixel limit.');
+        }
+
+        $imageMagick = trim((string) config('archive.photo_derivatives.imagemagick_path', ''));
+        $imageMagickThreshold = max(1, (int) config('archive.photo_derivatives.imagemagick_minimum_source_pixels', 30000000));
+        if ($pixelCount >= $imageMagickThreshold && $imageMagick !== '' && is_file($imageMagick) && is_executable($imageMagick)) {
+            return $this->encodeWithImageMagick($imageMagick, $sourceBytes, $sourceMime, $maxLongSide, $quality);
         }
 
         $image = @imagecreatefromstring($sourceBytes);
@@ -172,6 +179,71 @@ final class GdPhotoDerivativeEncoder
             return is_int($orientation) && $orientation >= 1 && $orientation <= 8 ? $orientation : 1;
         } finally {
             @unlink($temporary);
+        }
+    }
+
+    private function encodeWithImageMagick(
+        string $executable,
+        string $sourceBytes,
+        string $sourceMime,
+        int $maxLongSide,
+        int $quality,
+    ): EncodedDerivative {
+        $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'familyarchive-derivative-'.bin2hex(random_bytes(8));
+        if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
+            throw new DerivativeGenerationException('The disk-backed derivative encoder could not create its workspace.');
+        }
+        $sourcePath = $directory.DIRECTORY_SEPARATOR.'source.bin';
+        $outputPath = $directory.DIRECTORY_SEPARATOR.'output.webp';
+        try {
+            if (file_put_contents($sourcePath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
+                throw new DerivativeGenerationException('The disk-backed derivative encoder could not stage its source.');
+            }
+            $orientation = $this->readOrientation($sourceBytes, $sourceMime);
+            $process = new Process([
+                $executable,
+                '-limit', 'thread', '1',
+                '-limit', 'memory', (string) config('archive.photo_derivatives.imagemagick_memory_limit', '64MiB'),
+                '-limit', 'map', (string) config('archive.photo_derivatives.imagemagick_map_limit', '128MiB'),
+                '-limit', 'disk', (string) config('archive.photo_derivatives.imagemagick_disk_limit', '8GiB'),
+                $sourcePath,
+                '-auto-orient',
+                '-resize', "{$maxLongSide}x{$maxLongSide}>",
+                '-strip',
+                '-quality', (string) $quality,
+                $outputPath,
+            ]);
+            $process->setTimeout(max(30, (int) config('archive.photo_derivatives.imagemagick_timeout_seconds', 900)));
+            $process->run();
+            if (! $process->isSuccessful()) {
+                $error = trim($process->getErrorOutput().' '.$process->getOutput());
+                throw new DerivativeGenerationException('The disk-backed derivative encoder failed: '.mb_substr($error, 0, 400));
+            }
+            $bytes = @file_get_contents($outputPath);
+            $outputFacts = is_string($bytes) ? @getimagesizefromstring($bytes) : false;
+            if (! is_string($bytes) || $bytes === '' || ! is_array($outputFacts)
+                || $outputFacts['mime'] !== 'image/webp'
+                || max((int) $outputFacts[0], (int) $outputFacts[1]) > $maxLongSide) {
+                throw new DerivativeGenerationException('The disk-backed WebP derivative failed integrity verification.');
+            }
+
+            return new EncodedDerivative(
+                $bytes,
+                (int) $outputFacts[0],
+                (int) $outputFacts[1],
+                $quality,
+                $maxLongSide,
+                $orientation,
+                $orientation !== 1,
+                'imagemagick/disk-backed-v1',
+            );
+        } finally {
+            foreach ([$sourcePath, $outputPath] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+            @rmdir($directory);
         }
     }
 
