@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 return static function (array $input): array {
+    // Large immutable scanner PNGs can briefly require more than the platform's
+    // 256 MB default while their bytes are integrity-checked and staged for the
+    // bounded external renderer. Keep the allowance scoped to split replay.
+    if (ini_set('memory_limit', '512M') === false) {
+        throw new RuntimeException('The split worker could not raise its bounded memory allowance.');
+    }
+
     $sessionId = (string) ($input['session_id'] ?? '');
     $ownerEmail = (string) ($input['owner_email'] ?? '');
     $itemId = max(0, (int) ($input['item_id'] ?? 0));
