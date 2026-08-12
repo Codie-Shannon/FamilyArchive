@@ -200,19 +200,27 @@ final class GdPhotoDerivativeEncoder
                 throw new DerivativeGenerationException('The disk-backed derivative encoder could not stage its source.');
             }
             $orientation = $this->readOrientation($sourceBytes, $sourceMime);
-            $process = new Process([
+            $arguments = [
                 $executable,
                 '-limit', 'thread', '1',
                 '-limit', 'memory', (string) config('archive.photo_derivatives.imagemagick_memory_limit', '64MiB'),
                 '-limit', 'map', (string) config('archive.photo_derivatives.imagemagick_map_limit', '128MiB'),
                 '-limit', 'disk', (string) config('archive.photo_derivatives.imagemagick_disk_limit', '8GiB'),
+            ];
+            if (strtolower($sourceMime) === 'image/jpeg') {
+                $decodeSide = max($maxLongSide, (int) ceil($maxLongSide * 1.25));
+                array_push($arguments, '-define', "jpeg:size={$decodeSide}x{$decodeSide}");
+            }
+            array_push(
+                $arguments,
                 $sourcePath,
                 '-auto-orient',
                 '-resize', "{$maxLongSide}x{$maxLongSide}>",
                 '-strip',
                 '-quality', (string) $quality,
                 $outputPath,
-            ]);
+            );
+            $process = new Process($arguments);
             $process->setTimeout(max(30, (int) config('archive.photo_derivatives.imagemagick_timeout_seconds', 900)));
             $process->run();
             if (! $process->isSuccessful()) {
