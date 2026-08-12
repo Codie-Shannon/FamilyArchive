@@ -258,6 +258,54 @@ final class PhotoSplitCandidateRenderer
         }
     }
 
+    public function renderFile(
+        string $sourcePath,
+        int $x,
+        int $y,
+        int $width,
+        int $height,
+        float $manualRotationDegrees = 0.0,
+    ): RenderedSplitPhoto {
+        $dimensions = @getimagesize($sourcePath);
+        if (! is_array($dimensions)) {
+            throw new RuntimeException('The immutable source file could not be decoded for split rendering.');
+        }
+        $sourceWidth = (int) $dimensions[0];
+        $sourceHeight = (int) $dimensions[1];
+        $regions = [[
+            'x' => $x,
+            'y' => $y,
+            'width' => $width,
+            'height' => $height,
+            'rotation_degrees' => $manualRotationDegrees,
+        ]];
+        $sharp = $this->sharpExecutableFor($sourceWidth, $sourceHeight, $regions);
+        if ($sharp !== null) {
+            return $this->renderBatchWithSharp($sharp, '', $sourceWidth, $sourceHeight, $regions, $sourcePath)[0];
+        }
+        $imageMagick = $this->imageMagickExecutableFor($sourceWidth, $sourceHeight);
+        if ($imageMagick !== null) {
+            return $this->renderWithImageMagick(
+                $imageMagick,
+                '',
+                $sourceWidth,
+                $sourceHeight,
+                $x,
+                $y,
+                $width,
+                $height,
+                $manualRotationDegrees,
+                $sourcePath,
+            );
+        }
+        $sourceBytes = @file_get_contents($sourcePath);
+        if (! is_string($sourceBytes)) {
+            throw new RuntimeException('The immutable source file could not be read for split rendering.');
+        }
+
+        return $this->render($sourceBytes, $x, $y, $width, $height, $manualRotationDegrees);
+    }
+
     private function renderWithImageMagick(
         string $executable,
         string $sourceBytes,
@@ -438,6 +486,7 @@ final class PhotoSplitCandidateRenderer
         int $sourceWidth,
         int $sourceHeight,
         array $regions,
+        ?string $preparedSourcePath = null,
     ): array {
         $maximumSourcePixels = (int) config('archive.multi_photo.candidate_rendering.sharp_max_source_pixels', 250000000);
         if ($sourceWidth * $sourceHeight > $maximumSourcePixels) {
@@ -447,10 +496,10 @@ final class PhotoSplitCandidateRenderer
         if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
             throw new RuntimeException('The streaming split renderer could not create its workspace.');
         }
-        $inputPath = $directory.DIRECTORY_SEPARATOR.'source.bin';
+        $inputPath = $preparedSourcePath ?? $directory.DIRECTORY_SEPARATOR.'source.bin';
         $manifestPath = $directory.DIRECTORY_SEPARATOR.'manifest.json';
         try {
-            if (file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
+            if ($preparedSourcePath === null && file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
                 throw new RuntimeException('The streaming split renderer could not stage the immutable source.');
             }
             $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));

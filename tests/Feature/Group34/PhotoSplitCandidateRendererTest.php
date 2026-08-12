@@ -52,6 +52,21 @@ it('renders quarter-turn overrides independently for each split photo', function
         ->and($rendered->recipe['final_crop']['height'])->toBe($rendered->height);
 });
 
+it('renders a verified staged source without requiring an in-memory source handoff', function (): void {
+    $path = tempnam(sys_get_temp_dir(), 'familyarchive-render-file-test-');
+    expect($path)->toBeString();
+    file_put_contents($path, splitRendererFixture());
+
+    try {
+        $rendered = app(PhotoSplitCandidateRenderer::class)->renderFile($path, 80, 60, 120, 80, -1.0);
+
+        expect($rendered->recipe['manual_rotation_degrees_clockwise'])->toBe(-1.0)
+            ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
+    } finally {
+        @unlink($path);
+    }
+});
+
 it('streams oversized split crops through the sharp renderer', function (): void {
     $node = PHP_OS_FAMILY === 'Windows' ? 'C:\\Program Files\\nodejs\\node.exe' : '/usr/local/bin/node';
     $imageMagick = (string) config('archive.multi_photo.candidate_rendering.imagemagick_path');
@@ -72,4 +87,29 @@ it('streams oversized split crops through the sharp renderer', function (): void
         ->and($rendered->recipe['output_scaling']['scale'])->toBeLessThan(1)
         ->and($rendered->recipe['manual_rotation_degrees_clockwise'])->toBe(90.0)
         ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
+});
+
+it('streams a staged oversized source through the external renderer', function (): void {
+    $node = PHP_OS_FAMILY === 'Windows' ? 'C:\\Program Files\\nodejs\\node.exe' : '/usr/local/bin/node';
+    $imageMagick = (string) config('archive.multi_photo.candidate_rendering.imagemagick_path');
+    if (! is_file($node) || ! is_file($imageMagick) || ! is_file(base_path('node_modules/sharp/package.json'))) {
+        $this->markTestSkipped('The Sharp and ImageMagick streaming runtimes are unavailable.');
+    }
+    config()->set('archive.multi_photo.candidate_rendering.sharp_node_path', $node);
+    config()->set('archive.multi_photo.candidate_rendering.sharp_minimum_source_pixels', 1);
+    config()->set('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 5000);
+    config()->set('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 1.0);
+    $path = tempnam(sys_get_temp_dir(), 'familyarchive-stream-file-test-');
+    expect($path)->toBeString();
+    file_put_contents($path, splitRendererFixture());
+
+    try {
+        $rendered = app(PhotoSplitCandidateRenderer::class)->renderFile($path, 80, 60, 120, 80, 90.0);
+
+        expect($rendered->recipe['rendering_backend'])->toBe('imagemagick_stream_bilinear_sharp_v7')
+            ->and($rendered->width * $rendered->height)->toBeLessThanOrEqual(5000)
+            ->and(getimagesizefromstring($rendered->bytes)['mime'])->toBe('image/webp');
+    } finally {
+        @unlink($path);
+    }
 });

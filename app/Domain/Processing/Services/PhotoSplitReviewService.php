@@ -142,68 +142,72 @@ final class PhotoSplitReviewService
         }
 
         $source = $proposal->sourceVersion()->firstOrFail();
-        $sourceBytes = $this->verifiedBytes($source);
+        $sourcePath = $this->verifiedTemporaryFile($source);
         $keptIds = [];
 
-        DB::transaction(function () use ($proposal, $normalized, $actor, &$keptIds): void {
-            // Move existing positions out of the active range before applying a
-            // reordered/manual layout, avoiding transient unique-key clashes.
-            $proposal->regions()->update([
-                'position' => DB::raw('position + 100'),
-            ]);
-
-            foreach ($normalized as $index => $input) {
-                $regionUuid = isset($input['region_id']) && Str::isUuid($input['region_id'])
-                    ? $input['region_id']
-                    : $this->deterministicRegionUuid($proposal, $input, $index + 1);
-                $region = PhotoSplitRegion::query()->firstOrNew([
-                    'photo_split_proposal_id' => $proposal->id,
-                    'region_id' => $regionUuid,
+        try {
+            DB::transaction(function () use ($proposal, $normalized, $actor, &$keptIds): void {
+                // Move existing positions out of the active range before applying a
+                // reordered/manual layout, avoiding transient unique-key clashes.
+                $proposal->regions()->update([
+                    'position' => DB::raw('position + 100'),
                 ]);
-                $region->fill([
-                    'position' => $index + 1,
-                    'x_basis_points' => $input['x'],
-                    'y_basis_points' => $input['y'],
-                    'width_basis_points' => $input['width'],
-                    'height_basis_points' => $input['height'],
-                    'rotation_degrees' => $input['rotation_degrees'],
-                    'confidence' => 1.0,
-                    'source' => 'manual',
-                    'review_state' => $input['included'] ? 'included' : 'excluded',
+
+                foreach ($normalized as $index => $input) {
+                    $regionUuid = isset($input['region_id']) && Str::isUuid($input['region_id'])
+                        ? $input['region_id']
+                        : $this->deterministicRegionUuid($proposal, $input, $index + 1);
+                    $region = PhotoSplitRegion::query()->firstOrNew([
+                        'photo_split_proposal_id' => $proposal->id,
+                        'region_id' => $regionUuid,
+                    ]);
+                    $region->fill([
+                        'position' => $index + 1,
+                        'x_basis_points' => $input['x'],
+                        'y_basis_points' => $input['y'],
+                        'width_basis_points' => $input['width'],
+                        'height_basis_points' => $input['height'],
+                        'rotation_degrees' => $input['rotation_degrees'],
+                        'confidence' => 1.0,
+                        'source' => 'manual',
+                        'review_state' => $input['included'] ? 'included' : 'excluded',
+                    ])->save();
+                    $keptIds[] = $region->id;
+                }
+
+                $proposal->regions()->whereNotIn('id', $keptIds)->delete();
+                $proposal->forceFill([
+                    'state' => 'suggested',
+                    'reviewed_by' => $actor->id,
+                    'reviewed_at' => now(),
                 ])->save();
-                $keptIds[] = $region->id;
+            });
+
+            $maximumCandidates = max(1, $maximumCandidates);
+            $missing = $proposal->regions()
+                ->where('review_state', 'included')
+                ->whereNull('candidate_version_id')
+                ->orderBy('position')
+                ->limit($maximumCandidates)
+                ->get();
+            foreach ($missing as $region) {
+                $candidate = $this->renderCandidate($proposal, $region, $source, $sourcePath);
+                $region->forceFill(['candidate_version_id' => $candidate->id])->save();
             }
 
-            $proposal->regions()->whereNotIn('id', $keptIds)->delete();
-            $proposal->forceFill([
-                'state' => 'suggested',
-                'reviewed_by' => $actor->id,
-                'reviewed_at' => now(),
-            ])->save();
-        });
-
-        $maximumCandidates = max(1, $maximumCandidates);
-        $missing = $proposal->regions()
-            ->where('review_state', 'included')
-            ->whereNull('candidate_version_id')
-            ->orderBy('position')
-            ->limit($maximumCandidates)
-            ->get();
-        foreach ($missing as $region) {
-            $candidate = $this->renderCandidate($proposal, $region, $source, $sourceBytes);
-            $region->forceFill(['candidate_version_id' => $candidate->id])->save();
-        }
-
-        $remaining = $proposal->regions()
-            ->where('review_state', 'included')
-            ->whereNull('candidate_version_id')
-            ->count();
-        if ($remaining === 0) {
-            $proposal->forceFill(['state' => 'ready'])->save();
-            DB::table('cloud_import_items')->where('id', $proposal->cloud_import_item_id)->update([
-                'attention_code' => 'multi_photo_ready',
-                'updated_at' => now(),
-            ]);
+            $remaining = $proposal->regions()
+                ->where('review_state', 'included')
+                ->whereNull('candidate_version_id')
+                ->count();
+            if ($remaining === 0) {
+                $proposal->forceFill(['state' => 'ready'])->save();
+                DB::table('cloud_import_items')->where('id', $proposal->cloud_import_item_id)->update([
+                    'attention_code' => 'multi_photo_ready',
+                    'updated_at' => now(),
+                ]);
+            }
+        } finally {
+            @unlink($sourcePath);
         }
 
         return $proposal->fresh(['regions.candidateVersion', 'sourceVersion']);
@@ -319,17 +323,17 @@ final class PhotoSplitReviewService
         PhotoSplitProposal $proposal,
         PhotoSplitRegion $region,
         MediaFileVersion $source,
-        string $bytes,
+        string $sourcePath,
         ?RenderedSplitPhoto $rendered = null,
     ): MediaFileVersion {
         if (! $rendered instanceof RenderedSplitPhoto) {
-            $dimensions = @getimagesizefromstring($bytes);
+            $dimensions = @getimagesize($sourcePath);
             if (! is_array($dimensions)) {
                 throw new RuntimeException('The immutable source could not be decoded for split rendering.');
             }
             $pixelRegion = $this->pixelRegion($this->regionArray($region), (int) $dimensions[0], (int) $dimensions[1]);
-            $rendered = $this->candidateRenderer->render(
-                $bytes,
+            $rendered = $this->candidateRenderer->renderFile(
+                $sourcePath,
                 $pixelRegion['x'],
                 $pixelRegion['y'],
                 $pixelRegion['width'],
@@ -423,6 +427,58 @@ final class PhotoSplitReviewService
         }
 
         return $bytes;
+    }
+
+    private function verifiedTemporaryFile(MediaFileVersion $version): string
+    {
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk($version->storage_disk);
+        $source = $disk->readStream($version->storage_path);
+        if (! is_resource($source)) {
+            throw new RuntimeException('The source bytes are unavailable.');
+        }
+        $path = tempnam(sys_get_temp_dir(), 'familyarchive-split-source-');
+        if (! is_string($path)) {
+            fclose($source);
+            throw new RuntimeException('The split worker could not create a source staging file.');
+        }
+        $target = @fopen($path, 'wb');
+        if (! is_resource($target)) {
+            fclose($source);
+            @unlink($path);
+            throw new RuntimeException('The split worker could not open its source staging file.');
+        }
+        $hash = hash_init('sha256');
+        $bytes = 0;
+        try {
+            while (! feof($source)) {
+                $chunk = fread($source, 1048576);
+                if (! is_string($chunk)) {
+                    throw new RuntimeException('The immutable source stream could not be read.');
+                }
+                if ($chunk === '') {
+                    continue;
+                }
+                $length = strlen($chunk);
+                if (fwrite($target, $chunk) !== $length) {
+                    throw new RuntimeException('The immutable source stream could not be staged.');
+                }
+                hash_update($hash, $chunk);
+                $bytes += $length;
+            }
+        } catch (Throwable $exception) {
+            @unlink($path);
+            throw $exception;
+        } finally {
+            fclose($source);
+            fclose($target);
+        }
+        if ($bytes !== $version->file_size_bytes || ! hash_equals(strtolower($version->sha256), hash_final($hash))) {
+            @unlink($path);
+            throw new RuntimeException('The source failed integrity verification.');
+        }
+
+        return $path;
     }
 
     /** @return array{x:int,y:int,width:int,height:int,rotation_degrees:int,included:bool,region_id?:string} */
