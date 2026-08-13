@@ -37,11 +37,17 @@ final class ArchiveSelectionManager
     {
         $draft = $this->draft($user, $context);
         if ($selected) {
-            $draft->mediaItems()->syncWithoutDetaching([
-                $item->id => ['selected_at' => now(), 'source_page' => max(1, $sourcePage)],
-            ]);
+            DB::table('archive_selection_items')->upsert([[
+                'archive_selection_draft_id' => $draft->id,
+                'media_item_id' => $item->id,
+                'selected_at' => now(),
+                'source_page' => max(1, $sourcePage),
+            ]], ['archive_selection_draft_id', 'media_item_id'], ['selected_at', 'source_page']);
         } else {
-            $draft->mediaItems()->detach($item->id);
+            DB::table('archive_selection_items')
+                ->where('archive_selection_draft_id', $draft->id)
+                ->where('media_item_id', $item->id)
+                ->delete();
         }
 
         return $this->summary($user, $context);

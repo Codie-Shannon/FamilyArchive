@@ -1,21 +1,29 @@
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-const requestJson = async (url, method, payload) => {
-    const response = await fetch(url, {
-        method,
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrf(),
-        },
-        body: JSON.stringify(payload),
-    });
-    if (!response.ok) throw new Error(`Archive selection request failed (${response.status}).`);
-    return response.json();
+const requestJson = async (url, method, payload, attempts = 2) => {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        const response = await fetch(url, {
+            method,
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf(),
+            },
+            body: JSON.stringify(payload),
+        });
+        if (response.ok) return response.json();
+        if (attempt === attempts || ![409, 429, 500, 502, 503, 504].includes(response.status)) {
+            throw new Error(`Archive selection request failed (${response.status}).`);
+        }
+        await new Promise(resolve => window.setTimeout(resolve, 200 * attempt));
+    }
 };
 
 const initializeGallery = gallery => {
+    if (gallery.dataset.archiveGalleryInitialized === '1') return;
+    gallery.dataset.archiveGalleryInitialized = '1';
+
     const context = gallery.dataset.context;
     const hidden = gallery.dataset.hiddenGallery === '1';
     const storageKey = `familyarchive:gallery:${context}:state`;
@@ -29,10 +37,12 @@ const initializeGallery = gallery => {
     const batchHide = gallery.querySelector('[data-batch-hide-form]');
     const editSelected = gallery.querySelector('[data-edit-selected]');
     const restore = gallery.querySelector('[data-restore-action]');
+    const statusNode = gallery.querySelector('[data-selection-status]');
     let selectedCount = Number(gallery.dataset.initialSelectedCount || 0);
     let selectedPages = Number(gallery.dataset.initialSelectedPages || 0);
     let selectedIds = JSON.parse(gallery.dataset.initialSelectedIds || '[]').map(String);
     let editMode = hidden;
+    let mutationQueue = Promise.resolve();
 
     try {
         const saved = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
@@ -70,6 +80,11 @@ const initializeGallery = gallery => {
 
     const updateSelection = async (box, selected) => {
         box.disabled = true;
+        if (statusNode) {
+            statusNode.textContent = 'Saving selection…';
+            statusNode.classList.remove('text-red-300');
+            statusNode.classList.add('text-zinc-400');
+        }
         try {
             const result = await requestJson(
                 gallery.dataset.selectionUrlTemplate.replace('__PHOTO__', box.value),
@@ -82,14 +97,27 @@ const initializeGallery = gallery => {
             box.checked = selected;
             box.closest('[data-photo-card]')?.classList.toggle('ring-2', selected);
             box.closest('[data-photo-card]')?.classList.toggle('ring-emerald-400', selected);
+            if (statusNode) statusNode.textContent = 'Selection saved.';
             render();
         } catch (error) {
             box.checked = !selected;
-            window.alert(error.message);
+            if (statusNode) {
+                statusNode.textContent = 'Could not save that selection. Please try again.';
+                statusNode.classList.remove('text-zinc-400');
+                statusNode.classList.add('text-red-300');
+            }
         } finally { box.disabled = false; }
     };
 
-    checkboxes.forEach(box => box.addEventListener('change', () => updateSelection(box, box.checked)));
+    const enqueueSelection = (box, selected) => {
+        mutationQueue = mutationQueue.then(
+            () => updateSelection(box, selected),
+            () => updateSelection(box, selected),
+        );
+        return mutationQueue;
+    };
+
+    checkboxes.forEach(box => box.addEventListener('change', () => enqueueSelection(box, box.checked)));
     editToggle?.addEventListener('click', async () => {
         if (editMode && selectedCount > 0 && !window.confirm(`Exit edit mode and clear ${selectedCount} selected photos?`)) return;
         if (editMode && selectedCount > 0) {
@@ -112,7 +140,7 @@ const initializeGallery = gallery => {
         render();
     });
     gallery.querySelector('[data-select-page]')?.addEventListener('click', async () => {
-        for (const box of checkboxes.filter(candidate => !candidate.checked)) await updateSelection(box, true);
+        for (const box of checkboxes.filter(candidate => !candidate.checked)) await enqueueSelection(box, true);
     });
     gallery.querySelectorAll('[data-photo-link]').forEach(link => link.addEventListener('click', () => saveView({ returning: true })));
     gallery.querySelectorAll('a[href*="page="]').forEach(link => link.addEventListener('click', () => saveView()));

@@ -8,6 +8,7 @@ use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaVisibility;
 use App\Domain\Media\Models\MediaItem;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
     $this->withoutVite();
@@ -40,6 +41,21 @@ it('persists a users selection across pages and reports selected page count', fu
 
     expect(app(ArchiveSelectionManager::class)->ids($user, 'photos:visible')->sort()->values()->all())
         ->toBe([$first->id, $second->id]);
+});
+
+it('treats repeated selection requests as an idempotent update', function (): void {
+    $user = sg35User();
+    $photo = sg35Photo($user, 'Repeated selection photo');
+
+    foreach ([1, 3] as $page) {
+        $this->actingAs($user)->putJson(route('archive.selections.update', $photo), [
+            'context' => 'photos:visible', 'selected' => true, 'source_page' => $page,
+        ])->assertOk()->assertJson(['selected_count' => 1, 'selected_page_count' => 1]);
+    }
+
+    $draft = app(ArchiveSelectionManager::class)->draft($user, 'photos:visible');
+    expect(DB::table('archive_selection_items')->where('archive_selection_draft_id', $draft->id)->count())->toBe(1)
+        ->and(DB::table('archive_selection_items')->where('archive_selection_draft_id', $draft->id)->value('source_page'))->toBe(3);
 });
 
 it('does not let an uploader select another users photo for hide or edit', function (): void {
