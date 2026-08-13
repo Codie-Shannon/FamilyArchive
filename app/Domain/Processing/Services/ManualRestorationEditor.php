@@ -32,6 +32,28 @@ final class ManualRestorationEditor
     ) {}
 
     /**
+     * Reuse the proven intake renderer for an already-approved archive source.
+     *
+     * @param  array<string, bool|float|int>  $settings
+     * @return array{bytes: string, width: int, height: int, operations: array<string, mixed>, normalized: array<string, bool|float|int>, source_sha256: string}
+     */
+    public function renderApprovedSource(MediaFileVersion $source, array $settings): array
+    {
+        $normalized = $this->normalize($settings);
+        $sourceBytes = $this->readAndVerifySource($source);
+        [$bytes, $width, $height, $operations] = $this->renderWithProcessingMemory(
+            $sourceBytes,
+            $source->mime_type,
+            $normalized,
+        );
+        $this->readAndVerifySource($source);
+
+        return compact('bytes', 'width', 'height', 'operations', 'normalized') + [
+            'source_sha256' => hash('sha256', $sourceBytes),
+        ];
+    }
+
+    /**
      * @param  array<string, bool|float|int>  $settings
      */
     public function save(object $session, int $itemId, User $actor, array $settings): RestorationCandidate

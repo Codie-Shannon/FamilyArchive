@@ -34,9 +34,11 @@ final class GeneratePhotoViewingDerivatives
         private ApprovedPhotoViewingSource $sources,
     ) {}
 
-    public function handle(MediaItem $mediaItem, User $actor): PhotoDerivativeGenerationResult
+    public function handle(MediaItem $mediaItem, User $actor, bool $allowPhotoOwner = false): PhotoDerivativeGenerationResult
     {
-        if (! $actor->canManageTrustedIntake() || $actor->email_verified_at === null) {
+        $mayEditOwnPhoto = $allowPhotoOwner
+            && ($actor->role === 'owner' || $mediaItem->created_by === $actor->id);
+        if ((! $actor->canManageTrustedIntake() && ! $mayEditOwnPhoto) || $actor->email_verified_at === null) {
             throw new DerivativeGenerationException('Only a verified trusted-intake account may generate viewing derivatives.');
         }
 

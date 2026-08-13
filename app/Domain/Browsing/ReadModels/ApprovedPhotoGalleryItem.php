@@ -11,5 +11,8 @@ final readonly class ApprovedPhotoGalleryItem
         public string $thumbnailStatus,
         public ?int $thumbnailVersionId,
         public string $preservationStatus,
+        public int $createdBy,
+        public int $metadataRevision,
+        public bool $hidden,
     ) {}
 }

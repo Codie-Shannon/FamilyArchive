@@ -42,7 +42,9 @@ final class PrivateDerivativeController extends Controller
             || $viewingSource->id !== $parent->id
             || $item->media_type !== MediaType::Photo
             || $item->review_status !== MediaReviewStatus::Approved
-            || ! $access->canView($request->user(), $item)
+            || (! $access->canView($request->user(), $item)
+                && ! ($item->hidden_at !== null
+                    && ($request->user()->role === 'owner' || $item->created_by === $request->user()->id)))
         ) {
             abort(404);
         }

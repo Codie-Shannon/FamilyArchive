@@ -37,7 +37,10 @@ final class ApprovedPhotoDetailQuery
             ->whereNotNull('approved_at')
             ->first();
 
-        if (! $item instanceof MediaItem || ! $this->access->canView($user, $item)) {
+        $canViewHidden = $item instanceof MediaItem
+            && $item->hidden_at !== null
+            && ($user->role === 'owner' || $item->created_by === $user->id);
+        if (! $item instanceof MediaItem || (! $canViewHidden && ! $this->access->canView($user, $item))) {
             return null;
         }
 

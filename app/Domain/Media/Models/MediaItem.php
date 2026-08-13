@@ -52,6 +52,11 @@ use Illuminate\Support\Carbon;
  * @property int $created_by
  * @property int|null $approved_by
  * @property Carbon|null $approved_at
+ * @property Carbon|null $hidden_at
+ * @property int|null $hidden_by
+ * @property string|null $hidden_previous_visibility
+ * @property string|null $hide_reason_category
+ * @property string|null $hide_reason_note
  * @property Carbon|null $created_at
  * @property int $metadata_revision
  * @property Carbon|null $updated_at
@@ -79,6 +84,11 @@ use Illuminate\Support\Carbon;
     'created_by',
     'approved_by',
     'approved_at',
+    'hidden_at',
+    'hidden_by',
+    'hidden_previous_visibility',
+    'hide_reason_category',
+    'hide_reason_note',
     'metadata_revision',
 ])]
 class MediaItem extends Model
@@ -104,6 +114,7 @@ class MediaItem extends Model
             'review_status' => MediaReviewStatus::class,
             'sensitivity_status' => SensitivityStatus::class,
             'approved_at' => 'immutable_datetime',
+            'hidden_at' => 'immutable_datetime',
             'metadata_revision' => 'integer',
         ];
     }

@@ -32,9 +32,11 @@ final class ApprovedPhotoGalleryQuery
         ?array $mediaItemIds = null,
         ?string $search = null,
         ?int $excludedCuratedCollectionId = null,
+        ?int $createdBy = null,
+        bool $hidden = false,
     ): LengthAwarePaginator {
         $query = MediaItem::query()
-            ->select(['id', 'archive_id', 'title', 'approved_at'])
+            ->select(['id', 'archive_id', 'title', 'approved_at', 'created_by', 'metadata_revision', 'hidden_at'])
             ->with(['fileVersions' => fn ($query) => $query
                 ->select(['id', 'media_item_id', 'parent_version_id', 'version_type', 'storage_disk', 'mime_type', 'extension', 'generation_status', 'generation_recipe', 'is_preferred'])
                 ->whereIn('version_type', [MediaFileVersionType::Original, MediaFileVersionType::EditedFull, MediaFileVersionType::Thumbnail]),
@@ -43,6 +45,11 @@ final class ApprovedPhotoGalleryQuery
             ->where('media_type', MediaType::Photo)
             ->where('review_status', MediaReviewStatus::Approved)
             ->whereNotNull('approved_at');
+        $query->when($hidden, fn ($builder) => $builder->whereNotNull('hidden_at'))
+            ->when(! $hidden, fn ($builder) => $builder->whereNull('hidden_at'));
+        if ($createdBy !== null) {
+            $query->where('created_by', $createdBy);
+        }
         if ($mediaItemId !== null) {
             $query->whereKey($mediaItemId);
         }
@@ -62,7 +69,11 @@ final class ApprovedPhotoGalleryQuery
                 ->orWhere('archive_id', 'like', "%{$term}%"));
         }
 
-        $paginator = $this->access->scopeVisible($query, $user)
+        $visibleQuery = $hidden && ! $user->isArchiveAdministrator()
+            ? $query->where('created_by', $user->id)
+            : $this->access->scopeVisible($query, $user);
+
+        $paginator = $visibleQuery
             ->orderByDesc('approved_at')
             ->orderBy('archive_id')
             ->paginate(max(1, min($perPage, 100)));
@@ -92,6 +103,9 @@ final class ApprovedPhotoGalleryQuery
                 thumbnailStatus: $thumbnail instanceof MediaFileVersion ? 'ready' : ($failed ? 'failed_derivative' : 'missing_derivative'),
                 thumbnailVersionId: $thumbnail?->id,
                 preservationStatus: $original instanceof MediaFileVersion ? 'verified preferred original' : 'unavailable',
+                createdBy: $item->created_by,
+                metadataRevision: $item->metadata_revision,
+                hidden: $item->hidden_at !== null,
             );
         });
     }

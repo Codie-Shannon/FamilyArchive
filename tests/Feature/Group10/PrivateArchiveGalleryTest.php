@@ -49,7 +49,7 @@ it('shows only approved photos with safe thumbnail read models', function () {
 
 it('paginates deterministically and never falls back to originals', function () {
     $owner = group10Owner();
-    foreach (range(1, 10) as $i) {
+    foreach (range(1, 17) as $i) {
         group10Original(group10Item($owner, sprintf('G10-%03d', $i)));
     }
     $response = $this->actingAs($owner)->get('/archive');

@@ -35,6 +35,11 @@ use App\Http\Controllers\Archive\OriginalMediaController;
 use App\Http\Controllers\Archive\PersonProvenanceController;
 use App\Http\Controllers\Archive\PhotoMetadataController;
 use App\Http\Controllers\Archive\PhotoMetadataHistoryController;
+use App\Http\Controllers\Archive\ArchivePhotoPreferenceController;
+use App\Http\Controllers\Archive\ArchiveSelectionController;
+use App\Http\Controllers\Archive\PhotoVisibilityController;
+use App\Http\Controllers\Archive\ArchivePhotoEditorController;
+use App\Http\Controllers\Archive\ArchivePhotoEditorPreviewController;
 use App\Http\Controllers\Archive\PhotoProvenanceController;
 use App\Http\Controllers\Archive\PrivateDerivativeController;
 use App\Http\Controllers\Archive\ScanBatchController;
@@ -95,7 +100,20 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
         Route::patch('/messages/{messageId}/report', [FamilyMessageController::class, 'report'])->middleware('throttle:10,1')->name('messages.report');
     });
     Route::get('/archive', [ArchiveBrowseController::class, 'index'])->name('archive.index');
+    Route::get('/archive/hidden', [ArchiveBrowseController::class, 'hidden'])->name('archive.photos.hidden');
     Route::get('/archive/photos/{mediaItem}', [ArchiveBrowseController::class, 'show'])->name('archive.photos.show');
+    Route::patch('/archive/photo-preferences', [ArchivePhotoPreferenceController::class, 'update'])->name('archive.photos.preferences.update');
+    Route::put('/archive/selections/{mediaItem}', [ArchiveSelectionController::class, 'update'])->name('archive.selections.update');
+    Route::delete('/archive/selections', [ArchiveSelectionController::class, 'clear'])->name('archive.selections.clear');
+    Route::get('/archive/photos/{mediaItem}/hide', [PhotoVisibilityController::class, 'hideForm'])->name('archive.photos.hide.form');
+    Route::post('/archive/photos/{mediaItem}/hide', [PhotoVisibilityController::class, 'hideOne'])->name('archive.photos.hide.one');
+    Route::post('/archive/photos/hide-selected', [PhotoVisibilityController::class, 'hideBatch'])->name('archive.photos.hide.batch');
+    Route::post('/archive/photos/restore-selected', [PhotoVisibilityController::class, 'restoreBatch'])->name('archive.photos.restore.batch');
+    Route::get('/archive/photo-editor', [ArchivePhotoEditorController::class, 'index'])->name('archive.photos.editor');
+    Route::post('/archive/photo-editor/publish-all', [ArchivePhotoEditorController::class, 'publishAll'])->name('archive.photos.editor.publish-all');
+    Route::get('/archive/photo-editor/{mediaItem}/source', ArchivePhotoEditorPreviewController::class)->name('archive.photos.editor.source');
+    Route::put('/archive/photo-editor/{mediaItem}/draft', [ArchivePhotoEditorController::class, 'draft'])->name('archive.photos.editor.draft');
+    Route::post('/archive/photo-editor/{mediaItem}/publish', [ArchivePhotoEditorController::class, 'publish'])->name('archive.photos.editor.publish');
     Route::get('/archive/albums', [ArchiveAlbumController::class, 'index'])->name('archive.albums.index');
     Route::get('/archive/albums/create', [ArchiveAlbumController::class, 'create'])
         ->middleware('trusted.intake')

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Archive;
 
 use App\Domain\Access\Services\ArchiveAccess;
+use App\Domain\Archive\Models\UserArchivePreference;
+use App\Domain\Archive\Services\ArchiveSelectionManager;
 use App\Domain\Browsing\Queries\ApprovedPhotoGalleryQuery;
 use App\Domain\Knowledge\Enums\ArchiveAlbumType;
 use App\Domain\Knowledge\Models\CuratedCollection;
@@ -85,18 +87,29 @@ final class ArchiveAlbumController extends Controller
         Request $request,
         CuratedCollection $curatedCollection,
         ApprovedPhotoGalleryQuery $gallery,
+        ArchiveSelectionManager $selections,
     ): View {
         $query = mb_substr(trim((string) $request->string('q')), 0, 100);
+        $rows = UserArchivePreference::query()->where('user_id', $request->user()->id)->value('photo_gallery_rows') ?? 4;
+        $rows = in_array((int) $rows, [2, 4, 8, 16], true) ? (int) $rows : 4;
+        $context = 'album:'.$curatedCollection->id;
+        $selectedIds = $selections->ids($request->user(), $context);
+        $selectionSummary = $selections->summary($request->user(), $context);
 
         return view('archive.albums.add-photos', [
             'album' => $curatedCollection,
             'photos' => $gallery->handle(
                 $request->user(),
-                100,
+                $rows * 4,
                 search: $query,
                 excludedCuratedCollectionId: $curatedCollection->id,
-            ),
+            )->withQueryString(),
             'query' => $query,
+            'rows' => $rows,
+            'selectionContext' => $context,
+            'selectedIds' => $selectedIds,
+            'selectedCount' => $selectedIds->count(),
+            'selectedPageCount' => $selectionSummary['page_count'],
         ]);
     }
 
@@ -104,13 +117,14 @@ final class ArchiveAlbumController extends Controller
         Request $request,
         CuratedCollection $curatedCollection,
         ArchiveAccess $access,
+        ArchiveSelectionManager $selections,
     ): RedirectResponse {
         $validated = $request->validate([
-            'photo_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'photo_ids' => ['nullable', 'array', 'min:1'],
             'photo_ids.*' => ['required', 'integer', 'distinct'],
         ]);
-        $photoIds = $validated['photo_ids'] ?? null;
-        abort_unless(is_array($photoIds), 422);
+        $photoIds = $validated['photo_ids'] ?? $selections->ids($request->user(), 'album:'.$curatedCollection->id)->all();
+        abort_unless(is_array($photoIds) && count($photoIds) > 0, 422);
 
         $requestedIds = collect(array_map(
             static fn (mixed $id): int => (int) $id,
@@ -136,6 +150,7 @@ final class ArchiveAlbumController extends Controller
             ];
         }
         $curatedCollection->mediaItems()->syncWithoutDetaching($membership);
+        $selections->clear($request->user(), 'album:'.$curatedCollection->id);
 
         return redirect()->route('archive.albums.show', [ArchiveAlbumType::Curated->value, $curatedCollection->collection_id])
             ->with('status', $visibleIds->count().' '.str('photo')->plural($visibleIds->count()).' added to the album.');
