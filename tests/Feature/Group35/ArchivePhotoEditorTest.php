@@ -1,7 +1,10 @@
 <?php
 
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
+use App\Domain\Archive\Models\ArchivePhotoSplitGroup;
+use App\Domain\Archive\Models\ArchivePhotoSplitMember;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
+use App\Domain\Archive\Services\ArchivePhotoSplitter;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
@@ -162,4 +165,82 @@ it('lets a split photo restart from the full source scan without changing siblin
     expect($draft->source_version_id)->toBe($source->id)
         ->and($draft->from_source_scan)->toBeTrue()
         ->and(PhotoSplitRegion::query()->where('output_media_item_id', $sibling->id)->value('region_id'))->toBe('r2');
+
+    $this->actingAs($owner)->get(route('archive.photos.editor', [
+        'single_photo' => $split->id,
+        'return_to' => route('archive.index', absolute: false),
+    ]))->assertOk()->assertSee('Splits from this source')->assertSee($sibling->archive_id);
+});
+
+it('publishes preservation safe split photos from the selected source basis', function (): void {
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($owner);
+    $photo->forceFill(['contains_living_person' => true, 'contains_child' => true])->save();
+    $original = sg35EditorOriginal($photo);
+    $draft = app(ArchivePhotoEditor::class)->saveDraft($photo, $owner, sg35EditorSettings(), false);
+    $current = app(ArchivePhotoEditor::class)->publish($draft, $owner);
+
+    $children = app(ArchivePhotoSplitter::class)->split($photo->fresh(), $owner, [
+        ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 90],
+    ], $photo->fresh()->metadata_revision, 'original');
+
+    $group = ArchivePhotoSplitGroup::query()->with('members')->sole();
+    expect($children)->toHaveCount(2)
+        ->and($photo->fresh()->review_status)->toBe(MediaReviewStatus::Hidden)
+        ->and($group->source_media_item_id)->toBe($photo->id)
+        ->and($group->source_version_id)->toBe($original->id)
+        ->and($group->source_version_id)->not->toBe($current->id)
+        ->and($group->source_basis)->toBe('original')
+        ->and($group->members)->toHaveCount(2)
+        ->and((bool) $children[0]->fresh()->getAttribute('contains_living_person'))->toBeTrue()
+        ->and((bool) $children[0]->fresh()->getAttribute('contains_child'))->toBeTrue()
+        ->and(ArchivePhotoSplitMember::query()->where('media_item_id', $children[0]->id)->value('position'))->toBe(1);
+
+    foreach ($children as $child) {
+        $split = MediaFileVersion::query()->where('media_item_id', $child->id)
+            ->where('version_type', MediaFileVersionType::EditedFull)->sole();
+        expect($split->parent_version_id)->toBe($original->id)
+            ->and(data_get($split->generation_recipe, 'operation'))->toBe('archive_photo_split')
+            ->and(MediaFileVersion::query()->where('media_item_id', $child->id)->where('version_type', MediaFileVersionType::Thumbnail)->exists())->toBeTrue();
+    }
+});
+
+it('shows every split sibling only inside edit mode and preserves filmstrip state', function (): void {
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($owner);
+    sg35EditorOriginal($photo);
+    $children = app(ArchivePhotoSplitter::class)->split($photo, $owner, [
+        ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+    ], (int) ($photo->metadata_revision ?? 0), 'current');
+
+    $editor = $this->actingAs($owner)->get(route('archive.photos.editor', [
+        'single_photo' => $children[0]->id,
+        'return_to' => route('archive.index', absolute: false),
+    ]));
+    $editor->assertOk()
+        ->assertSee('Splits from this source')
+        ->assertSee($children[0]->archive_id)
+        ->assertSee($children[1]->archive_id)
+        ->assertSee('familyarchive:editor-filmstrip', false)
+        ->assertSee('Split photo');
+
+    $this->actingAs($owner)->get(route('archive.photos.show', $children[0]))
+        ->assertOk()
+        ->assertDontSee('Splits from this source')
+        ->assertDontSee($children[1]->archive_id);
+});
+
+it('opens the split workspace with full source duplicates and current or original choice', function (): void {
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($owner);
+    sg35EditorOriginal($photo);
+
+    $this->actingAs($owner)->get(route('archive.photos.editor.split', $photo))
+        ->assertOk()
+        ->assertSee('Current corrected version')
+        ->assertSee('Preserved original')
+        ->assertSee('Number of photos')
+        ->assertSee('regions.push({x:0,y:0,width:10000,height:10000,rotation_degrees:0})', false);
 });

@@ -3,6 +3,7 @@
 namespace App\Domain\Archive\Services;
 
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
+use App\Domain\Archive\Models\ArchivePhotoSplitMember;
 use App\Domain\Derivatives\Actions\GeneratePhotoViewingDerivatives;
 use App\Domain\Derivatives\Contracts\NoOverwriteDerivativeWriter;
 use App\Domain\Derivatives\Services\ApprovedPhotoViewingSource;
@@ -38,6 +39,12 @@ final class ArchivePhotoEditor
     public function source(MediaItem $item, bool $fromSourceScan = false): MediaFileVersion
     {
         if ($fromSourceScan) {
+            $member = ArchivePhotoSplitMember::query()->with('group.sourceVersion')
+                ->where('media_item_id', $item->id)->first();
+            $archiveSource = $member?->group?->sourceVersion;
+            if ($archiveSource instanceof MediaFileVersion) {
+                return $archiveSource;
+            }
             $region = PhotoSplitRegion::query()->with('proposal.sourceVersion')
                 ->where('output_media_item_id', $item->id)->first();
             $source = $region?->proposal?->sourceVersion;
@@ -57,7 +64,8 @@ final class ArchivePhotoEditor
 
     public function isSplit(MediaItem $item): bool
     {
-        return PhotoSplitRegion::query()->where('output_media_item_id', $item->id)->exists();
+        return ArchivePhotoSplitMember::query()->where('media_item_id', $item->id)->exists()
+            || PhotoSplitRegion::query()->where('output_media_item_id', $item->id)->exists();
     }
 
     /** @param array<string, bool|float|int> $settings */

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Archive;
 
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
+use App\Domain\Archive\Services\ArchivePhotoSplitFamily;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
 use App\Domain\Media\Enums\MediaReviewStatus;
 use App\Domain\Media\Enums\MediaType;
@@ -17,7 +18,7 @@ use Throwable;
 
 final class ArchivePhotoEditorController extends Controller
 {
-    public function index(Request $request, ArchiveSelectionManager $selections, ArchivePhotoEditor $editor): View
+    public function index(Request $request, ArchiveSelectionManager $selections, ArchivePhotoEditor $editor, ArchivePhotoSplitFamily $splitFamilies): View
     {
         $singlePhotoId = $request->integer('single_photo');
         $ids = $singlePhotoId > 0
@@ -43,6 +44,7 @@ final class ArchivePhotoEditorController extends Controller
             'photos' => $ordered, 'current' => $current, 'draft' => $drafts->get($current->id),
             'draftCount' => $drafts->count(), 'isSplit' => $editor->isSplit($current),
             'singlePhotoMode' => $singlePhotoId > 0,
+            'splitFamily' => $splitFamilies->forEditor($current, $request->user()),
             'returnTo' => (string) $request->query('return_to', route('archive.index', absolute: false)),
         ]);
     }

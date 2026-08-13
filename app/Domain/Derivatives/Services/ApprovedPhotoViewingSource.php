@@ -69,7 +69,7 @@ final class ApprovedPhotoViewingSource
             && $version->mime_type === 'image/webp'
             && $version->extension === 'webp'
             && $version->parent_version_id !== null
-            && data_get($version->generation_recipe, 'operation') === 'multi_photo_split'
+            && in_array(data_get($version->generation_recipe, 'operation'), ['multi_photo_split', 'archive_photo_split'], true)
             && is_string(data_get($version->generation_recipe, 'source_sha256'))
             && preg_match('/^[a-f0-9]{64}$/', strtolower((string) data_get($version->generation_recipe, 'source_sha256'))) === 1;
     }

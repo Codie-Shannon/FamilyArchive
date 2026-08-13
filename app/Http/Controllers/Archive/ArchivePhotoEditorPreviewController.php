@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Archive;
 
+use App\Domain\Archive\Services\ArchivePhotoEditingSource;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Media\Models\MediaItem;
 use App\Http\Controllers\Controller;
@@ -12,10 +13,13 @@ use Illuminate\Support\Facades\Storage;
 
 final class ArchivePhotoEditorPreviewController extends Controller
 {
-    public function __invoke(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor): Response
+    public function __invoke(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor, ArchivePhotoEditingSource $editingSources): Response
     {
         abort_unless($request->user()->role === 'owner' || $mediaItem->created_by === $request->user()->id, 403);
-        $source = $editor->source($mediaItem, $request->boolean('source_scan'));
+        $basis = $request->query('split_basis');
+        $source = is_string($basis)
+            ? $editingSources->resolve($mediaItem, $basis)
+            : $editor->source($mediaItem, $request->boolean('source_scan'));
         /** @var FilesystemAdapter $disk */ $disk = Storage::disk($source->storage_disk);
         abort_unless($disk->exists($source->storage_path), 404);
         $bytes = $disk->get($source->storage_path);

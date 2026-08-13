@@ -163,11 +163,14 @@ it('creates the required indexes and restrictive foreign keys', function (): voi
     $incomingForeignKeys = collect(Schema::getForeignKeys('incoming_uploads'));
     $versionForeignKeys = collect(Schema::getForeignKeys('media_file_versions'));
 
-    expect($mediaForeignKeys)->toHaveCount(3)
+    expect($mediaForeignKeys)->toHaveCount(4)
         ->and($incomingForeignKeys)->toHaveCount(3)
         ->and($versionForeignKeys)->toHaveCount(2);
 
     foreach ($mediaForeignKeys->concat($incomingForeignKeys)->concat($versionForeignKeys) as $foreignKey) {
-        expect(strtolower((string) $foreignKey['on_delete']))->toBeIn(['restrict', 'no action']);
+        $isNullableHiddenActor = $foreignKey['columns'] === ['hidden_by'];
+        expect(strtolower((string) $foreignKey['on_delete']))->toBeIn(
+            $isNullableHiddenActor ? ['set null'] : ['restrict', 'no action'],
+        );
     }
 });
