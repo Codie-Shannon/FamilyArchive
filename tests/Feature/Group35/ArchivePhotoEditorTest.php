@@ -93,6 +93,43 @@ it('blocks editing another uploaders photo while the owner may edit it', functio
     $this->actingAs($owner)->putJson(route('archive.photos.editor.draft', $photo), sg35EditorSettings())->assertOk();
 });
 
+it('opens a single photo editor from detail without creating a batch selection', function (): void {
+    $uploader = sg35EditorUser();
+    $other = sg35EditorUser();
+    $photo = sg35EditorPhoto($uploader);
+    sg35EditorOriginal($photo);
+    $returnTo = route('archive.photos.show', [$photo, 'return_to' => '/archive?page=3'], false);
+
+    $this->actingAs($uploader)->get(route('archive.photos.editor', [
+        'single_photo' => $photo->id, 'return_to' => $returnTo,
+    ]))->assertOk()->assertSee('Return to photo')->assertSee($photo->archive_id)->assertDontSee('Save all changed');
+
+    expect(app(ArchiveSelectionManager::class)->count($uploader, 'photos:visible'))->toBe(0);
+
+    $this->actingAs($other)->get(route('archive.photos.editor', [
+        'single_photo' => $photo->id, 'return_to' => $returnTo,
+    ]))->assertForbidden();
+});
+
+it('shows the detail edit button only to the uploader or archive owner', function (): void {
+    $uploader = sg35EditorUser();
+    $other = sg35EditorUser();
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($uploader);
+    sg35EditorOriginal($photo);
+    $editUrl = route('archive.photos.editor', [
+        'single_photo' => $photo->id,
+        'return_to' => route('archive.photos.show', $photo, false),
+    ], false);
+
+    $this->actingAs($uploader)->get(route('archive.photos.show', $photo))
+        ->assertOk()->assertSee('Edit photo')->assertSee($editUrl);
+    $this->actingAs($owner)->get(route('archive.photos.show', $photo))
+        ->assertOk()->assertSee('Edit photo');
+    $this->actingAs($other)->get(route('archive.photos.show', $photo))
+        ->assertOk()->assertDontSee('Edit photo');
+});
+
 it('publishes a non destructive edit and regenerates preferred viewing derivatives', function (): void {
     $user = sg35EditorUser();
     $photo = sg35EditorPhoto($user);

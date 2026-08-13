@@ -89,6 +89,7 @@ final class ApprovedPhotoDetailQuery
             lineageLabel: $source?->version_type === MediaFileVersionType::EditedFull
                 ? 'derived from owner-approved restoration'
                 : 'derived from verified preferred original',
+            createdBy: $item->created_by,
         );
     }
 

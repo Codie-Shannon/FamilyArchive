@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Archive;
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
+use App\Domain\Media\Enums\MediaReviewStatus;
+use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaItem;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
@@ -17,20 +19,30 @@ final class ArchivePhotoEditorController extends Controller
 {
     public function index(Request $request, ArchiveSelectionManager $selections, ArchivePhotoEditor $editor): View
     {
-        $ids = $selections->ids($request->user(), 'photos:visible');
+        $singlePhotoId = $request->integer('single_photo');
+        $ids = $singlePhotoId > 0
+            ? collect([$singlePhotoId])
+            : $selections->ids($request->user(), 'photos:visible');
         abort_if($ids->isEmpty(), 422, 'Select at least one photo to edit.');
-        $photos = MediaItem::query()->whereKey($ids)->get()->keyBy('id');
+        $photos = MediaItem::query()
+            ->whereKey($ids)
+            ->where('media_type', MediaType::Photo)
+            ->where('review_status', MediaReviewStatus::Approved)
+            ->whereNotNull('approved_at')
+            ->get()
+            ->keyBy('id');
         $ordered = $ids->map(fn (int $id) => $photos->get($id))->filter()->values();
         $currentId = (int) $request->query('photo', $ids->first());
         $current = $ordered->firstWhere('id', $currentId) ?? $ordered->first();
         abort_unless($current instanceof MediaItem, 404);
-        abort_unless($request->user()->role === 'owner' || $current->created_by === $request->user()->id, 403);
+        abort_unless($request->user()->role === 'owner' || (int) $current->created_by === (int) $request->user()->id, 403);
         $drafts = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
             ->whereIn('media_item_id', $ids)->get()->keyBy('media_item_id');
 
         return view('archive.photo-editor', [
             'photos' => $ordered, 'current' => $current, 'draft' => $drafts->get($current->id),
             'draftCount' => $drafts->count(), 'isSplit' => $editor->isSplit($current),
+            'singlePhotoMode' => $singlePhotoId > 0,
             'returnTo' => (string) $request->query('return_to', route('archive.index', absolute: false)),
         ]);
     }

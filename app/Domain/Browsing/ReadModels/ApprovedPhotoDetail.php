@@ -24,5 +24,6 @@ final readonly class ApprovedPhotoDetail
         public string $thumbnailStatus,
         public string $recipeLabel,
         public string $lineageLabel,
+        public ?int $createdBy,
     ) {}
 }
