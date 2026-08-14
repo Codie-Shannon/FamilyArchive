@@ -85,25 +85,63 @@ final class ArchivePhotoEditor
         $draft->load(['mediaItem', 'sourceVersion']);
         $item = $draft->mediaItem;
         $source = $draft->sourceVersion;
-        $this->authorize($item, $actor);
         if ($draft->user_id !== $actor->id) {
             abort(403);
         }
-        if ($item->metadata_revision !== $draft->expected_metadata_revision) {
+
+        $version = $this->publishSnapshot(
+            $item,
+            $source,
+            $draft->editorSettings(),
+            $draft->expected_metadata_revision,
+            $draft->from_source_scan,
+            $actor,
+        );
+        $draft->delete();
+
+        return $version;
+    }
+
+    /** @param array<string, bool|float|int> $settings */
+    public function publishSnapshot(
+        MediaItem $item,
+        MediaFileVersion $source,
+        array $settings,
+        int $expectedMetadataRevision,
+        bool $fromSourceScan,
+        User $actor,
+        ?int $batchEditItemId = null,
+    ): MediaFileVersion {
+        $this->authorize($item, $actor);
+        if ($batchEditItemId !== null) {
+            $publishedVersionId = DB::table('archive_photo_edit_batch_items as batch_items')
+                ->join('archive_photo_edit_batches as batches', 'batch_items.archive_photo_edit_batch_id', '=', 'batches.id')
+                ->where('batch_items.id', $batchEditItemId)
+                ->where('batch_items.media_item_id', $item->id)
+                ->where('batches.user_id', $actor->id)
+                ->value('batch_items.published_version_id');
+            if ($publishedVersionId !== null) {
+                $version = MediaFileVersion::query()->where('id', $publishedVersionId)->sole();
+                $this->derivatives->handle($item->fresh(), $actor, true);
+
+                return $version;
+            }
+        }
+        if ($item->metadata_revision !== $expectedMetadataRevision) {
             throw ValidationException::withMessages(['editor' => 'This photo changed after the draft was created. Reload it before saving.']);
         }
 
-        $rendered = $this->renderer->renderApprovedSource($source, $draft->editorSettings());
+        $rendered = $this->renderer->renderApprovedSource($source, $settings);
         $candidateId = (string) Str::uuid();
         $path = $this->paths->validateRelativePath('restoration-candidates/'.$item->id.'/'.$candidateId.'.webp');
         $written = $this->writer->write($path, $rendered['bytes']);
         $committed = false;
 
         try {
-            $version = DB::transaction(function () use ($draft, $actor, $item, $source, $rendered, $candidateId, $written): MediaFileVersion {
+            $version = DB::transaction(function () use ($actor, $item, $source, $rendered, $candidateId, $written, $expectedMetadataRevision, $fromSourceScan, $batchEditItemId): MediaFileVersion {
                 $lockedItem = MediaItem::query()->lockForUpdate()->findOrFail($item->id);
                 $this->authorize($lockedItem, $actor);
-                if ($lockedItem->metadata_revision !== $draft->expected_metadata_revision) {
+                if ($lockedItem->metadata_revision !== $expectedMetadataRevision) {
                     throw ValidationException::withMessages(['editor' => 'This photo changed while the edit was processing.']);
                 }
                 $lockedSource = MediaFileVersion::query()->lockForUpdate()->findOrFail($source->id);
@@ -128,28 +166,37 @@ final class ArchivePhotoEditor
                     'file_size_bytes' => $written->bytes, 'width' => $rendered['width'], 'height' => $rendered['height'],
                     'duration_ms' => null, 'sha256' => $written->sha256, 'perceptual_hash' => null,
                     'generation_status' => GenerationStatus::Ready,
-                    'generation_recipe' => ['editor' => 'archive', 'source_sha256' => $rendered['source_sha256'], 'operations' => $rendered['operations'], 'preserves_original' => true, 'from_source_scan' => $draft->from_source_scan],
+                    'generation_recipe' => ['editor' => 'archive', 'source_sha256' => $rendered['source_sha256'], 'operations' => $rendered['operations'], 'preserves_original' => true, 'from_source_scan' => $fromSourceScan, 'batch_edit_item_id' => $batchEditItemId],
                     'is_preferred' => true,
                 ]);
                 RestorationCandidate::query()->create([
                     'candidate_id' => $candidateId, 'processing_job_id' => $job->id,
                     'source_version_id' => $lockedSource->id, 'candidate_version_id' => $version->id,
                     'quality_checks' => ['source_hash_verified_before' => true, 'source_hash_verified_after' => true, 'candidate_hash_verified' => true, 'original_retained' => true],
-                    'analysis' => ['editor' => 'archive', 'settings' => $rendered['normalized'], 'from_source_scan' => $draft->from_source_scan],
+                    'analysis' => ['editor' => 'archive', 'settings' => $rendered['normalized'], 'from_source_scan' => $fromSourceScan],
                     'operations_applied' => array_keys($rendered['operations']), 'review_state' => 'approved',
                     'reviewed_by' => $actor->id, 'review_note' => 'Saved by the photo owner in the non-destructive archive editor.', 'reviewed_at' => now(),
                 ]);
                 ProcessingJobEvent::query()->create([
                     'processing_job_id' => $job->id, 'actor_id' => $actor->id,
-                    'event' => 'archive_edit_approved', 'safe_context' => ['original_retained' => true, 'from_source_scan' => $draft->from_source_scan], 'occurred_at' => now(),
+                    'event' => 'archive_edit_approved', 'safe_context' => ['original_retained' => true, 'from_source_scan' => $fromSourceScan, 'batch_edit' => $batchEditItemId !== null], 'occurred_at' => now(),
                 ]);
+                if ($batchEditItemId !== null) {
+                    $checkpointed = DB::table('archive_photo_edit_batch_items')
+                        ->where('id', $batchEditItemId)
+                        ->where('media_item_id', $lockedItem->id)
+                        ->whereNull('published_version_id')
+                        ->update(['published_version_id' => $version->id, 'updated_at' => now()]);
+                    if ($checkpointed !== 1) {
+                        throw ValidationException::withMessages(['editor' => 'The batch checkpoint changed while this photo was processing.']);
+                    }
+                }
 
                 return $version;
             }, 5);
             $committed = true;
 
             $this->derivatives->handle($item->fresh(), $actor, true);
-            $draft->delete();
 
             return $version;
         } catch (Throwable $exception) {

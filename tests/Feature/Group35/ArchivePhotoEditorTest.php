@@ -1,8 +1,11 @@
 <?php
 
+use App\Domain\Archive\Models\ArchivePhotoEditBatch;
+use App\Domain\Archive\Models\ArchivePhotoEditBatchItem;
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
 use App\Domain\Archive\Models\ArchivePhotoSplitGroup;
 use App\Domain\Archive\Models\ArchivePhotoSplitMember;
+use App\Domain\Archive\Services\ArchivePhotoEditBatchPublisher;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Archive\Services\ArchivePhotoSplitter;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
@@ -15,8 +18,10 @@ use App\Domain\Media\Models\MediaFileVersion;
 use App\Domain\Media\Models\MediaItem;
 use App\Domain\Processing\Models\PhotoSplitProposal;
 use App\Domain\Processing\Models\PhotoSplitRegion;
+use App\Jobs\PublishArchivePhotoEdit;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -84,6 +89,92 @@ it('keeps independent editor drafts for every selected photo', function (): void
     expect(ArchivePhotoEditDraft::query()->where('user_id', $user->id)->count())->toBe(2)
         ->and(ArchivePhotoEditDraft::query()->where('media_item_id', $first->id)->firstOrFail()->settings['quarter_turn'])->toBe(1)
         ->and(ArchivePhotoEditDraft::query()->where('media_item_id', $second->id)->firstOrFail()->settings['quarter_turn'])->toBe(-1);
+});
+
+it('queues save all immediately while keeping the selected page editor unchanged', function (): void {
+    Queue::fake();
+    $owner = sg35EditorUser('owner');
+    $first = sg35EditorPhoto($owner);
+    $second = sg35EditorPhoto($owner);
+    sg35EditorOriginal($first);
+    sg35EditorOriginal($second);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $first, true, 4);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $second, true, 4);
+    app(ArchivePhotoEditor::class)->saveDraft($first, $owner, sg35EditorSettings(), false);
+    app(ArchivePhotoEditor::class)->saveDraft($second, $owner, [...sg35EditorSettings(), 'quarter_turn' => -1], false);
+
+    $response = $this->actingAs($owner)->from('/archive/photo-editor?photo='.$first->id)
+        ->post(route('archive.photos.editor.publish-all'));
+
+    $response->assertRedirect('/archive/photo-editor?photo='.$first->id)
+        ->assertSessionHas('archive_photo_edit_batch_id');
+    $batch = ArchivePhotoEditBatch::query()->sole();
+    expect($batch->state)->toBe('queued')
+        ->and($batch->total_count)->toBe(2)
+        ->and($batch->items()->orderBy('position')->pluck('media_item_id')->all())->toBe([$first->id, $second->id])
+        ->and(MediaFileVersion::query()->whereIn('media_item_id', [$first->id, $second->id])
+            ->where('version_type', MediaFileVersionType::EditedFull)->exists())->toBeFalse();
+    Queue::assertPushed(PublishArchivePhotoEdit::class, 2);
+    Queue::assertPushed(PublishArchivePhotoEdit::class, fn (PublishArchivePhotoEdit $job): bool => $job->connection === 'database');
+
+    $this->actingAs($owner)->get('/archive/photo-editor?photo='.$first->id)
+        ->assertOk()
+        ->assertSee('Saving changed photos in the background')
+        ->assertSee('data-save-progress-label', false);
+
+    $this->actingAs($owner)->get(route('archive.photos.editor.publish-all.status', $batch))
+        ->assertOk()
+        ->assertJson(['state' => 'queued', 'total' => 2, 'processed' => 0, 'active' => true]);
+});
+
+it('publishes checkpointed batch snapshots once and preserves drafts changed after queueing', function (): void {
+    Queue::fake();
+    $owner = sg35EditorUser('owner');
+    $first = sg35EditorPhoto($owner);
+    $second = sg35EditorPhoto($owner);
+    sg35EditorOriginal($first);
+    sg35EditorOriginal($second);
+    $firstDraft = app(ArchivePhotoEditor::class)->saveDraft($first, $owner, sg35EditorSettings(), false);
+    $secondDraft = app(ArchivePhotoEditor::class)->saveDraft($second, $owner, sg35EditorSettings(), false);
+    $batch = app(ArchivePhotoEditBatchPublisher::class)->start($owner, ArchivePhotoEditDraft::query()->whereKey([$firstDraft->id, $secondDraft->id])->get());
+    app(ArchivePhotoEditor::class)->saveDraft($second, $owner, [...sg35EditorSettings(), 'brightness' => 12], false);
+
+    $publisher = app(ArchivePhotoEditBatchPublisher::class);
+    foreach ($batch->items()->orderBy('position')->get() as $item) {
+        $publisher->publish($item->id, 1);
+    }
+    $firstItem = $batch->items()->orderBy('position')->firstOrFail();
+    $publisher->publish($firstItem->id, 2);
+    $remainingDraft = ArchivePhotoEditDraft::query()->findOrFail($secondDraft->id);
+
+    expect($batch->fresh()->state)->toBe('completed')
+        ->and($batch->fresh()->completed_count)->toBe(2)
+        ->and(ArchivePhotoEditDraft::query()->whereKey($firstDraft->id)->exists())->toBeFalse()
+        ->and($remainingDraft->settings['brightness'])->toBe(12)
+        ->and(MediaFileVersion::query()->where('media_item_id', $first->id)->where('version_type', MediaFileVersionType::EditedFull)->count())->toBe(1)
+        ->and(MediaFileVersion::query()->where('media_item_id', $second->id)->where('version_type', MediaFileVersionType::EditedFull)->count())->toBe(1);
+});
+
+it('isolates failed batch photos and allows only their owner to retry them', function (): void {
+    Queue::fake();
+    $owner = sg35EditorUser('owner');
+    $other = sg35EditorUser();
+    $photo = sg35EditorPhoto($owner);
+    sg35EditorOriginal($photo);
+    $draft = app(ArchivePhotoEditor::class)->saveDraft($photo, $owner, sg35EditorSettings(), false);
+    $batch = app(ArchivePhotoEditBatchPublisher::class)->start($owner, ArchivePhotoEditDraft::query()->whereKey($draft->id)->get());
+    $photo->forceFill(['metadata_revision' => $photo->metadata_revision + 1])->save();
+    $item = ArchivePhotoEditBatchItem::query()->sole();
+
+    (new PublishArchivePhotoEdit($item->id))->handle(app(ArchivePhotoEditBatchPublisher::class));
+
+    expect($item->fresh()->state)->toBe('failed')
+        ->and($batch->fresh()->state)->toBe('completed_with_failures')
+        ->and($batch->fresh()->failed_count)->toBe(1);
+    $this->actingAs($other)->post(route('archive.photos.editor.publish-all.retry', $batch))->assertForbidden();
+    $this->actingAs($owner)->post(route('archive.photos.editor.publish-all.retry', $batch))->assertRedirect();
+    expect($item->fresh()->state)->toBe('queued');
+    Queue::assertPushed(PublishArchivePhotoEdit::class, 2);
 });
 
 it('blocks editing another uploaders photo while the owner may edit it', function (): void {

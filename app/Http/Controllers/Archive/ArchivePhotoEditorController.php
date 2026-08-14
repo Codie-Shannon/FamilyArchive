@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Archive;
 
+use App\Domain\Archive\Models\ArchivePhotoEditBatch;
 use App\Domain\Archive\Models\ArchivePhotoEditDraft;
+use App\Domain\Archive\Services\ArchivePhotoEditBatchPublisher;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Archive\Services\ArchivePhotoSplitFamily;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
@@ -15,7 +17,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Throwable;
 
 final class ArchivePhotoEditorController extends Controller
 {
@@ -63,6 +64,11 @@ final class ArchivePhotoEditorController extends Controller
         $editableIds = $splitFamilies->editableIds($ordered, $request->user());
         $drafts = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
             ->whereIn('media_item_id', $editableIds)->get()->keyBy('media_item_id');
+        $requestedBatchId = (string) $request->session()->get('archive_photo_edit_batch_id', '');
+        $batchQuery = ArchivePhotoEditBatch::query()->where('user_id', $request->user()->id);
+        $batchEdit = filled($requestedBatchId)
+            ? (clone $batchQuery)->where('batch_id', $requestedBatchId)->first()
+            : (clone $batchQuery)->whereIn('state', ['queued', 'running'])->latest('id')->first();
 
         return view('archive.photo-editor', [
             'photos' => $ordered, 'batchCurrent' => $batchCurrent, 'current' => $current,
@@ -71,6 +77,7 @@ final class ArchivePhotoEditorController extends Controller
             'previewOnly' => ! $current instanceof MediaItem,
             'singlePhotoMode' => $singlePhotoId > 0,
             'splitFamily' => $splitFamily,
+            'batchEdit' => $batchEdit,
             'returnTo' => (string) $request->query('return_to', route('archive.index', absolute: false)),
         ]);
     }
@@ -85,8 +92,19 @@ final class ArchivePhotoEditorController extends Controller
         return back()->with('status', 'Draft saved. The archive photo has not changed yet.');
     }
 
-    public function publish(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor): JsonResponse|RedirectResponse
-    {
+    public function publish(
+        Request $request,
+        MediaItem $mediaItem,
+        ArchivePhotoEditor $editor,
+        ArchivePhotoEditBatchPublisher $batches,
+    ): JsonResponse|RedirectResponse {
+        if ($batches->hasActiveItem($request->user(), $mediaItem)) {
+            $message = 'This photo is already being saved by the active batch.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 409)
+                : back()->withErrors(['editor' => $message]);
+        }
         $draft = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
             ->where('media_item_id', $mediaItem->id)->firstOrFail();
         try {
@@ -110,9 +128,9 @@ final class ArchivePhotoEditorController extends Controller
 
     public function publishAll(
         Request $request,
-        ArchivePhotoEditor $editor,
         ArchiveSelectionManager $selections,
         ArchivePhotoSplitFamily $splitFamilies,
+        ArchivePhotoEditBatchPublisher $batches,
     ): RedirectResponse {
         $selectedIds = $selections->ids($request->user(), 'photos:visible');
         $sources = $splitFamilies->batchSources($selectedIds, $request->user());
@@ -122,18 +140,42 @@ final class ArchivePhotoEditorController extends Controller
             ->whereIn('media_item_id', $editableIds)
             ->orderBy('id')
             ->get();
-        $saved = 0;
-        $skipped = 0;
-        foreach ($drafts as $draft) {
-            try {
-                $editor->publish($draft, $request->user());
-                $saved++;
-            } catch (Throwable) {
-                $skipped++;
-            }
-        }
+        $batch = $batches->start($request->user(), $drafts);
 
-        return back()->with('status', "$saved changed photos saved; $skipped skipped for review.");
+        return back()
+            ->with('archive_photo_edit_batch_id', $batch->batch_id)
+            ->with('status', $batch->total_count.' changed photos queued. You can leave this page while they save.');
+    }
+
+    public function batchStatus(Request $request, ArchivePhotoEditBatch $batch): JsonResponse
+    {
+        abort_unless($batch->user_id === $request->user()->id, 403);
+        $batch->refresh();
+
+        return response()->json([
+            'state' => $batch->state,
+            'total' => $batch->total_count,
+            'completed' => $batch->completed_count,
+            'failed' => $batch->failed_count,
+            'processed' => $batch->completed_count + $batch->failed_count,
+            'percent' => $batch->total_count > 0
+                ? min(100, (int) round((($batch->completed_count + $batch->failed_count) / $batch->total_count) * 100))
+                : 100,
+            'active' => $batch->isActive(),
+            'retryable' => $batch->state === 'completed_with_failures' && $batch->failed_count > 0,
+        ]);
+    }
+
+    public function retryBatch(
+        Request $request,
+        ArchivePhotoEditBatch $batch,
+        ArchivePhotoEditBatchPublisher $batches,
+    ): RedirectResponse {
+        $retried = $batches->retry($batch, $request->user());
+
+        return back()
+            ->with('archive_photo_edit_batch_id', $retried->batch_id)
+            ->with('status', $retried->total_count.' photo-save checkpoints resumed.');
     }
 
     /** @return array<string, bool|float|int> */

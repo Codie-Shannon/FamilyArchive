@@ -113,6 +113,8 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::post('/archive/photos/restore-selected', [PhotoVisibilityController::class, 'restoreBatch'])->name('archive.photos.restore.batch');
     Route::get('/archive/photo-editor', [ArchivePhotoEditorController::class, 'index'])->name('archive.photos.editor');
     Route::post('/archive/photo-editor/publish-all', [ArchivePhotoEditorController::class, 'publishAll'])->name('archive.photos.editor.publish-all');
+    Route::get('/archive/photo-editor/publish-all/{batch}/status', [ArchivePhotoEditorController::class, 'batchStatus'])->name('archive.photos.editor.publish-all.status');
+    Route::post('/archive/photo-editor/publish-all/{batch}/retry', [ArchivePhotoEditorController::class, 'retryBatch'])->name('archive.photos.editor.publish-all.retry');
     Route::get('/archive/photo-editor/{mediaItem}/split', [ArchivePhotoSplitController::class, 'edit'])->name('archive.photos.editor.split');
     Route::post('/archive/photo-editor/{mediaItem}/split', [ArchivePhotoSplitController::class, 'publish'])->name('archive.photos.editor.split.publish');
     Route::get('/archive/photo-editor/{mediaItem}/source', ArchivePhotoEditorPreviewController::class)->name('archive.photos.editor.source');
