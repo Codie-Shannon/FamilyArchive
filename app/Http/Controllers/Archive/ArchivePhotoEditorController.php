@@ -68,7 +68,7 @@ final class ArchivePhotoEditorController extends Controller
         $batchQuery = ArchivePhotoEditBatch::query()->where('user_id', $request->user()->id);
         $batchEdit = filled($requestedBatchId)
             ? (clone $batchQuery)->where('batch_id', $requestedBatchId)->first()
-            : (clone $batchQuery)->whereIn('state', ['queued', 'running'])->latest('id')->first();
+            : (clone $batchQuery)->latest('id')->first();
 
         return view('archive.photo-editor', [
             'photos' => $ordered, 'batchCurrent' => $batchCurrent, 'current' => $current,
@@ -84,9 +84,20 @@ final class ArchivePhotoEditorController extends Controller
 
     public function draft(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor): JsonResponse|RedirectResponse
     {
-        $draft = $editor->saveDraft($mediaItem, $request->user(), $this->settings($request), $request->boolean('from_source_scan'));
+        $draft = $editor->saveDraft(
+            $mediaItem,
+            $request->user(),
+            $this->settings($request),
+            $request->boolean('from_source_scan'),
+            $request->integer('client_revision') ?: null,
+        );
         if ($request->expectsJson()) {
-            return response()->json(['saved' => true, 'draft_id' => $draft->id]);
+            return response()->json([
+                'saved' => true,
+                'draft_id' => $draft->id,
+                'client_revision' => $draft->client_revision,
+                'settings' => $draft->editorSettings(),
+            ]);
         }
 
         return back()->with('status', 'Draft saved. The archive photo has not changed yet.');
@@ -186,9 +197,10 @@ final class ArchivePhotoEditorController extends Controller
             'crop_left' => ['required', 'numeric', 'between:0,80'], 'crop_top' => ['required', 'numeric', 'between:0,80'], 'crop_right' => ['required', 'numeric', 'between:0,80'], 'crop_bottom' => ['required', 'numeric', 'between:0,80'],
             'brightness' => ['required', 'integer', 'between:-40,40'], 'contrast' => ['required', 'integer', 'between:-30,30'], 'red' => ['required', 'integer', 'between:-20,20'], 'green' => ['required', 'integer', 'between:-20,20'], 'blue' => ['required', 'integer', 'between:-20,20'],
             'denoise' => ['required', 'integer', 'between:0,3'], 'sharpen' => ['required', 'integer', 'between:0,2'], 'cleanup' => ['required', 'integer', 'between:0,3'], 'from_source_scan' => ['nullable', 'boolean'],
+            'client_revision' => ['nullable', 'integer', 'min:1'],
         ]);
         $validated['orient'] = $request->boolean('orient');
-        unset($validated['from_source_scan']);
+        unset($validated['from_source_scan'], $validated['client_revision']);
 
         return $validated;
     }

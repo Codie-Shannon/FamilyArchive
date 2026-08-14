@@ -69,15 +69,39 @@ final class ArchivePhotoEditor
     }
 
     /** @param array<string, bool|float|int> $settings */
-    public function saveDraft(MediaItem $item, User $actor, array $settings, bool $fromSourceScan): ArchivePhotoEditDraft
+    public function saveDraft(MediaItem $item, User $actor, array $settings, bool $fromSourceScan, ?int $clientRevision = null): ArchivePhotoEditDraft
     {
         $this->authorize($item, $actor);
         $source = $this->source($item, $fromSourceScan);
 
-        return ArchivePhotoEditDraft::query()->updateOrCreate(
-            ['user_id' => $actor->id, 'media_item_id' => $item->id],
-            ['source_version_id' => $source->id, 'settings' => $settings, 'expected_metadata_revision' => (int) ($item->metadata_revision ?? 0), 'from_source_scan' => $fromSourceScan],
-        );
+        return DB::transaction(function () use ($item, $actor, $settings, $fromSourceScan, $clientRevision, $source): ArchivePhotoEditDraft {
+            $draft = ArchivePhotoEditDraft::query()
+                ->where('user_id', $actor->id)
+                ->where('media_item_id', $item->id)
+                ->lockForUpdate()
+                ->first();
+            $storedRevision = $draft instanceof ArchivePhotoEditDraft ? (int) $draft->client_revision : 0;
+            $incomingRevision = $clientRevision ?? ($storedRevision + 1);
+            if ($draft instanceof ArchivePhotoEditDraft && $incomingRevision <= $storedRevision) {
+                throw ValidationException::withMessages([
+                    'client_revision' => 'A newer editor revision is already stored. Reload this photo before continuing.',
+                ]);
+            }
+
+            $draft ??= new ArchivePhotoEditDraft([
+                'user_id' => $actor->id,
+                'media_item_id' => $item->id,
+            ]);
+            $draft->forceFill([
+                'source_version_id' => $source->id,
+                'settings' => $settings,
+                'expected_metadata_revision' => (int) ($item->metadata_revision ?? 0),
+                'from_source_scan' => $fromSourceScan,
+                'client_revision' => $incomingRevision,
+            ])->save();
+
+            return $draft;
+        }, 5);
     }
 
     public function publish(ArchivePhotoEditDraft $draft, User $actor): MediaFileVersion

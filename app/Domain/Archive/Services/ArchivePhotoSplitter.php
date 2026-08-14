@@ -51,7 +51,7 @@ final class ArchivePhotoSplitter
         $rendered = $this->renderer->renderBatch($bytes, array_map(
             fn (array $region): array => $this->pixels($region, (int) $dimensions[0], (int) $dimensions[1]),
             $normalized,
-        ));
+        ), false);
         $written = [];
         try {
             $children = DB::transaction(function () use ($item, $actor, $source, $sourceBasis, $normalized, $rendered, $expectedRevision, &$written): array {

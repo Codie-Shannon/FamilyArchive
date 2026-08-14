@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $attempts
  */
 #[Fillable([
-    'archive_photo_edit_batch_id', 'media_item_id', 'source_version_id', 'draft_id', 'draft_fingerprint',
+    'archive_photo_edit_batch_id', 'media_item_id', 'source_version_id', 'draft_id', 'draft_fingerprint', 'draft_client_revision',
     'settings', 'expected_metadata_revision', 'from_source_scan', 'position', 'state', 'attempts',
     'published_version_id', 'failure_code', 'failure_message', 'started_at', 'completed_at',
 ])]
@@ -30,6 +30,7 @@ final class ArchivePhotoEditBatchItem extends Model
             'from_source_scan' => 'boolean',
             'position' => 'integer',
             'attempts' => 'integer',
+            'draft_client_revision' => 'integer',
             'started_at' => 'immutable_datetime',
             'completed_at' => 'immutable_datetime',
         ];

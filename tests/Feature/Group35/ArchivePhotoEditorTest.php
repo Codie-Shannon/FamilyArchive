@@ -91,6 +91,23 @@ it('keeps independent editor drafts for every selected photo', function (): void
         ->and(ArchivePhotoEditDraft::query()->where('media_item_id', $second->id)->firstOrFail()->settings['quarter_turn'])->toBe(-1);
 });
 
+it('rejects stale editor revisions before they can overwrite a newer rotation', function (): void {
+    $user = sg35EditorUser();
+    $photo = sg35EditorPhoto($user);
+    sg35EditorOriginal($photo);
+
+    $this->actingAs($user)->putJson(route('archive.photos.editor.draft', $photo), [
+        ...sg35EditorSettings(), 'quarter_turn' => 2, 'client_revision' => 2,
+    ])->assertOk()->assertJson(['client_revision' => 2]);
+    $this->actingAs($user)->putJson(route('archive.photos.editor.draft', $photo), [
+        ...sg35EditorSettings(), 'quarter_turn' => 1, 'client_revision' => 1,
+    ])->assertUnprocessable()->assertJsonValidationErrors('client_revision');
+
+    $draft = ArchivePhotoEditDraft::query()->where('media_item_id', $photo->id)->sole();
+    expect($draft->client_revision)->toBe(2)
+        ->and($draft->settings['quarter_turn'])->toBe(2);
+});
+
 it('queues save all immediately while keeping the selected page editor unchanged', function (): void {
     Queue::fake();
     $owner = sg35EditorUser('owner');
@@ -112,6 +129,7 @@ it('queues save all immediately while keeping the selected page editor unchanged
     expect($batch->state)->toBe('queued')
         ->and($batch->total_count)->toBe(2)
         ->and($batch->items()->orderBy('position')->pluck('media_item_id')->all())->toBe([$first->id, $second->id])
+        ->and($batch->items()->min('draft_client_revision'))->toBeGreaterThan(0)
         ->and(MediaFileVersion::query()->whereIn('media_item_id', [$first->id, $second->id])
             ->where('version_type', MediaFileVersionType::EditedFull)->exists())->toBeFalse();
     Queue::assertPushed(PublishArchivePhotoEdit::class, 2);
@@ -296,6 +314,8 @@ it('publishes preservation safe split photos from the selected source basis', fu
             ->where('version_type', MediaFileVersionType::EditedFull)->sole();
         expect($split->parent_version_id)->toBe($original->id)
             ->and(data_get($split->generation_recipe, 'operation'))->toBe('archive_photo_split')
+            ->and((float) data_get($split->generation_recipe, 'candidate_pipeline.deskew.applied_degrees'))->toBe(0.0)
+            ->and((int) data_get($split->generation_recipe, 'candidate_pipeline.final_crop.safety_pixels'))->toBe(0)
             ->and(MediaFileVersion::query()->where('media_item_id', $child->id)->where('version_type', MediaFileVersionType::Thumbnail)->exists())->toBeTrue();
     }
 });
@@ -466,6 +486,9 @@ it('opens the split workspace with full source duplicates and current or origina
         ->assertSee('Current corrected version')
         ->assertSee('Preserved original')
         ->assertSee('Number of photos')
+        ->assertSee('Exact output preview')
+        ->assertSee('image-orientation:none', false)
+        ->assertSee("createImageBitmap(blob,{imageOrientation:'none'})", false)
         ->assertSee('regions.push({x:0,y:0,width:10000,height:10000,rotation_degrees:0})', false);
 });
 
@@ -480,6 +503,23 @@ it('drains newer editor revisions and prepares the current draft before opening 
     ]))->assertOk()
         ->assertSee('data-prepare-split', false)
         ->assertSee('savedRevision<changeRevision', false)
-        ->assertSee('while(hasUnsaved())', false)
+        ->assertSee('while(hasUnsaved()||mustSend)', false)
+        ->assertSee('saveNow(true)', false)
         ->assertSee('publishDraft', false);
+});
+
+it('keeps the latest completed batch receipt visible after revisiting the editor', function (): void {
+    Queue::fake();
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($owner);
+    sg35EditorOriginal($photo);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $photo, true);
+    $draft = app(ArchivePhotoEditor::class)->saveDraft($photo, $owner, sg35EditorSettings(), false);
+    $batch = app(ArchivePhotoEditBatchPublisher::class)->start($owner, ArchivePhotoEditDraft::query()->whereKey($draft->id)->get());
+    app(ArchivePhotoEditBatchPublisher::class)->publish($batch->items()->sole()->id, 1);
+
+    $this->actingAs($owner)->get(route('archive.photos.editor', ['photo' => $photo->id]))
+        ->assertOk()
+        ->assertSee('Latest photo-save batch complete')
+        ->assertSee('1 of 1 processed');
 });

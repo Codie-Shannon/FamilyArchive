@@ -13,7 +13,7 @@ final class PhotoSplitCandidateRenderer
      * @param  list<array{x:int,y:int,width:int,height:int,rotation_degrees:float|int}>  $regions
      * @return list<RenderedSplitPhoto>
      */
-    public function renderBatch(string $sourceBytes, array $regions): array
+    public function renderBatch(string $sourceBytes, array $regions, bool $applyDeskew = true): array
     {
         if ($regions === []) {
             return [];
@@ -32,6 +32,8 @@ final class PhotoSplitCandidateRenderer
                 $sourceWidth,
                 $sourceHeight,
                 $regions,
+                null,
+                $applyDeskew,
             );
         }
         $imageMagick = $this->imageMagickExecutableFor($sourceWidth, $sourceHeight);
@@ -55,6 +57,7 @@ final class PhotoSplitCandidateRenderer
                 $region['width'],
                 $region['height'],
                 (float) $region['rotation_degrees'],
+                $applyDeskew,
             ), $regions);
         }
 
@@ -64,6 +67,7 @@ final class PhotoSplitCandidateRenderer
             $sourceWidth,
             $sourceHeight,
             $regions,
+            $applyDeskew,
         );
     }
 
@@ -74,6 +78,7 @@ final class PhotoSplitCandidateRenderer
         int $width,
         int $height,
         float $manualRotationDegrees = 0.0,
+        bool $applyDeskew = true,
     ): RenderedSplitPhoto {
         $dimensions = @getimagesizefromstring($sourceBytes);
         if (! is_array($dimensions)) {
@@ -101,6 +106,8 @@ final class PhotoSplitCandidateRenderer
                     'height' => $height,
                     'rotation_degrees' => $manualRotationDegrees,
                 ]],
+                null,
+                $applyDeskew,
             )[0];
         }
         $imageMagick = $this->imageMagickExecutableFor($sourceWidth, $sourceHeight);
@@ -125,6 +132,8 @@ final class PhotoSplitCandidateRenderer
                 $width,
                 $height,
                 $manualRotationDegrees,
+                null,
+                $applyDeskew,
             );
         }
 
@@ -141,8 +150,8 @@ final class PhotoSplitCandidateRenderer
         }
 
         try {
-            $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
-            $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
+            $ratio = $applyDeskew ? max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08)) : 0.0;
+            $minimumPadding = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8)) : 0;
             $maximumPadding = max($minimumPadding, (int) config('archive.multi_photo.candidate_rendering.maximum_padding_pixels', 192));
             $paddingX = min($maximumPadding, max($minimumPadding, (int) ceil($width * $ratio)));
             $paddingY = min($maximumPadding, max($minimumPadding, (int) ceil($height * $ratio)));
@@ -176,7 +185,7 @@ final class PhotoSplitCandidateRenderer
             $minimumConfidence = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55);
             $minimumDegrees = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4);
             $maximumDegrees = (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0);
-            $deskewDegrees = $skew['confidence'] >= $minimumConfidence
+            $deskewDegrees = $applyDeskew && $skew['confidence'] >= $minimumConfidence
                 && abs($skew['degrees']) >= $minimumDegrees
                 && abs($skew['degrees']) <= $maximumDegrees
                     ? -$skew['degrees']
@@ -193,7 +202,7 @@ final class PhotoSplitCandidateRenderer
             }
 
             $radians = deg2rad(abs($gdRotation));
-            $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
+            $finalSafety = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)) : 0;
             $targetWidth = (int) ceil(abs($width * cos($radians)) + abs($height * sin($radians))) + ($finalSafety * 2);
             $targetHeight = (int) ceil(abs($width * sin($radians)) + abs($height * cos($radians))) + ($finalSafety * 2);
             $targetWidth = min(imagesx($rotated), max(1, $targetWidth));
@@ -317,9 +326,10 @@ final class PhotoSplitCandidateRenderer
         int $height,
         float $manualRotationDegrees,
         ?string $preparedSourcePath = null,
+        bool $applyDeskew = true,
     ): RenderedSplitPhoto {
-        $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
-        $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
+        $ratio = $applyDeskew ? max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08)) : 0.0;
+        $minimumPadding = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8)) : 0;
         $maximumPadding = max($minimumPadding, (int) config('archive.multi_photo.candidate_rendering.maximum_padding_pixels', 192));
         $paddingX = min($maximumPadding, max($minimumPadding, (int) ceil($width * $ratio)));
         $paddingY = min($maximumPadding, max($minimumPadding, (int) ceil($height * $ratio)));
@@ -369,7 +379,7 @@ final class PhotoSplitCandidateRenderer
             $minimumConfidence = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55);
             $minimumDegrees = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4);
             $maximumDegrees = (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0);
-            $deskewDegrees = $skew['confidence'] >= $minimumConfidence
+            $deskewDegrees = $applyDeskew && $skew['confidence'] >= $minimumConfidence
                 && abs($skew['degrees']) >= $minimumDegrees
                 && abs($skew['degrees']) <= $maximumDegrees
                     ? -$skew['degrees']
@@ -378,7 +388,7 @@ final class PhotoSplitCandidateRenderer
             // ImageMagick's positive rotation is clockwise; GD's is counter-clockwise.
             $clockwiseRotation = -$gdRotation;
             $radians = deg2rad(abs($gdRotation));
-            $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
+            $finalSafety = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)) : 0;
             $targetWidth = (int) ceil(abs($width * cos($radians)) + abs($height * sin($radians))) + ($finalSafety * 2);
             $targetHeight = (int) ceil(abs($width * sin($radians)) + abs($height * cos($radians))) + ($finalSafety * 2);
             $rotatedWidth = (int) ceil(abs($workingWidth * cos($radians)) + abs($workingHeight * sin($radians)));
@@ -487,6 +497,7 @@ final class PhotoSplitCandidateRenderer
         int $sourceHeight,
         array $regions,
         ?string $preparedSourcePath = null,
+        bool $applyDeskew = true,
     ): array {
         $maximumSourcePixels = (int) config('archive.multi_photo.candidate_rendering.sharp_max_source_pixels', 250000000);
         if ($sourceWidth * $sourceHeight > $maximumSourcePixels) {
@@ -502,7 +513,7 @@ final class PhotoSplitCandidateRenderer
             if ($preparedSourcePath === null && file_put_contents($inputPath, $sourceBytes, LOCK_EX) !== strlen($sourceBytes)) {
                 throw new RuntimeException('The streaming split renderer could not stage the immutable source.');
             }
-            $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
+            $finalSafety = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)) : 0;
             $manifestRegions = [];
             foreach ($regions as $index => $region) {
                 $x = $region['x'];
@@ -513,8 +524,8 @@ final class PhotoSplitCandidateRenderer
                     || $sourceWidth < $x + $width || $sourceHeight < $y + $height) {
                     throw new RuntimeException('A streaming split region falls outside the immutable source.');
                 }
-                $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
-                $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
+                $ratio = $applyDeskew ? max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08)) : 0.0;
+                $minimumPadding = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8)) : 0;
                 $maximumPadding = max($minimumPadding, (int) config('archive.multi_photo.candidate_rendering.maximum_padding_pixels', 192));
                 $paddingX = min($maximumPadding, max($minimumPadding, (int) ceil($width * $ratio)));
                 $paddingY = min($maximumPadding, max($minimumPadding, (int) ceil($height * $ratio)));
@@ -568,7 +579,7 @@ final class PhotoSplitCandidateRenderer
                 'minimum_deskew_confidence' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55),
                 'minimum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4),
                 'maximum_deskew_degrees' => (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0),
-                'apply_deskew' => (bool) config('archive.multi_photo.candidate_rendering.sharp_apply_deskew', false),
+                'apply_deskew' => $applyDeskew && (bool) config('archive.multi_photo.candidate_rendering.sharp_apply_deskew', false),
                 'final_safety_pixels' => $finalSafety,
                 'webp_quality' => (int) config('archive.multi_photo.candidate_rendering.webp_quality', 90),
                 'maximum_output_pixels' => (int) config('archive.multi_photo.candidate_rendering.sharp_max_output_pixels', 24000000),
@@ -687,6 +698,7 @@ final class PhotoSplitCandidateRenderer
         int $sourceWidth,
         int $sourceHeight,
         array $regions,
+        bool $applyDeskew = true,
     ): array {
         $directory = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'familyarchive-split-batch-'.bin2hex(random_bytes(8));
         if (! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
@@ -704,8 +716,8 @@ final class PhotoSplitCandidateRenderer
                 $y = $region['y'];
                 $width = $region['width'];
                 $height = $region['height'];
-                $ratio = max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08));
-                $minimumPadding = max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8));
+                $ratio = $applyDeskew ? max(0.0, (float) config('archive.multi_photo.candidate_rendering.padding_ratio', 0.08)) : 0.0;
+                $minimumPadding = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.minimum_padding_pixels', 8)) : 0;
                 $maximumPadding = max($minimumPadding, (int) config('archive.multi_photo.candidate_rendering.maximum_padding_pixels', 192));
                 $paddingX = min($maximumPadding, max($minimumPadding, (int) ceil($width * $ratio)));
                 $paddingY = min($maximumPadding, max($minimumPadding, (int) ceil($height * $ratio)));
@@ -763,7 +775,7 @@ final class PhotoSplitCandidateRenderer
                 $minimumConfidence = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_confidence', 0.55);
                 $minimumDegrees = (float) config('archive.multi_photo.candidate_rendering.minimum_deskew_degrees', 0.4);
                 $maximumDegrees = (float) config('archive.multi_photo.candidate_rendering.maximum_deskew_degrees', 8.0);
-                $deskewDegrees = $skew['confidence'] >= $minimumConfidence
+                $deskewDegrees = $applyDeskew && $skew['confidence'] >= $minimumConfidence
                     && abs($skew['degrees']) >= $minimumDegrees
                     && abs($skew['degrees']) <= $maximumDegrees
                         ? -$skew['degrees']
@@ -771,7 +783,7 @@ final class PhotoSplitCandidateRenderer
                 $gdRotation = -$item['manual_rotation'] + $deskewDegrees;
                 $clockwiseRotation = -$gdRotation;
                 $radians = deg2rad(abs($gdRotation));
-                $finalSafety = max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2));
+                $finalSafety = $applyDeskew ? max(0, (int) config('archive.multi_photo.candidate_rendering.final_safety_pixels', 2)) : 0;
                 $targetWidth = (int) ceil(abs($item['width'] * cos($radians)) + abs($item['height'] * sin($radians))) + ($finalSafety * 2);
                 $targetHeight = (int) ceil(abs($item['width'] * sin($radians)) + abs($item['height'] * cos($radians))) + ($finalSafety * 2);
                 $rotatedWidth = (int) ceil(abs($item['working_width'] * cos($radians)) + abs($item['working_height'] * sin($radians)));

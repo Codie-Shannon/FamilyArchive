@@ -52,6 +52,7 @@ final class ArchivePhotoEditBatchPublisher
                     'source_version_id' => $draft->source_version_id,
                     'draft_id' => $draft->id,
                     'draft_fingerprint' => $this->draftFingerprint($draft),
+                    'draft_client_revision' => (int) $draft->client_revision,
                     'settings' => $draft->editorSettings(),
                     'expected_metadata_revision' => $draft->expected_metadata_revision,
                     'from_source_scan' => $draft->from_source_scan,
