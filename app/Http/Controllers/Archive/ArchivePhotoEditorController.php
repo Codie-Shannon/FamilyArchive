@@ -85,7 +85,7 @@ final class ArchivePhotoEditorController extends Controller
         return back()->with('status', 'Draft saved. The archive photo has not changed yet.');
     }
 
-    public function publish(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor): RedirectResponse
+    public function publish(Request $request, MediaItem $mediaItem, ArchivePhotoEditor $editor): JsonResponse|RedirectResponse
     {
         $draft = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
             ->where('media_item_id', $mediaItem->id)->firstOrFail();
@@ -94,7 +94,15 @@ final class ArchivePhotoEditorController extends Controller
         } catch (DerivativeGenerationException $exception) {
             report($exception);
 
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
             return back()->withErrors(['editor' => $exception->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['published' => true]);
         }
 
         return back()->with('status', 'Photo edit saved. The immutable original remains preserved.');

@@ -6,6 +6,7 @@ use App\Domain\Archive\Models\ArchivePhotoSplitMember;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Archive\Services\ArchivePhotoSplitter;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
+use App\Domain\Browsing\Queries\ApprovedPhotoGalleryQuery;
 use App\Domain\Media\Enums\GenerationStatus;
 use App\Domain\Media\Enums\MediaFileVersionType;
 use App\Domain\Media\Enums\MediaReviewStatus;
@@ -192,6 +193,8 @@ it('publishes preservation safe split photos from the selected source basis', fu
         ->and($group->source_version_id)->toBe($original->id)
         ->and($group->source_version_id)->not->toBe($current->id)
         ->and($group->source_basis)->toBe('original')
+        ->and($group->gallery_archive_id)->toBe($photo->archive_id)
+        ->and($group->gallery_approved_at?->toISOString())->toBe($children[0]->approved_at?->toISOString())
         ->and($group->members)->toHaveCount(2)
         ->and((bool) $children[0]->fresh()->getAttribute('contains_living_person'))->toBeTrue()
         ->and((bool) $children[0]->fresh()->getAttribute('contains_child'))->toBeTrue()
@@ -294,6 +297,54 @@ it('returns a published split to its batch group with the first split selected',
     $response->assertRedirect('/archive/photo-editor?photo='.$source->id.'&return_to=%2Farchive%3Fpage%3D6&split_photo='.$first->media_item_id);
 });
 
+it('publishes the current draft before splitting without touching other batch drafts', function (): void {
+    $owner = sg35EditorUser('owner');
+    $source = sg35EditorPhoto($owner);
+    $other = sg35EditorPhoto($owner);
+    sg35EditorOriginal($source);
+    sg35EditorOriginal($other);
+    app(ArchivePhotoEditor::class)->saveDraft($source, $owner, sg35EditorSettings(), false);
+    app(ArchivePhotoEditor::class)->saveDraft($other, $owner, [...sg35EditorSettings(), 'quarter_turn' => -1], false);
+
+    $this->actingAs($owner)->postJson(route('archive.photos.editor.publish', $source))
+        ->assertOk()
+        ->assertJson(['published' => true]);
+
+    expect(ArchivePhotoEditDraft::query()->where('media_item_id', $source->id)->exists())->toBeFalse()
+        ->and(ArchivePhotoEditDraft::query()->where('media_item_id', $other->id)->exists())->toBeTrue()
+        ->and(MediaFileVersion::query()->where('media_item_id', $source->id)
+            ->where('version_type', MediaFileVersionType::EditedFull)
+            ->where('is_preferred', true)->exists())->toBeTrue();
+
+    $this->actingAs($owner)->get(route('archive.photos.editor.split', $source))
+        ->assertOk()
+        ->assertSee('Current corrected version');
+});
+
+it('keeps published splits together at the original gallery position', function (): void {
+    $owner = sg35EditorUser('owner');
+    $newer = sg35EditorPhoto($owner);
+    $source = sg35EditorPhoto($owner);
+    $older = sg35EditorPhoto($owner);
+    $newer->forceFill(['approved_at' => now()->subHour()])->save();
+    $source->forceFill(['approved_at' => now()->subHours(2)])->save();
+    $older->forceFill(['approved_at' => now()->subHours(3)])->save();
+    sg35EditorOriginal($newer);
+    sg35EditorOriginal($source);
+    sg35EditorOriginal($older);
+
+    $children = app(ArchivePhotoSplitter::class)->split($source, $owner, [
+        ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+    ], (int) ($source->metadata_revision ?? 0), 'current');
+
+    $ids = collect(app(ApprovedPhotoGalleryQuery::class)->handle($owner, 10)->items())
+        ->map(fn ($item): int => $item->mediaItemId)
+        ->all();
+
+    expect($ids)->toBe([$newer->id, $children[0]->id, $children[1]->id, $older->id]);
+});
+
 it('saves edits made to an archive split without a server error', function (): void {
     $owner = sg35EditorUser('owner');
     $source = sg35EditorPhoto($owner);
@@ -325,4 +376,19 @@ it('opens the split workspace with full source duplicates and current or origina
         ->assertSee('Preserved original')
         ->assertSee('Number of photos')
         ->assertSee('regions.push({x:0,y:0,width:10000,height:10000,rotation_degrees:0})', false);
+});
+
+it('drains newer editor revisions and prepares the current draft before opening split', function (): void {
+    $owner = sg35EditorUser('owner');
+    $photo = sg35EditorPhoto($owner);
+    sg35EditorOriginal($photo);
+
+    $this->actingAs($owner)->get(route('archive.photos.editor', [
+        'single_photo' => $photo->id,
+        'return_to' => route('archive.index', absolute: false),
+    ]))->assertOk()
+        ->assertSee('data-prepare-split', false)
+        ->assertSee('savedRevision<changeRevision', false)
+        ->assertSee('while(hasUnsaved())', false)
+        ->assertSee('publishDraft', false);
 });

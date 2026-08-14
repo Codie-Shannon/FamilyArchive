@@ -36,19 +36,24 @@ final class ApprovedPhotoGalleryQuery
         bool $hidden = false,
     ): LengthAwarePaginator {
         $query = MediaItem::query()
-            ->select(['id', 'archive_id', 'title', 'approved_at', 'created_by', 'metadata_revision', 'hidden_at'])
+            ->leftJoin('archive_photo_split_members as gallery_split_members', 'media_items.id', '=', 'gallery_split_members.media_item_id')
+            ->leftJoin('archive_photo_split_groups as gallery_split_groups', 'gallery_split_members.archive_photo_split_group_id', '=', 'gallery_split_groups.id')
+            ->select([
+                'media_items.id', 'media_items.archive_id', 'media_items.title', 'media_items.approved_at',
+                'media_items.created_by', 'media_items.metadata_revision', 'media_items.hidden_at',
+            ])
             ->with(['fileVersions' => fn ($query) => $query
                 ->select(['id', 'media_item_id', 'parent_version_id', 'version_type', 'storage_disk', 'mime_type', 'extension', 'generation_status', 'generation_recipe', 'is_preferred'])
                 ->whereIn('version_type', [MediaFileVersionType::Original, MediaFileVersionType::EditedFull, MediaFileVersionType::Thumbnail]),
                 'fileVersions.restorationCandidate:id,candidate_version_id,source_version_id,review_state',
             ])
-            ->where('media_type', MediaType::Photo)
-            ->where('review_status', MediaReviewStatus::Approved)
-            ->whereNotNull('approved_at');
-        $query->when($hidden, fn ($builder) => $builder->whereNotNull('hidden_at'))
-            ->when(! $hidden, fn ($builder) => $builder->whereNull('hidden_at'));
+            ->where('media_items.media_type', MediaType::Photo)
+            ->where('media_items.review_status', MediaReviewStatus::Approved)
+            ->whereNotNull('media_items.approved_at');
+        $query->when($hidden, fn ($builder) => $builder->whereNotNull('media_items.hidden_at'))
+            ->when(! $hidden, fn ($builder) => $builder->whereNull('media_items.hidden_at'));
         if ($createdBy !== null) {
-            $query->where('created_by', $createdBy);
+            $query->where('media_items.created_by', $createdBy);
         }
         if ($mediaItemId !== null) {
             $query->whereKey($mediaItemId);
@@ -63,10 +68,10 @@ final class ApprovedPhotoGalleryQuery
         if (filled($search)) {
             $term = mb_substr(trim((string) $search), 0, 100);
             $query->where(fn ($builder) => $builder
-                ->where('title', 'like', "%{$term}%")
-                ->orWhere('description', 'like', "%{$term}%")
-                ->orWhere('story', 'like', "%{$term}%")
-                ->orWhere('archive_id', 'like', "%{$term}%"));
+                ->where('media_items.title', 'like', "%{$term}%")
+                ->orWhere('media_items.description', 'like', "%{$term}%")
+                ->orWhere('media_items.story', 'like', "%{$term}%")
+                ->orWhere('media_items.archive_id', 'like', "%{$term}%"));
         }
 
         $visibleQuery = $hidden && ! $user->isArchiveAdministrator()
@@ -74,8 +79,10 @@ final class ApprovedPhotoGalleryQuery
             : $this->access->scopeVisible($query, $user);
 
         $paginator = $visibleQuery
-            ->orderByDesc('approved_at')
-            ->orderBy('archive_id')
+            ->orderByRaw('COALESCE(gallery_split_groups.gallery_approved_at, media_items.approved_at) DESC')
+            ->orderByRaw('COALESCE(gallery_split_groups.gallery_archive_id, media_items.archive_id) ASC')
+            ->orderByRaw('COALESCE(gallery_split_members.position, 0) ASC')
+            ->orderBy('media_items.archive_id')
             ->paginate(max(1, min($perPage, 100)));
 
         return $paginator->through(function (MediaItem $item): ApprovedPhotoGalleryItem {

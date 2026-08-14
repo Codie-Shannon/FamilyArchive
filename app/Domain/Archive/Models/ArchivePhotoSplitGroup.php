@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['source_media_item_id', 'source_version_id', 'created_by', 'source_basis', 'published_at'])]
+#[Fillable(['source_media_item_id', 'source_version_id', 'created_by', 'source_basis', 'gallery_approved_at', 'gallery_archive_id', 'published_at'])]
 final class ArchivePhotoSplitGroup extends Model
 {
     protected function casts(): array
     {
-        return ['published_at' => 'immutable_datetime'];
+        return [
+            'gallery_approved_at' => 'immutable_datetime',
+            'published_at' => 'immutable_datetime',
+        ];
     }
 
     /** @return BelongsTo<MediaItem, $this> */

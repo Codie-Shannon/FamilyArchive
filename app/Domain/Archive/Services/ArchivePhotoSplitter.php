@@ -60,12 +60,15 @@ final class ArchivePhotoSplitter
                 if ($parent->metadata_revision !== $expectedRevision || $parent->review_status !== MediaReviewStatus::Approved) {
                     throw ValidationException::withMessages(['regions_json' => 'This photo changed while the split editor was open. Reload it before publishing.']);
                 }
+                $galleryApprovedAt = $parent->approved_at;
 
                 $group = ArchivePhotoSplitGroup::query()->create([
                     'source_media_item_id' => $parent->id,
                     'source_version_id' => $source->id,
                     'created_by' => $actor->id,
                     'source_basis' => $sourceBasis,
+                    'gallery_approved_at' => $galleryApprovedAt,
+                    'gallery_archive_id' => $parent->archive_id,
                     'published_at' => now(),
                 ]);
                 $children = [];
@@ -95,7 +98,7 @@ final class ArchivePhotoSplitter
                         'family_branch_id' => $parent->family_branch_id,
                         'created_by' => $parent->created_by,
                         'approved_by' => $actor->id,
-                        'approved_at' => now(),
+                        'approved_at' => $galleryApprovedAt,
                     ]);
                     $child->forceFill([
                         'contains_living_person' => $parent->getAttribute('contains_living_person'),
