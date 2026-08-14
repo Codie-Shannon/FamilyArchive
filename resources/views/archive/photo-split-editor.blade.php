@@ -16,6 +16,7 @@
         @csrf
         <input type="hidden" name="expected_metadata_revision" value="{{ $photo->metadata_revision }}">
         <input type="hidden" name="return_to" value="{{ $returnTo }}">
+        <input type="hidden" name="editor_return_to" value="{{ $editorReturnTo }}">
         <input id="archive-split-regions" type="hidden" name="regions_json">
 
         <section class="sticky top-2 z-20 grid gap-3 rounded-2xl border border-zinc-700 bg-zinc-950/95 p-4 shadow-2xl backdrop-blur md:grid-cols-[minmax(0,1fr)_11rem_auto] md:items-end">

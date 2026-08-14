@@ -43,6 +43,7 @@ final class ArchivePhotoSplitController extends Controller
             'source_basis' => ['required', 'in:current,original'],
             'regions_json' => ['required', 'string', 'max:50000'],
             'return_to' => ['nullable', 'string', 'max:2000'],
+            'editor_return_to' => ['nullable', 'string', 'max:4000'],
         ]);
         try {
             $regions = json_decode($validated['regions_json'], true, 64, JSON_THROW_ON_ERROR);
@@ -61,10 +62,12 @@ final class ArchivePhotoSplitController extends Controller
         );
         $first = $children[0];
 
-        return redirect()->route('archive.photos.editor', [
-            'single_photo' => $first->id,
-            'return_to' => $validated['return_to'] ?: route('archive.index', absolute: false),
-        ])->with('status', count($children).' split photos published. The source remains preserved and every split is grouped in edit mode.');
+        return redirect()->to($this->editorUrlWithSplit(
+            (string) ($validated['editor_return_to'] ?? ''),
+            $mediaItem,
+            $first,
+            (string) ($validated['return_to'] ?: route('archive.index', absolute: false)),
+        ))->with('status', count($children).' split photos published. The source remains preserved and every split is grouped in edit mode.');
     }
 
     private function authorizePhoto(Request $request, MediaItem $item, PhotoVisibilityManager $visibility): void
@@ -89,6 +92,33 @@ final class ArchivePhotoSplitController extends Controller
             'return_to' => route('archive.photos.show', $item, false),
         ], false));
 
-        return str_starts_with($returnTo, '/archive') ? $returnTo : route('archive.index', absolute: false);
+        return str_starts_with($returnTo, '/archive/photo-editor') ? $returnTo : route('archive.photos.editor', [
+            'single_photo' => $item->id,
+            'return_to' => route('archive.photos.show', $item, false),
+        ], false);
+    }
+
+    private function editorUrlWithSplit(string $editorReturnTo, MediaItem $source, MediaItem $split, string $returnTo): string
+    {
+        $parts = parse_url($editorReturnTo);
+        $path = is_array($parts) ? ($parts['path'] ?? '') : '';
+        $query = [];
+        if (is_array($parts) && isset($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+        if ($path !== '/archive/photo-editor') {
+            $path = '/archive/photo-editor';
+            $query = [];
+        }
+        if (isset($query['single_photo'])) {
+            $query['single_photo'] = $source->id;
+            unset($query['photo']);
+        } else {
+            $query['photo'] = $source->id;
+        }
+        $query['split_photo'] = $split->id;
+        $query['return_to'] = $returnTo;
+
+        return $path.'?'.http_build_query($query);
     }
 }

@@ -6,8 +6,9 @@ use App\Domain\Archive\Models\ArchivePhotoEditDraft;
 use App\Domain\Archive\Services\ArchivePhotoEditor;
 use App\Domain\Archive\Services\ArchivePhotoSplitFamily;
 use App\Domain\Archive\Services\ArchiveSelectionManager;
+use App\Domain\Archive\Services\PhotoVisibilityManager;
+use App\Domain\Derivatives\Exceptions\DerivativeGenerationException;
 use App\Domain\Media\Enums\MediaReviewStatus;
-use App\Domain\Media\Enums\MediaType;
 use App\Domain\Media\Models\MediaItem;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
@@ -18,33 +19,58 @@ use Throwable;
 
 final class ArchivePhotoEditorController extends Controller
 {
-    public function index(Request $request, ArchiveSelectionManager $selections, ArchivePhotoEditor $editor, ArchivePhotoSplitFamily $splitFamilies): View
-    {
+    public function index(
+        Request $request,
+        ArchiveSelectionManager $selections,
+        ArchivePhotoEditor $editor,
+        ArchivePhotoSplitFamily $splitFamilies,
+        PhotoVisibilityManager $visibility,
+    ): View {
         $singlePhotoId = $request->integer('single_photo');
         $ids = $singlePhotoId > 0
             ? collect([$singlePhotoId])
             : $selections->ids($request->user(), 'photos:visible');
         abort_if($ids->isEmpty(), 422, 'Select at least one photo to edit.');
-        $photos = MediaItem::query()
-            ->whereKey($ids)
-            ->where('media_type', MediaType::Photo)
-            ->where('review_status', MediaReviewStatus::Approved)
-            ->whereNotNull('approved_at')
-            ->get()
-            ->keyBy('id');
-        $ordered = $ids->map(fn (int $id) => $photos->get($id))->filter()->values();
-        $currentId = (int) $request->query('photo', $ids->first());
-        $current = $ordered->firstWhere('id', $currentId) ?? $ordered->first();
-        abort_unless($current instanceof MediaItem, 404);
-        abort_unless($request->user()->role === 'owner' || (int) $current->created_by === (int) $request->user()->id, 403);
+        if ($singlePhotoId > 0) {
+            $singlePhoto = MediaItem::query()->findOrFail($singlePhotoId);
+            abort_unless($visibility->canManage($request->user(), $singlePhoto), 403);
+        }
+
+        $ordered = $splitFamilies->batchSources($ids, $request->user());
+        abort_if($ordered->isEmpty(), 404);
+        $requestedId = (int) $request->query('photo', $ids->first());
+        $requested = MediaItem::query()->find($requestedId);
+        $requestedSource = $requested instanceof MediaItem ? ($splitFamilies->sourceFor($requested) ?? $requested) : null;
+        $batchCurrent = $requestedSource instanceof MediaItem
+            ? ($ordered->firstWhere('id', $requestedSource->id) ?? $ordered->first())
+            : $ordered->first();
+
+        $selectedSplitId = $request->integer('split_photo');
+        if ($selectedSplitId < 1 && $singlePhotoId > 0 && $singlePhotoId !== $batchCurrent->id) {
+            $selectedSplitId = $singlePhotoId;
+        }
+        $splitFamily = $splitFamilies->forEditor($batchCurrent, $request->user(), $selectedSplitId ?: null);
+        $selectedSplitIds = collect($splitFamily)->pluck('id')->map(static fn ($id): int => (int) $id);
+        $current = $selectedSplitIds->contains($selectedSplitId)
+            ? MediaItem::query()->find($selectedSplitId)
+            : null;
+        if (! $current instanceof MediaItem && $splitFamily === []
+            && $batchCurrent->review_status === MediaReviewStatus::Approved
+            && $batchCurrent->approved_at !== null) {
+            $current = $batchCurrent;
+        }
+
+        $editableIds = $splitFamilies->editableIds($ordered, $request->user());
         $drafts = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
-            ->whereIn('media_item_id', $ids)->get()->keyBy('media_item_id');
+            ->whereIn('media_item_id', $editableIds)->get()->keyBy('media_item_id');
 
         return view('archive.photo-editor', [
-            'photos' => $ordered, 'current' => $current, 'draft' => $drafts->get($current->id),
-            'draftCount' => $drafts->count(), 'isSplit' => $editor->isSplit($current),
+            'photos' => $ordered, 'batchCurrent' => $batchCurrent, 'current' => $current,
+            'draft' => $current instanceof MediaItem ? $drafts->get($current->id) : null,
+            'draftCount' => $drafts->count(), 'isSplit' => $current instanceof MediaItem && $editor->isSplit($current),
+            'previewOnly' => ! $current instanceof MediaItem,
             'singlePhotoMode' => $singlePhotoId > 0,
-            'splitFamily' => $splitFamilies->forEditor($current, $request->user()),
+            'splitFamily' => $splitFamily,
             'returnTo' => (string) $request->query('return_to', route('archive.index', absolute: false)),
         ]);
     }
@@ -63,17 +89,29 @@ final class ArchivePhotoEditorController extends Controller
     {
         $draft = ArchivePhotoEditDraft::query()->where('user_id', $request->user()->id)
             ->where('media_item_id', $mediaItem->id)->firstOrFail();
-        $editor->publish($draft, $request->user());
+        try {
+            $editor->publish($draft, $request->user());
+        } catch (DerivativeGenerationException $exception) {
+            report($exception);
+
+            return back()->withErrors(['editor' => $exception->getMessage()]);
+        }
 
         return back()->with('status', 'Photo edit saved. The immutable original remains preserved.');
     }
 
-    public function publishAll(Request $request, ArchivePhotoEditor $editor, ArchiveSelectionManager $selections): RedirectResponse
-    {
+    public function publishAll(
+        Request $request,
+        ArchivePhotoEditor $editor,
+        ArchiveSelectionManager $selections,
+        ArchivePhotoSplitFamily $splitFamilies,
+    ): RedirectResponse {
         $selectedIds = $selections->ids($request->user(), 'photos:visible');
+        $sources = $splitFamilies->batchSources($selectedIds, $request->user());
+        $editableIds = $splitFamilies->editableIds($sources, $request->user());
         $drafts = ArchivePhotoEditDraft::query()
             ->where('user_id', $request->user()->id)
-            ->whereIn('media_item_id', $selectedIds)
+            ->whereIn('media_item_id', $editableIds)
             ->orderBy('id')
             ->get();
         $saved = 0;

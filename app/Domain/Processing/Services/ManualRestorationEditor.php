@@ -40,13 +40,13 @@ final class ManualRestorationEditor
     public function renderApprovedSource(MediaFileVersion $source, array $settings): array
     {
         $normalized = $this->normalize($settings);
-        $sourceBytes = $this->readAndVerifySource($source);
+        $sourceBytes = $this->readAndVerifyApprovedSource($source);
         [$bytes, $width, $height, $operations] = $this->renderWithProcessingMemory(
             $sourceBytes,
             $source->mime_type,
             $normalized,
         );
-        $this->readAndVerifySource($source);
+        $this->readAndVerifyApprovedSource($source);
 
         return compact('bytes', 'width', 'height', 'operations', 'normalized') + [
             'source_sha256' => hash('sha256', $sourceBytes),
@@ -553,6 +553,34 @@ final class ManualRestorationEditor
         $bytes = $disk->get($source->storage_path);
         if (strlen($bytes) !== $source->file_size_bytes || ! hash_equals(strtolower($source->sha256), hash('sha256', $bytes))) {
             throw new DerivativeGenerationException('The immutable source failed integrity verification.');
+        }
+
+        return $bytes;
+    }
+
+    private function readAndVerifyApprovedSource(MediaFileVersion $source): string
+    {
+        $isImmutableOriginal = $source->version_type === MediaFileVersionType::Original
+            && $source->storage_disk === 'archive_originals'
+            && $source->parent_version_id === null;
+        $isApprovedArchiveEdit = $source->version_type === MediaFileVersionType::EditedFull
+            && $source->storage_disk === 'archive_derivatives'
+            && $source->parent_version_id !== null
+            && $source->mime_type === 'image/webp'
+            && $source->extension === 'webp';
+
+        if ((! $isImmutableOriginal && ! $isApprovedArchiveEdit)
+            || $source->generation_status !== GenerationStatus::Ready
+            || ! $source->is_preferred) {
+            throw new DerivativeGenerationException('A ready preferred approved editing source is required.');
+        }
+
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk($source->storage_disk);
+        abort_unless($disk->exists($source->storage_path), 404);
+        $bytes = $disk->get($source->storage_path);
+        if (strlen($bytes) !== $source->file_size_bytes || ! hash_equals(strtolower($source->sha256), hash('sha256', $bytes))) {
+            throw new DerivativeGenerationException('The approved editing source failed integrity verification.');
         }
 
         return $bytes;

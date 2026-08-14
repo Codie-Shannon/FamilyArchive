@@ -169,7 +169,7 @@ it('lets a split photo restart from the full source scan without changing siblin
     $this->actingAs($owner)->get(route('archive.photos.editor', [
         'single_photo' => $split->id,
         'return_to' => route('archive.index', absolute: false),
-    ]))->assertOk()->assertSee('Splits from this source')->assertSee($sibling->archive_id);
+    ]))->assertOk()->assertSee('Saved photos from this source')->assertSee($sibling->archive_id);
 });
 
 it('publishes preservation safe split photos from the selected source basis', function (): void {
@@ -206,7 +206,7 @@ it('publishes preservation safe split photos from the selected source basis', fu
     }
 });
 
-it('shows every split sibling only inside edit mode and preserves filmstrip state', function (): void {
+it('groups every split sibling beneath its source only inside edit mode', function (): void {
     $owner = sg35EditorUser('owner');
     $photo = sg35EditorPhoto($owner);
     sg35EditorOriginal($photo);
@@ -220,7 +220,7 @@ it('shows every split sibling only inside edit mode and preserves filmstrip stat
         'return_to' => route('archive.index', absolute: false),
     ]));
     $editor->assertOk()
-        ->assertSee('Splits from this source')
+        ->assertSee('Saved photos from this source')
         ->assertSee($children[0]->archive_id)
         ->assertSee($children[1]->archive_id)
         ->assertSee('familyarchive:editor-filmstrip', false)
@@ -228,8 +228,90 @@ it('shows every split sibling only inside edit mode and preserves filmstrip stat
 
     $this->actingAs($owner)->get(route('archive.photos.show', $children[0]))
         ->assertOk()
-        ->assertDontSee('Splits from this source')
+        ->assertDontSee('Saved photos from this source')
         ->assertDontSee($children[1]->archive_id);
+});
+
+it('keeps split children out of the batch selector and previews the original source', function (): void {
+    $owner = sg35EditorUser('owner');
+    $source = sg35EditorPhoto($owner);
+    $other = sg35EditorPhoto($owner);
+    sg35EditorOriginal($source);
+    sg35EditorOriginal($other);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $source, true);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $other, true);
+    $children = app(ArchivePhotoSplitter::class)->split($source, $owner, [
+        ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+    ], (int) ($source->metadata_revision ?? 0), 'current');
+
+    $preview = $this->actingAs($owner)->get(route('archive.photos.editor', [
+        'photo' => $source->id,
+        'return_to' => '/archive?page=4',
+    ]));
+    $preview->assertOk()
+        ->assertSee('Original preview only')
+        ->assertSee('data-batch-photo-id="'.$source->id.'"', false)
+        ->assertSee('data-batch-photo-id="'.$other->id.'"', false)
+        ->assertDontSee('data-batch-photo-id="'.$children[0]->id.'"', false)
+        ->assertSee('data-split-photo-id="'.$children[0]->id.'"', false)
+        ->assertSee('data-split-photo-id="'.$children[1]->id.'"', false);
+
+    $editor = $this->actingAs($owner)->get(route('archive.photos.editor', [
+        'photo' => $source->id,
+        'split_photo' => $children[1]->id,
+        'return_to' => '/archive?page=4',
+    ]));
+    $editor->assertOk()
+        ->assertDontSee('Original preview only')
+        ->assertSee(route('archive.photos.editor.draft', $children[1]))
+        ->assertSee('xl:sticky xl:top-3', false);
+
+    $this->actingAs($owner)->get(route('archive.photos.editor.thumbnail', [$source, 'basis' => 'original']))
+        ->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff');
+});
+
+it('returns a published split to its batch group with the first split selected', function (): void {
+    $owner = sg35EditorUser('owner');
+    $source = sg35EditorPhoto($owner);
+    sg35EditorOriginal($source);
+    app(ArchiveSelectionManager::class)->set($owner, 'photos:visible', $source, true);
+
+    $response = $this->actingAs($owner)->post(route('archive.photos.editor.split.publish', $source), [
+        'expected_metadata_revision' => (int) ($source->metadata_revision ?? 0),
+        'source_basis' => 'current',
+        'regions_json' => json_encode([
+            ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+            ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ], JSON_THROW_ON_ERROR),
+        'return_to' => '/archive?page=6',
+        'editor_return_to' => '/archive/photo-editor?photo='.$source->id.'&return_to=%2Farchive%3Fpage%3D6',
+    ]);
+
+    $response->assertSessionHasNoErrors();
+    $first = ArchivePhotoSplitMember::query()->orderBy('position')->firstOrFail();
+    $response->assertRedirect('/archive/photo-editor?photo='.$source->id.'&return_to=%2Farchive%3Fpage%3D6&split_photo='.$first->media_item_id);
+});
+
+it('saves edits made to an archive split without a server error', function (): void {
+    $owner = sg35EditorUser('owner');
+    $source = sg35EditorPhoto($owner);
+    sg35EditorOriginal($source);
+    $children = app(ArchivePhotoSplitter::class)->split($source, $owner, [
+        ['x' => 0, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+        ['x' => 5000, 'y' => 0, 'width' => 5000, 'height' => 10000, 'rotation_degrees' => 0],
+    ], (int) ($source->metadata_revision ?? 0), 'current');
+    $draft = app(ArchivePhotoEditor::class)->saveDraft($children[0], $owner, sg35EditorSettings(), false);
+
+    $edited = app(ArchivePhotoEditor::class)->publish($draft, $owner);
+
+    expect($edited->parent_version_id)->not->toBeNull()
+        ->and($edited->media_item_id)->toBe($children[0]->id)
+        ->and(MediaFileVersion::query()->where('media_item_id', $children[0]->id)
+            ->where('version_type', MediaFileVersionType::Thumbnail)
+            ->where('parent_version_id', $edited->id)
+            ->where('is_preferred', true)->exists())->toBeTrue();
 });
 
 it('opens the split workspace with full source duplicates and current or original choice', function (): void {

@@ -28,6 +28,7 @@ use App\Http\Controllers\Archive\ArchiveLocationController;
 use App\Http\Controllers\Archive\ArchivePersonController;
 use App\Http\Controllers\Archive\ArchivePhotoEditorController;
 use App\Http\Controllers\Archive\ArchivePhotoEditorPreviewController;
+use App\Http\Controllers\Archive\ArchivePhotoEditorThumbnailController;
 use App\Http\Controllers\Archive\ArchivePhotoPreferenceController;
 use App\Http\Controllers\Archive\ArchivePhotoSplitController;
 use App\Http\Controllers\Archive\ArchiveSelectionController;
@@ -115,6 +116,7 @@ Route::middleware(['auth', 'verified', 'account.approved', 'demo.readonly'])->gr
     Route::get('/archive/photo-editor/{mediaItem}/split', [ArchivePhotoSplitController::class, 'edit'])->name('archive.photos.editor.split');
     Route::post('/archive/photo-editor/{mediaItem}/split', [ArchivePhotoSplitController::class, 'publish'])->name('archive.photos.editor.split.publish');
     Route::get('/archive/photo-editor/{mediaItem}/source', ArchivePhotoEditorPreviewController::class)->name('archive.photos.editor.source');
+    Route::get('/archive/photo-editor/{mediaItem}/thumbnail', ArchivePhotoEditorThumbnailController::class)->name('archive.photos.editor.thumbnail');
     Route::put('/archive/photo-editor/{mediaItem}/draft', [ArchivePhotoEditorController::class, 'draft'])->name('archive.photos.editor.draft');
     Route::post('/archive/photo-editor/{mediaItem}/publish', [ArchivePhotoEditorController::class, 'publish'])->name('archive.photos.editor.publish');
     Route::get('/archive/albums', [ArchiveAlbumController::class, 'index'])->name('archive.albums.index');
