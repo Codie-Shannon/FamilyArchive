@@ -41,18 +41,18 @@ jobs:
           upload-release-assets: false
 
       - name: Attest Build Provenance
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/family-archive-${{ github.ref_name }}.zip
 
       - name: Attest Release SBOM
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/family-archive-${{ github.ref_name }}.zip
           sbom-path: dist/family-archive-${{ github.ref_name }}.spdx.json
 
       - name: Upload Workflow Artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-supply-chain-${{ github.ref_name }}
           path: dist/
